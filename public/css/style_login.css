@@ -1,0 +1,257 @@
+body {
+    font-family: "Arial", sans-serif;
+}
+
+/* Navbar Styles untuk MTS AR-RIYADL - Elegan dan Responsif */
+:root {
+    --primary-color: #0d6efd;
+    --primary-hover: #0b5ed7;
+    --text-color: #0d6efd;
+    --light-gray: #f8f9fa;
+    --border-color: #e9ecef;
+}
+
+/* Reset dan Dasar */
+nav {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Navbar Container */
+.navbar {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 1.5rem;
+    position: relative;
+}
+
+/* Logo / Brand */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    letter-spacing: -0.3px;
+    margin-right: 2rem;
+    transition: color 0.2s ease;
+}
+
+.navbar-brand:hover {
+    color: var(--primary-hover);
+}
+
+/* Nav Links Container */
+.navbar-nav {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    gap: 1rem;
+}
+
+/* Nav Link Item */
+.nav-link {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    position: relative;
+    padding: 0.5rem 0.75rem;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color);
+}
+
+/* Active Nav Link */
+.nav-link.active {
+    color: var(--primary-color);
+}
+
+.nav-link.active:after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+    transform: scaleX(1);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+}
+
+/* Efek Hover untuk Link */
+.nav-link:after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+}
+
+.nav-link:hover:after {
+    transform: scaleX(0.8);
+}
+
+/* Login Link dengan Styling Khusus */
+.login-admin {
+    color: var(--primary-color);
+    font-weight: 600;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.25rem;
+}
+
+.login-admin:hover {
+    color: var(--primary-hover);
+}
+
+/* Responsive Styling */
+@media (max-width: 992px) {
+    .navbar {
+        padding: 0 1rem;
+    }
+
+    .navbar-nav {
+        gap: 0.5rem;
+    }
+
+    .nav-link {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.6rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Hamburger Menu untuk Mobile */
+    .navbar-toggler {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 24px;
+        height: 20px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        margin-left: auto;
+    }
+
+    .navbar-toggler span {
+        display: block;
+        width: 100%;
+        height: 2px;
+        background-color: var(--text-color);
+        transition: all 0.3s ease;
+    }
+
+    .navbar-toggler.active span:nth-child(1) {
+        transform: translateY(9px) rotate(45deg);
+    }
+
+    .navbar-toggler.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .navbar-toggler.active span:nth-child(3) {
+        transform: translateY(-9px) rotate(-45deg);
+    }
+
+    /* Mobile Menu */
+    .navbar-collapse {
+        position: absolute;
+        top: 60px;
+        left: 0;
+        right: 0;
+        background-color: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .navbar-collapse.show {
+        max-height: 300px;
+    }
+
+    .navbar-nav {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    .nav-link {
+        width: 100%;
+        padding: 0.5rem 0;
+    }
+
+    .login-admin {
+        margin-top: 0.5rem;
+        display: inline-block;
+    }
+}
+
+/* Login Container */
+.login-container {
+    max-width: 700px;
+    margin: auto;
+}
+
+/* Login Card */
+.login-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.login-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Login Icon */
+.login-icon {
+    max-width: 100px; /* Sesuaikan ukuran */
+    height: auto;
+    margin-bottom: 15px;
+}
+
+/* Button */
+.btn-primary {
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    transform: scale(1.03);
+}
+
+/* Responsif */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 20px;
+    }
+    .login-card {
+        padding: 20px;
+    }
+}
