@@ -252,23 +252,23 @@
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Pelaku :</strong></td>
-                                                    <td>{{ $reporter->nama_pelaku ?? 'Nama Pelaku' }}</td>
+                                                    <td>{{ $perpetratorsNames ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Korban :</strong></td>
-                                                    <td>{{ $reporter->nama_korban ?? 'Nama Korban' }}</td>
+                                                    <td>{{ $victimNames ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Saksi :</strong></td>
-                                                    <td>{{ $reporter->nama_saksi ?? 'Nama Saksi' }}</td>
+                                                    <td>{{ $witnesNames ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Lokasi Kejadian :</strong></td>
-                                                    <td>{{ $reporter->lokasi ?? 'Ruang Kelas XII-A' }}</td>
+                                                    <td>{{ $reporter?->reporterDetail->location ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Waktu Kejadian :</strong></td>
-                                                    <td>{{ ($reporter->tanggal ?? false) ? \Carbon\Carbon::parse($reporter->tanggal)->format('d M Y') . ', ' . \Carbon\Carbon::parse($reporter->jam)->format('H:i') . ' WIB' : '18 Feb 2023, 10:30 WIB' }}</td>
+                                                    <td>{{ $reporter?->reporterDetail->formatted_report_date}}</td>
                                                 </tr>
                                             </table>
                                         </div>

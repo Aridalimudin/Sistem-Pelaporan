@@ -14,8 +14,11 @@ class Reporter extends Model
 
     protected $fillable = [
         'student_id',
+        'operation_id',
         'code',
         'description',
+        'reason',
+        'file',
         'urgency',
         'status'
     ];

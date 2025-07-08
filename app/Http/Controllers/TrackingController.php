@@ -22,7 +22,7 @@ class TrackingController extends Controller
         $done = null;
         $reject = null;
 
-        $reporter = Reporter::with(['reporterFile','crime','student'])->where('code', $request->code)->first();
+        $reporter = Reporter::with(['reporterFile','crime','student','reporterDetail.victims','reporterDetail.perpetrators','reporterDetail.witnesses'])->where('code', $request->code)->first();
 
         if($reporter){
             if ($reporter->crime) {
@@ -39,6 +39,16 @@ class TrackingController extends Controller
             $reject = ReporterHistoryTracking::where('reporter_id', $reporter->id)->where('status', 4)->first();
         }
 
+        $victimNames = $reporter->reporterDetail->victims->map(function ($victim) {
+                return $victim->name . ' (' . $victim->classroom . ')';
+        })->implode(', ');
+        $perpetratorsNames = $reporter->reporterDetail->perpetrators->map(function ($perpetrator) {
+                return $perpetrator->name . ' (' . $perpetrator->classroom . ')';
+        })->implode(', ');
+        $witnesNames = $reporter->reporterDetail->witnesses->map(function ($witnes) {
+                return $witnes->name . ' (' . $witnes->classroom . ')';
+        })->implode(', ');
+
         $students = Student::all()->map(function ($student) {
             return [
                 'id' => $student->id,
@@ -51,6 +61,6 @@ class TrackingController extends Controller
             return redirect()->route('track')->withErrors(['code_not_found' => 'Kode laporan tidak ditemukan.']);
         }
 
-        return view('track_laporan.track', compact('reporter', 'categories','sendReporter','students','terkirim','verifikasi','proses','done','reject'));
+        return view('track_laporan.track', compact('reporter', 'categories','sendReporter','students','terkirim','verifikasi','proses','done','reject','victimNames','perpetratorsNames','witnesNames'));
     }
 }

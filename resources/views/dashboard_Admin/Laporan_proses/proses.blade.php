@@ -123,7 +123,7 @@
                             <td>{!! $value->formatted_urgency !!}</td>
                             <td>{!! $value->formatted_status !!}</td>
                             <td>
-                                <button class="btn-action btn-detail" data-report='@json($value)' onclick="viewDetail(this)" title="Lihat Detail">
+                                <button class="btn-action btn-detail" data-url="{{route('proses.prosesAccept', $value->id)}}" data-report='@json($value)' onclick="viewDetail(this)" title="Lihat Detail">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
                             </td>
@@ -156,6 +156,21 @@
 @include('dashboard_Admin.Laporan_proses.detail')
 
 @push('scripts')
+@if(Session::has('success'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert("{{ Session::get('success') }}", "success");
+        });
+    </script>
+@endif
+
+@if(Session::has('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert("{{ Session::get('error') }}", "error");
+        });
+    </script>
+@endif
 <script>
     // Table functionality variables
     let currentPage = 1;
@@ -168,37 +183,15 @@
         // Initialize table
         initializeTable();
 
+      
+
+        
+
         // Button event handlers for Accept/Reject (unchanged from your original)
         $("#btnAccept").on("click", function(){
-           if(confirm('Apakah Anda yakin akan meng-approve data ini?')){
+           if(confirm('Apakah Anda yakin akan menyelesaikan laporan ini?')){
                 let id = $(this).attr('data-id');
-                $.ajax({
-                    url: '{{route("laporan-masuk.approve")}}',
-                    method: 'POST',
-                    data: {
-                        "id" : id,
-                        "_token" : "{{csrf_token()}}"
-                    },
-                    dataType: 'json',
-                    beforeSend: function() {
-                        $("#btnAccept").prop('disabled', true).text('Processing...');
-                    },
-                    success: function(response) {
-                        if (response.status) {
-                            showAlert('Data berhasil di-approve!', 'success');
-                            location.reload(); // Reload to reflect changes
-                        } else {
-                            showAlert('Gagal meng-approve data: ' + (response.message || 'Terjadi kesalahan.'), 'error');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("AJAX Error:", status, error, xhr.responseText);
-                        showAlert('Terjadi kesalahan saat menghubungi server. Mohon coba lagi.', 'error');
-                    },
-                    complete: function() {
-                        $("#btnAccept").prop('disabled', false).html('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Terima Laporan');
-                    }
-                });
+                $("#form-proses").submit();
            }
         });
 
@@ -233,6 +226,15 @@
                     }
                 });
            }
+        });
+
+        $("#operation_id").on("change", function(){
+            if($(this).val() != ""){
+                $("#btnAccept").attr('disabled', false)
+            }else{
+                $("#btnAccept").attr('disabled', true)
+
+            }
         });
     });
 
@@ -426,13 +428,22 @@
         if (nextBtn) nextBtn.disabled = currentPage === totalPages || totalPages === 0;
     }
 
-    /**
-     * Displays an alert message. Can be extended for richer notifications.
-     * @param {string} message - The message to display.
-     * @param {string} type - The type of alert (e.g., 'info', 'success', 'error').
-     */
     function showAlert(message, type = 'info') {
-        alert(message); // Simple alert, replace with your preferred notification system
+        const toastLiveExample = document.getElementById('liveToast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toast = new bootstrap.Toast(toastLiveExample);
+
+        toastMessage.textContent = message;
+        toastLiveExample.classList.remove('bg-success', 'bg-danger'); // Clear previous types
+        if (type === 'success') {
+            toastLiveExample.classList.add('bg-success');
+        } else if (type === 'error') {
+            toastLiveExample.classList.add('bg-danger');
+        } else {
+            // Default to a neutral color if 'info' or other type
+            toastLiveExample.classList.add('bg-primary'); // You might want to define bg-info or bg-primary in your CSS
+        }
+        toast.show();
     }
 
     /**
@@ -441,12 +452,13 @@
      */
     function viewDetail(element) {
         let reporter = $(element).data('report'); // Use .data() for data attributes
+        let url = $(element).data('url'); // Use .data() for data attributes
         let reporter_detail = reporter.reporter_detail;
         $("#detailTanggal").text(reporter.formatted_created_date);
         $("#detailNIS").text(reporter.student.nis);
         $("#detailEmail").text(reporter.student.email);
         $("#detailUraian").text(reporter.description);
-
+        $("#form-proses").attr('action', url);
         // Populate keywords
         const keywordsContainer = $("#detailKataKunci");
         if (reporter.crime && reporter.crime.length > 0) {
@@ -580,30 +592,6 @@
         }
 
         // Update status indicator in the footer
-        const statusDot = $("#detailStatusDot");
-        const statusText = $("#detailStatusText");
-        statusDot.removeClass('pending approved rejected'); // Clear existing classes
-        let statusMessage = '';
-
-        if (reporter.status == 0) { // Assuming 0 is 'pending' or 'new'
-            statusDot.addClass('pending');
-            statusMessage = 'Menunggu Review';
-            $("#btnReject").hide();
-            $("#btnAccept").hide();
-        } else if (reporter.status == 1) { // Assuming 1 is 'approved'
-            statusDot.addClass('approved');
-            statusMessage = 'Laporan Diterima';
-            $("#btnReject").show();
-            $("#btnAccept").show();
-        } else if (reporter.status == 2) { // Assuming 2 is 'rejected'
-            statusDot.addClass('rejected');
-            statusMessage = 'Laporan Ditolak';
-            $("#btnReject").hide();
-            $("#btnAccept").hide();
-        }
-        statusText.text(`Status: ${statusMessage}`);
-
-
         $("#btnReject").attr('data-id', reporter.id);
         $("#btnAccept").attr('data-id', reporter.id);
         $("#modal-detail").modal('show'); // Assuming you have a Bootstrap modal or similar

@@ -16,199 +16,223 @@
                     </svg>
                 </button>
             </div>
-
-            <div class="modal-body">
-                <div class="laporan-detail">
-                    <!-- Informasi Pelapor -->
-                    <div class="detail-section">
-                        <h4 class="section-title">Informasi Pelapor</h4>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 4h6m-6 4h6M6 7h12l1 12H5L6 7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    Tanggal Melapor
-                                </div>
-                                <div class="detail-value" id="detailTanggal"></div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    NIS (Nomor Induk Siswa)
-                                </div>
-                                <div class="detail-value" id="detailNIS"></div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    Email
-                                </div>
-                                <div class="detail-value" id="detailEmail"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Waktu dan Lokasi Kejadian -->
-                    <div class="detail-section">
-                        <h4 class="section-title">Waktu dan Lokasi Kejadian</h4>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                                        <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
-                                        <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
-                                        <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
-                                    Tanggal Kejadian
-                                </div>
-                                <div class="detail-value" id="detailTanggalKejadian"></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="2"/>
-                                        <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
-                                    Lokasi Kejadian
-                                </div>
-                                <div class="detail-value" id="detailLokasiKejadian"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Pihak Terlibat -->
-                    <div class="detail-section">
-                        <h4 class="section-title">Pihak Terlibat</h4>
-                        
-                        <!-- Korban -->
-                        <div class="pihak-subsection">
-                            <h5 class="subsection-title korban">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
-                                    <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                                </svg>
-                                Korban
-                            </h5>
-                            <div class="detail-grid-horizontal" id="detail-korban">
-                               
-                            </div>
-                        </div>
-
-                        <!-- Pelaku -->
-                        <div class="pihak-subsection">
-                            <h5 class="subsection-title pelaku">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
-                                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/>
-                                </svg>
-                                Pelaku
-                            </h5>
-                            <div class="detail-grid-horizontal" id="detail-pelaku">
+            <form action="" method="POST" enctype="multipart/form-data" id="form-proses">
+                @csrf
+                <div class="modal-body">
+                    <div class="laporan-detail">
+                        <!-- Informasi Pelapor -->
+                        <div class="detail-section">
+                            <h4 class="section-title">Informasi Pelapor</h4>
+                            <div class="detail-grid">
                                 <div class="detail-item">
-                                    <div class="detail-label">Nama Pelaku</div>
-                                    <div class="detail-value" id="detailNamaPelaku"></div>
+                                    <div class="detail-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 4h6m-6 4h6M6 7h12l1 12H5L6 7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        Tanggal Melapor
+                                    </div>
+                                    <div class="detail-value" id="detailTanggal"></div>
+                                </div>
+
+                                <div class="detail-item">
+                                    <div class="detail-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        NIS (Nomor Induk Siswa)
+                                    </div>
+                                    <div class="detail-value" id="detailNIS"></div>
+                                </div>
+
+                                <div class="detail-item">
+                                    <div class="detail-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        Email
+                                    </div>
+                                    <div class="detail-value" id="detailEmail"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Saksi -->
-                        <div class="pihak-subsection">
-                            <h5 class="subsection-title saksi">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
-                                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/>
-                                </svg>
-                                Saksi (Opsional)
-                            </h5>
-                            <div class="detail-grid-horizontal" id="detail-saksi">
-                                 <div class="detail-item">
-                                    <div class="detail-label">Nama Saksi</div>
-                                    <div class="detail-value" id="detailNamaSaksi"></div>
+                        <!-- Waktu dan Lokasi Kejadian -->
+                        <div class="detail-section">
+                            <h4 class="section-title">Waktu dan Lokasi Kejadian</h4>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <div class="detail-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                                            <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
+                                            <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
+                                            <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
+                                        </svg>
+                                        Tanggal Kejadian
+                                    </div>
+                                    <div class="detail-value" id="detailTanggalKejadian"></div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="2"/>
+                                            <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+                                        </svg>
+                                        Lokasi Kejadian
+                                    </div>
+                                    <div class="detail-value" id="detailLokasiKejadian"></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Deskripsi Kejadian -->
-                    <div class="detail-section">
-                        <h4 class="section-title">Deskripsi Kejadian</h4>
-                        <div class="uraian-content" id="detailUraian"></div>
-                    </div>
+                        <!-- Pihak Terlibat -->
+                        <div class="detail-section">
+                            <h4 class="section-title">Pihak Terlibat</h4>
+                            
+                            <!-- Korban -->
+                            <div class="pihak-subsection">
+                                <h5 class="subsection-title korban">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+                                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    Korban
+                                </h5>
+                                <div class="detail-grid-horizontal" id="detail-korban">
+                                
+                                </div>
+                            </div>
 
-                    <!-- Informasi Tambahan -->
-                    <div class="detail-section">
-                        <h4 class="section-title">Informasi Tambahan</h4>
-                        <div class="info-tambahan-content" id="detailInfoTambahan">
-                            <div class="info-placeholder">
-                                <p>Tidak ada informasi tambahan</p>
+                            <!-- Pelaku -->
+                            <div class="pihak-subsection">
+                                <h5 class="subsection-title pelaku">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+                                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    Pelaku
+                                </h5>
+                                <div class="detail-grid-horizontal" id="detail-pelaku">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Nama Pelaku</div>
+                                        <div class="detail-value" id="detailNamaPelaku"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Saksi -->
+                            <div class="pihak-subsection">
+                                <h5 class="subsection-title saksi">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
+                                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                    Saksi (Opsional)
+                                </h5>
+                                <div class="detail-grid-horizontal" id="detail-saksi">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Nama Saksi</div>
+                                        <div class="detail-value" id="detailNamaSaksi"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Tindakan yang Diharapkan -->
-                    <div class="detail-section">
-                        <h4 class="section-title">Tindakan yang Diharapkan</h4>
-                        <div class="tindakan-content" id="detailTindakan"></div>
-                    </div>
+                        <!-- Deskripsi Kejadian -->
+                        <div class="detail-section">
+                            <h4 class="section-title">Deskripsi Kejadian</h4>
+                            <div class="uraian-content" id="detailUraian"></div>
+                        </div>
 
-                    <!-- Kata Kunci -->
-                    <div class="detail-section">
-                        <h4 class="section-title">Kata Kunci</h4>
-                        <div class="keywords-container" id="detailKataKunci"></div>
-                    </div>
+                        <!-- Informasi Tambahan -->
+                        <div class="detail-section">
+                            <h4 class="section-title">Informasi Tambahan</h4>
+                            <div class="info-tambahan-content" id="detailInfoTambahan">
+                                <div class="info-placeholder">
+                                    <p>Tidak ada informasi tambahan</p>
+                                </div>
+                            </div>
+                        </div>
 
-                    <!-- Bukti Pendukung -->
-                    <div class="detail-section">
-                        <h4 class="section-title">Bukti Pendukung</h4>
-                        <div id="detailBukti" class="bukti-container">
-                            <div class="bukti-grid"></div>
+                        <!-- Tindakan yang Diharapkan -->
+                        <div class="detail-section">
+                            <h4 class="section-title">Tindakan yang Diharapkan</h4>
+                            <div class="tindakan-content" id="detailTindakan"></div>
+                        </div>
+
+                        <!-- Kata Kunci -->
+                        <div class="detail-section">
+                            <h4 class="section-title">Kata Kunci</h4>
+                            <div class="keywords-container" id="detailKataKunci"></div>
+                        </div>
+
+                        <!-- Bukti Pendukung -->
+                        <div class="detail-section">
+                            <h4 class="section-title">Bukti Pendukung</h4>
+                            <div id="detailBukti" class="bukti-container">
+                                <div class="bukti-grid"></div>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h4 class="section-title">Form Tindakan</h4>
+
+                            <div class="mb-3">
+                                <label for="operation_id" class="form-label">Pilih Tindakan:</label>
+                                <select id="operation_id" name="operation_id" class="form-select" required>
+                                    <option value="">-- Pilih --</option>
+                                @foreach($operations as $key => $value)
+                                    <option value="{{$value->id}}">{{$value->name}}</option>
+                                @endforeach
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Bukti File:</label>
+                                <input type="file" id="file" name="file"class="form-control">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Alasan:</label>
+                                <textarea id="description" name="deskripsi" rows="5" class="form-control" placeholder="Masukkan Alasan atau komentar Anda di sini..."></textarea>
+                            </div>
+
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="modal-footer">
-                <div class="footer-info">
-                    <div class="status-indicator">
-                        <div class="status-dot" id="detailStatusDot"></div>
-                        <span id="detailStatusText"></span>
+                <div class="modal-footer">
+                    <div class="footer-info">
+                        
+                    </div>
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Batal
+                        </button>
+                        <button type="button" class="btn btn-danger" id="btnReject">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                                <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Tolak Laporan
+                        </button>
+                        <button type="button" class="btn btn-success" id="btnAccept" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Selesaikan Laporan
+                        </button>
                     </div>
                 </div>
-                <div class="action-buttons">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Batal
-                    </button>
-                    {{-- <button type="button" class="btn btn-danger" id="btnReject">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                            <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Tolak Laporan
-                    </button>
-                    <button type="button" class="btn btn-success" id="btnAccept">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Laporan selesai di verifikasi
-                    </button> --}}
-                </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
@@ -220,6 +244,17 @@
         </svg>
     </span>
     <img id="modalImage" src="" alt="Bukti Laporan">
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMessage">
+                {{-- Message will be inserted here --}}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
 </div>
 
 <style>

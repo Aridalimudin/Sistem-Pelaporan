@@ -81,7 +81,7 @@ Route::prefix("admin")->middleware(['auth'])->group(function () {
         Route::post('verifikasi-reject', [ReporterUserController::class, 'reject'])->name("verifikasi.reject");
 
         Route::get('proses', [ReporterUserController::class, 'proses'])->name("proses.index");
-        Route::post('proses-approve', [ReporterUserController::class, 'approve'])->name("proses.approve");
+        Route::post('proses/{reporter}', [ReporterUserController::class, 'prosesAccept'])->name("proses.prosesAccept");
         Route::post('proses-reject', [ReporterUserController::class, 'reject'])->name("proses.reject");
     });
 

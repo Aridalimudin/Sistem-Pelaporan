@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Mail\ApprovalMail;
 use App\Mail\NotificationMail;
+use App\Models\Operation;
 use App\Models\Reporter;
 use App\Models\ReporterHistoryTracking;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -35,7 +39,8 @@ class ReporterUserController extends Controller
     public function proses()
     {
         $reporters = Reporter::with(['student','crime','reporterFile','reporterDetail.victims','reporterDetail.perpetrators','reporterDetail.witnesses'])->where("status", 2)->orderByDesc('urgency')->get();
-        return view('dashboard_Admin.Laporan_proses.proses', compact('reporters'));
+        $operations = Operation::all();
+        return view('dashboard_Admin.Laporan_proses.proses', compact('reporters','operations'));
     }
 
     public function approve(Request $request)
@@ -97,6 +102,63 @@ class ReporterUserController extends Controller
             return response()->json([
                 'status' => false,
            ]);
+        }
+    }
+
+      public function prosesAccept(Request $request, Reporter $reporter)
+    {
+        try {
+            DB::beginTransaction();
+
+            $validatedData = $request->all();
+
+            if(empty($validatedData['operation_id'])){
+                
+            }
+
+            $reporter->operation_id = $validatedData['operation_id'];
+            $reporter->reason = $validatedData['deskripsi'];
+
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $filePath = 'uploads/reporters/' . $fileName;
+
+                // Memastikan file disimpan ke disk 'public'
+                Storage::disk('public')->put($filePath, file_get_contents($file));
+                Log::info('File berhasil diunggah dan disimpan di: ' . $filePath . ' untuk reporter ID: ' . $reporter->id);
+
+                $reporter->file = $filePath;
+            }
+            $reporter->status = 3;
+            $reporter->save();
+            ReporterHistoryTracking::create([
+                'reporter_id' => $reporter->id,
+                'status' => 3,
+                'username' => Auth::user()->name,
+                'description' => 'Selesai',
+            ]);
+
+
+            DB::commit();
+
+            Log::info('Data reporter berhasil diperbarui.', ['reporter_id' => $reporter->id, 'operation_id' => $reporter->operation_id]);
+
+            return redirect()->back()->with('success', 'Data Laporan berhasil diselesaikan!');
+
+        } catch (Throwable $e) {
+            DB::rollBack();
+
+            // Log error yang lebih spesifik
+            Log::error('Gagal memperbarui data reporter.', [
+                'reporter_id' => $reporter->id,
+                'request_data' => $request->all(),
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+            ]);
+
+            return redirect()->back()->with('error', 'Gagal menyelesaikan data laporan. Mohon coba lagi.')->withInput();
         }
     }
 
