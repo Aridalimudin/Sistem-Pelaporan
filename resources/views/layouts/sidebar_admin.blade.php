@@ -108,7 +108,7 @@
                     </a>
                 </li>
                 <li data-tooltip="Laporan Selesai & Feedback">
-                    <a href="{{ route('proses.index') }}" class="{{ Request::is('admin/laporan/proses') ? 'active' : '' }}">
+                    <a href="{{ route('selesai.index') }}" class="{{ Request::is('admin/laporan/selesai') ? 'active' : '' }}">
                         <i class="fas fa-check-double"></i> 
                         <span>Laporan Selesai</span>
                     </a>

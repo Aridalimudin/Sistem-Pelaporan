@@ -264,11 +264,11 @@
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Lokasi Kejadian :</strong></td>
-                                                    <td>{{ $reporter?->reporterDetail->location ?? '-' }}</td>
+                                                    <td>{{ $reporter?->reporterDetail?->location ?? '-' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Waktu Kejadian :</strong></td>
-                                                    <td>{{ $reporter?->reporterDetail->formatted_report_date}}</td>
+                                                    <td>{{ $reporter?->reporterDetail?->formatted_report_date}}</td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -290,8 +290,8 @@
                                             <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informasi Tambahan</h5>
                                         </div>
                                         <div class="card-body">
-                                            @if ($reporter->additional_info)
-                                                <p>{{ $reporter->additional_info }}</p>
+                                             @if ($reporter?->reporterDetail)
+                                                <p>{{ $reporter?->reporterDetail->description }}</p>
                                             @else
                                                 <p class="text-muted">Belum ada informasi tambahan yang dilaporkan.</p>
                                             @endif
@@ -305,8 +305,8 @@
                                             <h5 class="mb-0"><i class="fas fa-hands-helping me-2"></i>Tindakan yang Diharapkan</h5>
                                         </div>
                                         <div class="card-body">
-                                            @if ($reporter->expected_action)
-                                                <p>{{ $reporter->expected_action }}</p>
+                                            @if ($reporter?->reporterDetail)
+                                                <p>{{ $reporter?->reporterDetail->notes_by_student }}</p>
                                             @else
                                                 <p class="text-muted">Pelapor belum menentukan tindakan yang diharapkan.</p>
                                             @endif
@@ -318,9 +318,9 @@
                                     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                                         <h5 class="mb-0"><i class="fas fa-photo-video me-2"></i>Bukti Foto & Video</h5>
                                         {{-- Tombol Tambah Bukti Baru --}}
-                                        <button class="btn btn-sm btn-light" onclick="trackReportModule.openUploadEvidenceModal()">
+                                        {{-- <button class="btn btn-sm btn-light" onclick="trackReportModule.openUploadEvidenceModal()">
                                             <i class="fas fa-plus me-1"></i> Tambah Bukti
-                                        </button>
+                                        </button> --}}
                                     </div>
                                     <div class="card-body">
                                         <div class="masonry-container" id="masonryContainer">
@@ -406,6 +406,7 @@
             </div>
         </div>
 
+        @if($reporter->status != 3)
         {{-- START: Tombol dan Modal Reminder (Dipindahkan ke dalam blok @if) --}}
         <div id="reminderButton" class="floating-reminder-btn" onclick="showReminderConfirmation()">
             <div class="btn-icon">
@@ -465,6 +466,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <div id="uploadEvidenceModal" class="popup">
             <div class="popup-content shadow-lg rounded">
@@ -538,7 +540,7 @@
                     description: "Laporan Anda masuk dalam tahap verifikasi. Silakan lengkapi dokumen lainnya agar laporan Anda dapat segera diproses lebih lanjut oleh tim kami.",
                     icon: "fas fa-clipboard-check",
                     progress: 40,
-                    hasAction: "{{ @$reporter->status == 2 ? false : true }}",
+                    hasAction: "{{ @$reporter->status == 2 || @$reporter->status == 3 ? false : true }}",
                     actionText: "Lengkapi Dokumen",
                     actionType: "complete_documents",
                     date: "{{ @$verifikasi?->created_at->format('d M Y') ?? '' }}"

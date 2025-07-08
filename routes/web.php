@@ -83,11 +83,14 @@ Route::prefix("admin")->middleware(['auth'])->group(function () {
         Route::get('proses', [ReporterUserController::class, 'proses'])->name("proses.index");
         Route::post('proses/{reporter}', [ReporterUserController::class, 'prosesAccept'])->name("proses.prosesAccept");
         Route::post('proses-reject', [ReporterUserController::class, 'reject'])->name("proses.reject");
+
+        Route::get('selesai', [ReporterUserController::class, 'selesai'])->name("selesai.index");
     });
 
     Route::get('history', [ReporterUserController::class, 'history'])->name("history.index");
     Route::post('history-approve', [ReporterUserController::class, 'history'])->name("history.approve");
     Route::post('history-reject', [ReporterUserController::class, 'reject'])->name("history.reject");
+
 });
 
 

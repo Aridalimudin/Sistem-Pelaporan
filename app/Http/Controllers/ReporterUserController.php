@@ -42,6 +42,12 @@ class ReporterUserController extends Controller
         $operations = Operation::all();
         return view('dashboard_Admin.Laporan_proses.proses', compact('reporters','operations'));
     }
+    
+    public function selesai()
+    {
+        $reporters = Reporter::with(['student','crime','reporterFile','reporterDetail.victims','reporterDetail.perpetrators','reporterDetail.witnesses'])->where("status", 3)->orderByDesc('urgency')->get();
+        return view('dashboard_Admin.Laporan_selesai.selesai', compact('reporters'));
+    }
 
     public function approve(Request $request)
     {

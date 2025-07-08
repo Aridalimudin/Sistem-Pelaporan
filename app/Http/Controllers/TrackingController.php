@@ -39,13 +39,13 @@ class TrackingController extends Controller
             $reject = ReporterHistoryTracking::where('reporter_id', $reporter->id)->where('status', 4)->first();
         }
 
-        $victimNames = $reporter->reporterDetail->victims->map(function ($victim) {
+        $victimNames = $reporter?->reporterDetail?->victims->map(function ($victim) {
                 return $victim->name . ' (' . $victim->classroom . ')';
         })->implode(', ');
-        $perpetratorsNames = $reporter->reporterDetail->perpetrators->map(function ($perpetrator) {
+        $perpetratorsNames = $reporter?->reporterDetail?->perpetrators->map(function ($perpetrator) {
                 return $perpetrator->name . ' (' . $perpetrator->classroom . ')';
         })->implode(', ');
-        $witnesNames = $reporter->reporterDetail->witnesses->map(function ($witnes) {
+        $witnesNames = $reporter?->reporterDetail?->witnesses->map(function ($witnes) {
                 return $witnes->name . ' (' . $witnes->classroom . ')';
         })->implode(', ');
 
