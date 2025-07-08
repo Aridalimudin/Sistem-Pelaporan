@@ -14,4 +14,23 @@ class ReporterHistoryTracking extends Model
         'username',
         'description',
     ];
+
+    protected $appends = [
+        'formatted_status'
+    ];
+
+     public function getFormattedStatusAttribute()
+    {
+        if($this->status == 0){
+            $status = '<span class="text-info">Menunggu Approval</span>';
+        }elseif($this->status == 1){
+            $status = '<span class="text-success">Approve</span>';
+        }elseif($this->status == 2){
+            $status = '<span class="text-danger">Reject</span>';
+        }else{
+            $status = '-';
+        }
+
+        return $status;
+    }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ClassRoomController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LaporanController;
@@ -7,6 +8,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CrimeController;
+use App\Http\Controllers\OperationController;
+use App\Http\Controllers\StudentController;
 
 
 /*
@@ -64,8 +67,35 @@ Route::prefix('permissions')->group(function () {
 });
 
 Route::prefix('crimes')->group(function () {
-    Route::get('/', [CrimeController::class, 'index']);
-    Route::post('/', [CrimeController::class, 'store']);
-    Route::put('/{id}', [CrimeController::class, 'update']);
-    Route::delete('/{id}', [CrimeController::class, 'destroy']);
+    Route::get('/data', [CrimeController::class, 'index']);
+    Route::post('/data', [CrimeController::class, 'store']);
+    Route::put('/data/{id}', [CrimeController::class, 'update']);
+    Route::delete('/data/{id}', [CrimeController::class, 'destroy']);
 });
+
+Route::prefix('students')->group(function () {
+    Route::get('/', [StudentController::class, 'fetchData']); // Menggunakan fetchData
+    Route::post('/', [StudentController::class, 'store']);
+    Route::get('/{student}', [StudentController::class, 'show']); // Parameter {student}
+    Route::put('/{student}', [StudentController::class, 'update']); // Parameter {student}
+    Route::delete('/{student}', [StudentController::class, 'destroy']); // Parameter {student}
+});
+
+Route::prefix('class-room')->group(function () {
+    Route::get('/', [ClassRoomController::class, 'fetchData']); // Menggunakan fetchData
+    Route::post('/', [ClassRoomController::class, 'store']);
+    Route::get('/{classRoom}', [ClassRoomController::class, 'show']); // Parameter {student}
+    Route::put('/{classRoom}', [ClassRoomController::class, 'update']); // Parameter {student}
+    Route::delete('/{classRoom}', [ClassRoomController::class, 'destroy']); // Parameter {student}
+});
+
+
+Route::prefix('tindakan')->group(function () {
+    Route::get('/', [OperationController::class, 'fetchData']); // Menggunakan fetchData
+    Route::post('/', [OperationController::class, 'store']);
+    Route::get('/{operation}', [OperationController::class, 'show']); // Parameter {student}
+    Route::put('/{operation}', [OperationController::class, 'update']); // Parameter {student}
+    Route::delete('/{operation}', [OperationController::class, 'destroy']); // Parameter {student}
+});
+
+

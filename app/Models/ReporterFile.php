@@ -14,4 +14,13 @@ class ReporterFile extends Model
         'reporter_id',
         'file',
     ];
+
+    protected $appends = [
+        'url_file'
+    ];
+
+     public function getUrlFileAttribute()
+    {
+        return asset('storage/'. $this->file);
+    }
 }

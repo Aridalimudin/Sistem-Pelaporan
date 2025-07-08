@@ -4,7 +4,7 @@
         <main id="content" class="content">
             <header>
                 <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-                <h1 class="header-title">Selamat Datang di Dashboard</h1>
+                <h1 class="header-title">Kelola Data Role</h1>
                 <div class="user-info">
                     <div class="profile-dropdown">
                         <button class="profile-btn" onclick="toggleProfile()">
@@ -26,17 +26,10 @@
                                 </div>
                             </div>
                             <hr class="profile-divider">
-                            <a href="#" class="profile-item">
+                            <a href="{{ route('Profile_page.profile') }}" class="profile-item">
                                 <i class="fa-solid fa-user"></i>
                                 <span>Profil Saya</span>
                             </a>
-                            <a href="#" class="profile-item">
-                                <i class="fa-solid fa-cog"></i>
-                                <span>Pengaturan</span>
-                            </a>
-                            <a href="#" class="profile-item">
-                                <i class="fa-solid fa-question-circle"></i>
-                                <span>Bantuan</span>
                             </a>
                             <hr class="profile-divider">
                             <a href="{{ route('logout') }}" class="profile-item logout-item"

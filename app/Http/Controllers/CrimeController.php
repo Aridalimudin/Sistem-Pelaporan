@@ -14,8 +14,7 @@ class CrimeController extends Controller
      */
     public function index()
     {
-        $crimes = Crime::select('id', 'name', 'type', 'urgency')->get();
-        dd($crimes);
+        $crimes = Crime::get();
         return response()->json($crimes); 
     }
 

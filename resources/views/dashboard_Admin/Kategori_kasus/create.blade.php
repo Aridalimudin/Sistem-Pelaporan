@@ -83,25 +83,6 @@
 </div>
 
 <style>
-    .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.5);
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(2px);
-}
-
-.modal.show {
-    display: flex;
-}
-
 .modal-content {
     background-color: #ffffff;
     margin: auto;
@@ -115,50 +96,5 @@
     flex-direction: column;
     max-height: 90vh;
     overflow: hidden;
-}
-
-.delete-modal {
-    max-width: 450px;
-}
-
-@keyframes modalSlideIn {
-    from {
-        transform: translateY(-30px) scale(0.95);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 25px;
-    border-bottom: 1px solid #e5e7eb;
-    background: #f8fafc;
-    border-radius: 12px 12px 0 0;
-}
-
-.delete-header {
-    background: #fef2f2;
-    border-bottom-color: #fecaca;
-}
-
-.delete-icon-header {
-    color: #dc2626;
-    font-size: 24px;
-    margin-right: 10px;
-}
-
-.modal-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-    display: flex;
-    align-items: center;
 }
 </style>

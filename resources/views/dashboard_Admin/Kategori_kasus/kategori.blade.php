@@ -4,7 +4,7 @@
     <main id="content" class="content">
         <header>
             <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-            <h1 class="header-title">Selamat Datang di Dashboard</h1>
+            <h1 class="header-title">Kelola Data Kategori Kasus</h1>
             <div class="user-info">
                 <div class="profile-dropdown">
                     <button class="profile-btn" onclick="toggleProfile()">
@@ -30,17 +30,9 @@
                             <i class="fa-solid fa-user"></i>
                             <span>Profil Saya</span>
                         </a>
-                        <a href="#" class="profile-item">
-                            <i class="fa-solid fa-cog"></i>
-                            <span>Pengaturan</span>
-                        </a>
-                        <a href="#" class="profile-item">
-                            <i class="fa-solid fa-question-circle"></i>
-                            <span>Bantuan</span>
-                        </a>
                         <hr class="profile-divider">
                         <a href="{{ route('logout') }}" class="profile-item logout-item"
-                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                             <i class="fa-solid fa-sign-out-alt"></i>
                             <span>Keluar</span>
                         </a>
@@ -53,45 +45,6 @@
         </header>
 
         <input type="hidden" id="permissionData" value=''>
-
-        <div class="stats-container">
-            <div class="stats-card bullying-verbal">
-                <div class="stats-icon">
-                    <i class="fa-solid fa-comments"></i>
-                </div>
-                <div class="stats-content">
-                    <h3 id="bullyingVerbalCount">0</h3>
-                    <p>Bullying Verbal</p>
-                </div>
-            </div>
-            <div class="stats-card bullying-fisik">
-                <div class="stats-icon">
-                    <i class="fa-solid fa-hand-fist"></i>
-                </div>
-                <div class="stats-content">
-                    <h3 id="bullyingFisikCount">0</h3>
-                    <p>Bullying Fisik</p>
-                </div>
-            </div>
-            <div class="stats-card pelecehan-verbal">
-                <div class="stats-icon">
-                    <i class="fa-solid fa-exclamation-triangle"></i>
-                </div>
-                <div class="stats-content">
-                    <h3 id="pelecehanVerbalCount">0</h3>
-                    <p>Pelecehan Seksual Verbal</p>
-                </div>
-            </div>
-            <div class="stats-card pelecehan-fisik">
-                <div class="stats-icon">
-                    <i class="fa-solid fa-hand-paper"></i>
-                </div>
-                <div class="stats-content">
-                    <h3 id="pelecehanFisikCount">0</h3>
-                    <p>Pelecehan Seksual Fisik</p>
-                </div>
-            </div>
-        </div>
 
         <div class="management-section">
             <div class="section-header">
@@ -125,39 +78,35 @@
                     <tbody id="roleTableBody">
                         </tbody>
                 </table>
-            </div>
+                </div>
 
             <div class="pagination-container">
-                <div class="pagination-info">
-                    <span id="paginationInfo">Menampilkan 1-10 dari 42 data</span>
-                </div>
-                <div class="pagination-controls">
-                    <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
-                        <i class="fa-solid fa-chevron-left"></i>
-                        <span>Sebelumnya</span>
-                    </button>
-                    <div class="pagination-numbers" id="paginationNumbers">
-                        </div>
-                    <button class="pagination-btn" id="nextBtn" onclick="changePage(1)">
-                        <span>Selanjutnya</span>
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </button>
-                </div>
+            <div class="pagination-info">
+                <span id="paginationInfo">Menampilkan 1-10 dari 42 data</span>
             </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span>Sebelumnya</span>
+                </button>
+                <div class="pagination-numbers" id="paginationNumbers">
+                </div>
+                <button class="pagination-btn" id="nextBtn" onclick="changePage(1)">
+                    <span>Selanjutnya</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
         @include('dashboard_Admin.Kategori_kasus.create')
 
-        {{-- <div class="status-indicator" id="statusIndicator">
-            Data berhasil ditambahkan!
-        </div> --}}
-
         <script>
-            // Hapus data dummy yang ada di sini
-            let crimeData = []; // Sekarang akan diisi dari API
-            const API_BASE_URL = '/api/crimes'; // Sesuaikan dengan rute API Anda
+            let crimeData = [];
+            const API_BASE_URL = '/api/crimes/data';
 
             let currentModalMode = 'add';
-            let filteredData = []; // Akan diisi setelah fetch dari API
+            let filteredData = [];
             let editingCrimeId = null;
 
             let currentPage = 1;
@@ -170,25 +119,13 @@
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    crimeData = await response.json(); // Isi crimeData dari respons API
-                    filterByCategory(); // Terapkan filter dan render tabel
-                    updateStatistics(); // Perbarui statistik setelah data dimuat
+                    crimeData = await response.json();
+
+                    filterByCategory();
                 } catch (error) {
                     console.error('Error fetching crimes:', error);
                     showStatus('Gagal memuat data kategori.', 'error');
                 }
-            }
-
-            function updateStatistics() {
-                const bullyingVerbal = crimeData.filter(crime => crime.type === 'Bullying Verbal').length;
-                const bullyingFisik = crimeData.filter(crime => crime.type === 'Bullying Fisik').length;
-                const pelecehanVerbal = crimeData.filter(crime => crime.type === 'Pelecehan Seksual Verbal').length;
-                const pelecehanFisik = crimeData.filter(crime => crime.type === 'Pelecehan Seksual Fisik').length;
-
-                document.getElementById('bullyingVerbalCount').textContent = bullyingVerbal;
-                document.getElementById('bullyingFisikCount').textContent = bullyingFisik;
-                document.getElementById('pelecehanVerbalCount').textContent = pelecehanVerbal;
-                document.getElementById('pelecehanFisikCount').textContent = pelecehanFisik;
             }
 
             function filterByCategory() {
@@ -199,7 +136,7 @@
                 } else {
                     filteredData = crimeData.filter(crime => crime.type === selectedCategory);
                 }
-
+                
                 currentPage = 1;
                 renderTable();
             }
@@ -278,7 +215,6 @@
                     } else if (mode === 'edit') {
                         modalTitle.textContent = 'Edit Data Kategori Kasus';
                         saveButton.innerHTML = '<i class="fa-solid fa-save"></i> Perbarui';
-                        // Data form akan diisi oleh fungsi editCrime()
                     }
                 } else {
                     console.error(`Modal dengan ID '${modalId}' tidak ditemukan.`);
@@ -322,7 +258,7 @@
                     const response = await fetch(`${API_BASE_URL}/${idToDelete}`, {
                         method: 'DELETE',
                         headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}', // Laravel CSRF token
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
                             'Content-Type': 'application/json'
                         }
                     });
@@ -333,7 +269,7 @@
                     }
 
                     showStatus('Data berhasil dihapus!', 'success');
-                    await fetchCrimes(); // Muat ulang data setelah penghapusan berhasil
+                    await fetchCrimes();
                 } catch (error) {
                     console.error('Error deleting crime:', error);
                     showStatus(error.message, 'error');
@@ -418,7 +354,7 @@
                             name: crimeName,
                             type: crimeType,
                             urgency: urgencyLevel,
-                            _token: '{{ csrf_token() }}' // Mengirim CSRF token
+                            _token: '{{ csrf_token() }}'
                         };
 
                         try {
@@ -442,7 +378,7 @@
                                     body: JSON.stringify(dataToSend)
                                 });
                             }
-
+                            console.log(response);
                             if (!response.ok) {
                                 const errorData = await response.json();
                                 throw new Error(errorData.message || 'Terjadi kesalahan.');
@@ -450,7 +386,7 @@
 
                             const result = await response.json();
                             showStatus(`Data berhasil ${currentModalMode === 'add' ? 'ditambahkan' : 'diperbarui'}!`, 'success');
-                            await fetchCrimes(); // Muat ulang data setelah sukses
+                            await fetchCrimes();
                         } catch (error) {
                             console.error('Error submitting form:', error);
                             showStatus(error.message, 'error');

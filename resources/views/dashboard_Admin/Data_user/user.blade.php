@@ -5,7 +5,7 @@
         <main id="content" class="content">
             <header>
                 <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-                <h1 class="header-title">Selamat Datang di Dashboard</h1>
+                <h1 class="header-title">Kelola Data User</h1>
                 <div class="user-info">
                     <div class="profile-dropdown">
                         <button class="profile-btn" onclick="toggleProfile()">
@@ -31,14 +31,6 @@
                                 <i class="fa-solid fa-user"></i>
                                 <span>Profil Saya</span>
                             </a>
-                            <a href="#" class="profile-item">
-                                <i class="fa-solid fa-cog"></i>
-                                <span>Pengaturan</span>
-                            </a>
-                            <a href="#" class="profile-item">
-                                <i class="fa-solid fa-question-circle"></i>
-                                <span>Bantuan</span>
-                            </a>
                             <hr class="profile-divider">
                             <a href="{{ route('logout') }}" class="profile-item logout-item"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -57,7 +49,7 @@
 
     <div class="management-section">
         <div class="section-header">
-            <h2>Kelola Data User</h2>
+            <h2>Data User</h2>
             <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#userFormModal" >
                 <i class="fa-solid fa-plus"></i> Tambah User
             </button>
@@ -82,20 +74,30 @@
                 </tbody>
             </table>
         </div>
+        
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span id="paginationInfo">Menampilkan 1-10 dari 42 data</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span>Sebelumnya</span>
+                </button>
+                <div class="pagination-numbers" id="paginationNumbers">
+                </div>
+                <button class="pagination-btn" id="nextBtn" onclick="changePage(1)">
+                    <span>Selanjutnya</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
     @include('dashboard_Admin.Data_user.create')
     
-
     <div class="modal-overlay delete-confirm-modal" id="deleteConfirmModal">
         <div class="modal">
-            <div class="modal-header">
-                <h3>Konfirmasi Hapus</h3>
-                <button class="close-btn" onclick="closeModal('deleteConfirmModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Apakah Anda yakin ingin menghapus user <strong id="deleteUserName"></strong>?</p>
-            </div>
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" onclick="closeModal('deleteConfirmModal')">Batal</button>
                 <button type="button" class="btn-danger" id="confirmDeleteButton">Hapus</button>
@@ -106,298 +108,524 @@
     <div class="status-indicator" id="statusIndicator"></div>
 
     <script>
-        // Base URL for your API
-        const API_BASE_URL = '/api/users';
-
-        let currentUserId = null;
+       // === VARIABEL GLOBAL ===
+const API_BASE_URL = '/api/users';
+let currentPage = 1;
+let itemsPerPage = 10;
+let totalPages = 1;
+let totalItems = 0;
+let allUsers = [];
+let currentUserId = null;
 
         function openModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.add('active');
-                $("#userFormModal").modal('show')
-                document.body.style.overflow = 'hidden';
-                setTimeout(() => {
-                    const firstInput = modal.querySelector('input[required]:not([type="hidden"]), select[required]');
-                    if (firstInput) {
-                        firstInput.focus();
-                    }
-                }, 100);
-            }
-        }
-
-        function toggleSidebar() {
-            document.getElementById("sidebar").classList.toggle("active");
-            document.getElementById("content").classList.toggle("active");
-        }
-        
-        function toggleProfile() {
-            const profileMenu = document.getElementById('profileMenu');
-            profileMenu.classList.toggle('show');
-        }
-        
-        // Close profile dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const profileDropdown = document.querySelector('.profile-dropdown');
-            const profileMenu = document.getElementById('profileMenu');
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        // Cek apakah ini adalah Bootstrap modal
+        if (modalId === 'userFormModal') {
+            // Gunakan Bootstrap modal untuk userFormModal
+            $("#userFormModal").modal('show');
+        } else {
+            // Gunakan custom modal untuk modal lainnya
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
             
-            if (!profileDropdown.contains(event.target)) {
-                profileMenu.classList.remove('show');
-            }
-        });
-        
-        // Close profile dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const profileDropdown = document.querySelector('.profile-dropdown');
-            const profileMenu = document.getElementById('profileMenu');
-            
-            if (!profileDropdown.contains(event.target)) {
-                profileMenu.classList.remove('show');
-            }
-        });
-
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.remove('active');
-                document.body.style.overflow = 'auto';
-                if (modalId === 'userFormModal') { // Only reset the user form modal
-                    resetUserForm();
-                }
-            }
-        }
-
-        // Close modal when clicking outside the modal content
-        document.addEventListener('click', function(event) {
-            if (event.target.classList.contains('modal-overlay')) {
-                const modalId = event.target.getAttribute('id');
-                closeModal(modalId);
-            }
-        });
-
-        // Close modal with ESC key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                const activeModal = document.querySelector('.modal-overlay.active');
-                if (activeModal) {
-                    const modalId = activeModal.getAttribute('id');
-                    closeModal(modalId);
-                }
-            }
-        });
-
-        // Toggle password visibility
-        function togglePasswordVisibility(id) {
-            const input = document.getElementById(id);
-            const icon = input.nextElementSibling.querySelector('i');
-
-            if (input.type === "password") {
-                input.type = "text";
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = "password";
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-
-        // Show status message (Toast)
-        function showStatus(message, type = 'success') {
-            const indicator = document.getElementById('statusIndicator');
-            indicator.innerHTML = message; // Use innerHTML to allow for <br> tags
-            indicator.className = 'status-indicator show'; // Reset classes
-
-            if (type === 'error') {
-                indicator.style.background = 'var(--danger-color)';
-            } else {
-                indicator.style.background = 'var(--success-color)';
-            }
-
             setTimeout(() => {
-                indicator.classList.remove('show');
-            }, 3000);
-        }
-
-        // Function to render (display) user data into the table
-        async function renderUsers() {
-            const tableBody = document.getElementById('userTableBody');
-            const loadingIndicator = document.getElementById('loadingIndicator');
-
-            tableBody.innerHTML = ''; // Clear table before re-rendering
-            if (loadingIndicator) {
-                 // Re-add loading indicator
-                tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">Sedang memuat data...</td></tr>`;
-            }
-
-
-            try {
-                const response = await fetch(API_BASE_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                const firstInput = modal.querySelector('input[required]:not([type="hidden"]), select[required]');
+                if (firstInput) {
+                    firstInput.focus();
                 }
-                const users = await response.json();
+            }, 100);
+        }
+    }
+}
 
-                tableBody.innerHTML = ''; // Clear loading indicator once data is fetched
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        // Cek apakah ini adalah Bootstrap modal
+        if (modalId === 'userFormModal') {
+            // Gunakan Bootstrap modal untuk userFormModal
+            $("#userFormModal").modal('hide');
+        } else {
+            // Gunakan custom modal untuk modal lainnya
+            modal.style.display = 'none';
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        if (modalId === 'userFormModal') {
+            resetUserForm();
+        }
+        
+        if (modalId === 'deleteConfirmModal') {
+            currentUserId = null;
+        }
+    }
+}
 
-                if (users.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">Tidak ada data user.</td></tr>`;
-                    return;
-                }
+// === FUNGSI SIDEBAR DAN PROFILE ===
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const content = document.getElementById("content");
+    if (sidebar) sidebar.classList.toggle("active");
+    if (content) content.classList.toggle("active");
+}
 
-                users.forEach(user => {
-                    const row = tableBody.insertRow();
-                    const nameParts = user.name.split(' ');
-                    const avatarInitials = nameParts[0].charAt(0).toUpperCase() +
-                                            (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0).toUpperCase() : '');
+function toggleProfile() {
+    const profileMenu = document.getElementById('profileMenu');
+    if (profileMenu) {
+        profileMenu.classList.toggle('show');
+    }
+}
 
-                    row.innerHTML = `
-                        <td>
-                            <div class="user-info-cell">
-                                <div class="avatar">${avatarInitials}</div>
-                                <span>${user.name}</span>
-                            </div>
-                        </td>
-                        <td>${user.username}</td>
-                        <td>${user.email}</td>
-                        <td><span class="role-badge ${user.role ? user.role.toLowerCase() : ''}">${user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : '-'}</span></td>
-                        <td>${user.phone_number || '-'}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-action edit" title="Edit" onclick="editUser(${user.id})">
-                                    <i class="fa-solid fa-edit"></i>
-                                </button>
-                                <button class="btn-action delete" title="Delete" onclick="confirmDeleteUser(${user.id}, '${user.name}')">
-                                    <i class="fa-solid fa-trash-alt"></i>
-                                </button>
-                            </div>
-                        </td>
-                    `;
-                });
-            } catch (error) {
-                console.error('Error fetching users:', error);
-                tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--danger-color);">Gagal memuat data user.</td></tr>`;
-                showStatus('Gagal memuat data user.', 'error');
-            }
+// === FUNGSI PASSWORD ===
+function togglePasswordVisibility(id) {
+    const input = document.getElementById(id);
+    const button = input?.nextElementSibling;
+    const icon = button?.querySelector('i');
+
+    if (input && icon) {
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+}
+
+// === FUNGSI STATUS INDICATOR ===
+function showStatus(message, type = 'success') {
+    const indicator = document.getElementById('statusIndicator');
+    if (!indicator) return;
+
+    indicator.innerHTML = message;
+    indicator.className = 'status-indicator show';
+
+    // Clear existing timeout
+    if (indicator.timeoutId) {
+        clearTimeout(indicator.timeoutId);
+    }
+
+    // Styling berdasarkan tipe
+    if (type === 'error') {
+        indicator.style.background = 'linear-gradient(135deg, #ff6b6b, #ff5252)';
+        indicator.style.boxShadow = '0 4px 20px rgba(255, 107, 107, 0.4)';
+    } else {
+        indicator.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+        indicator.style.boxShadow = '0 4px 20px rgba(76, 175, 80, 0.4)';
+    }
+
+    // Style positioning
+    Object.assign(indicator.style, {
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        zIndex: '10000',
+        padding: '15px 25px',
+        borderRadius: '8px',
+        fontSize: '14px',
+        fontWeight: '500',
+        maxWidth: '400px',
+        color: '#fff',
+        transform: 'translateX(0)',
+        transition: 'all 0.3s ease'
+    });
+
+    // Auto hide
+    indicator.timeoutId = setTimeout(() => {
+        indicator.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            indicator.classList.remove('show');
+        }, 300);
+    }, 4000);
+}
+
+// === FUNGSI PAGINATION ===
+function changePage(direction) {
+    const newPage = currentPage + direction;
+    if (newPage >= 1 && newPage <= totalPages) {
+        goToPage(newPage);
+    }
+}
+
+function goToPage(page) {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+        currentPage = page;
+        renderUsersPage();
+        updatePagination();
+    }
+}
+
+function updatePagination() {
+    const startItem = (currentPage - 1) * itemsPerPage + 1;
+    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+    const paginationInfo = document.getElementById('paginationInfo');
+    if (paginationInfo) {
+        paginationInfo.textContent = `Menampilkan ${startItem}-${endItem} dari ${totalItems} data`;
+    }
+
+    const paginationNumbers = document.getElementById('paginationNumbers');
+    if (!paginationNumbers) return;
+
+    let numbersHtml = '';
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+
+    if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+    }
+
+    // Add first page and ellipsis if needed
+    if (startPage > 1) {
+        numbersHtml += `<button class="page-number" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+            numbersHtml += `<span class="pagination-ellipsis">...</span>`;
+        }
+    }
+
+    // Add page numbers
+    for (let i = startPage; i <= endPage; i++) {
+        numbersHtml += `
+            <button class="page-number ${i === currentPage ? 'active' : ''}"
+                    onclick="goToPage(${i})">${i}</button>
+        `;
+    }
+
+    // Add last page and ellipsis if needed
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            numbersHtml += `<span class="pagination-ellipsis">...</span>`;
+        }
+        numbersHtml += `<button class="page-number" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    paginationNumbers.innerHTML = numbersHtml;
+
+    // Update button states
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    if (prevBtn) prevBtn.disabled = currentPage === 1;
+    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+}
+
+// === FUNGSI RENDER USERS ===
+function renderUsersPage() {
+    const tableBody = document.getElementById('userTableBody');
+    if (!tableBody) return;
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const usersForPage = allUsers.slice(startIndex, endIndex);
+
+    tableBody.innerHTML = '';
+
+    if (usersForPage.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px;">Tidak ada data user.</td></tr>`;
+        return;
+    }
+
+    usersForPage.forEach(user => {
+        const row = tableBody.insertRow();
+        const nameParts = user.name.split(' ');
+        const avatarInitials = nameParts[0].charAt(0).toUpperCase() +
+                                (nameParts.length > 1 ? nameParts[nameParts.length - 1].charAt(0).toUpperCase() : '');
+
+        row.innerHTML = `
+            <td>
+                <div class="user-info-cell">
+                    <div class="avatar">${avatarInitials}</div>
+                    <span>${user.name}</span>
+                </div>
+            </td>
+            <td>${user.username}</td>
+            <td>${user.email}</td>
+            <td><span class="role-badge ${user.role ? user.role.toLowerCase() : ''}">${user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : '-'}</span></td>
+            <td>${user.phone_number || '-'}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-action edit" title="Edit" onclick="editUser(${user.id})">
+                        <i class="fa-solid fa-edit"></i>
+                    </button>
+                    <button class="btn-action delete" title="Delete" onclick="openDeleteModal(${user.id}, '${user.name.replace(/'/g, "\\'")}')">
+                        <i class="fa-solid fa-trash-alt"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+    });
+}
+
+async function renderUsers() {
+    const tableBody = document.getElementById('userTableBody');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px;">Sedang memuat data...</td></tr>`;
+
+    try {
+        const response = await fetch(API_BASE_URL);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const users = await response.json();
+
+        allUsers = users;
+        totalItems = users.length;
+        totalPages = Math.ceil(totalItems / itemsPerPage);
+
+        // Reset to first page if current page is out of bounds
+        if (currentPage > totalPages && totalPages > 0) {
+            currentPage = 1;
         }
 
-        // Function to open the create user modal
-        function openCreateUserModal() {
-            document.getElementById('modalTitle').textContent = 'Tambah User Baru';
-            document.getElementById('submitButton').textContent = 'Simpan User';
-            document.getElementById('password').setAttribute('required', 'required'); // Password required for new user
-            document.getElementById('passwordGroup').style.display = 'flex'; // Show password field
-            currentUserId = null; // Reset current user ID
-            resetUserForm(); // Ensure form is clean
-            openModal('userFormModal');
-        }
+        renderUsersPage();
+        updatePagination();
+        
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--danger-color);">Gagal memuat data user.</td></tr>`;
+        showStatus('Gagal memuat data user.', 'error');
+    }
+}
 
-        // Function to populate the form when editing a user
-        async function editUser(id) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/${id}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const user = await response.json();
+// === FUNGSI DELETE MODAL ===
+function openDeleteModal(userId, userName) {
+    currentUserId = userId;
+    const modal = document.getElementById('deleteConfirmModal');
+    const userNameSpan = document.getElementById('deleteUserName');
+    
+    if (userNameSpan) {
+        userNameSpan.textContent = userName;
+    }
+    
+    openModal('deleteConfirmModal');
+}
 
-                currentUserId = id;
-                document.getElementById('modalTitle').textContent = 'Edit User';
-                document.getElementById('submitButton').textContent = 'Update User';
+async function confirmDelete() {
+    if (currentUserId === null) return;
 
-                // Populate form with user data
-                document.getElementById('userId').value = user.id;
-                document.getElementById('name').value = user.name;
-                document.getElementById('username').value = user.username;
-                document.getElementById('email').value = user.email;
-                document.getElementById('phone').value = user.phone_number || ''; // Handle null phone_number
-                document.getElementById('role').value = user.role;
-                // Removed status field population
-                document.getElementById('password').removeAttribute('required'); // Password not required for edit
-                document.getElementById('password').value = ''; // Clear password for security
-                document.getElementById('passwordGroup').style.display = 'none'; // Hide password field
-
-                openModal('userFormModal');
-            } catch (error) {
-                console.error('Error fetching user for edit:', error);
-                showStatus('Gagal memuat data user untuk edit.', 'error');
-            }
-        }
-
-        // --- Improvement: Function for delete confirmation with modal ---
-        function confirmDeleteUser(id, name) {
-            currentUserId = id; // Store the ID of the user to be deleted
-            document.getElementById('deleteUserName').textContent = name; // Display user's name in the modal
-            openModal('deleteConfirmModal');
-        }
-
-        // Handler for the "Delete" button in the delete confirmation modal
-        document.getElementById('confirmDeleteButton').addEventListener('click', async function() {
-            if (currentUserId !== null) {
-                try {
-                    const response = await fetch(`${API_BASE_URL}/${currentUserId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '', // Include CSRF token if using Blade
-                        },
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || 'Gagal menghapus user.');
-                    }
-
-                    showStatus('User berhasil dihapus!');
-                    closeModal('deleteConfirmModal'); // Close confirmation modal after action
-                    currentUserId = null; // Reset ID
-                    renderUsers(); // Re-render the user list
-                } catch (error) {
-                    console.error('Error deleting user:', error);
-                    showStatus(`Gagal menghapus user: ${error.message}`, 'error');
-                }
-            }
+    try {
+        const response = await fetch(`${API_BASE_URL}/${currentUserId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
         });
 
-        // Function to reset the form
-        function resetUserForm() {
-            document.getElementById('userForm').reset();
-            document.getElementById('userId').value = '';
-            document.getElementById('password').setAttribute('required', 'required');
-            document.getElementById('password').type = 'password'; // Revert type to password
-            // Ensure the eye icon is reset to 'eye'
-            const passwordToggleIcon = document.getElementById('password').nextElementSibling.querySelector('i');
-            if (passwordToggleIcon) {
-                passwordToggleIcon.classList.remove('fa-eye-slash');
-                passwordToggleIcon.classList.add('fa-eye');
-            }
-            document.getElementById('passwordGroup').style.display = 'flex'; // Ensure password field is visible for new user
-            const inputs = document.getElementById('userForm').querySelectorAll('input, select');
-            inputs.forEach(input => {
-                input.style.borderColor = '#e9ecef'; // Reset border color
-            });
-            // Removed resetting the status select field
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Gagal menghapus user.');
         }
 
-        // Handler when the form is submitted (for add and edit)
-        document.getElementById('userForm').addEventListener('submit', async function(e) {
+        showStatus('Data user berhasil dihapus!', 'success');
+        closeModal('deleteConfirmModal');
+        await renderUsers();
+        
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        showStatus(`Gagal menghapus user: ${error.message}`, 'error');
+    }
+}
+
+// === FUNGSI USER FORM ===
+function openCreateUserModal() {
+    resetUserForm();
+    currentUserId = null;
+    
+    const modalTitle = document.getElementById('modalTitle');
+    const submitButton = document.getElementById('submitButton');
+    const passwordLabel = document.querySelector('label[for="password"]');
+    const passwordInput = document.getElementById('password');
+    const passwordHint = document.getElementById('passwordHint');
+    
+    if (modalTitle) modalTitle.textContent = 'Tambah User Baru';
+    if (submitButton) submitButton.textContent = 'Simpan User';
+    if (passwordLabel) passwordLabel.textContent = 'Password *';
+    if (passwordInput) passwordInput.setAttribute('required', 'required');
+    if (passwordHint) passwordHint.style.display = 'none';
+    
+    openModal('userFormModal');
+}
+
+async function editUser(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/${id}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const user = await response.json();
+
+        resetUserForm();
+        currentUserId = id;
+        
+        const modalTitle = document.getElementById('modalTitle');
+        const submitButton = document.getElementById('submitButton');
+        const passwordLabel = document.querySelector('label[for="password"]');
+        const passwordInput = document.getElementById('password');
+        const passwordHint = document.getElementById('passwordHint');
+        
+        if (modalTitle) modalTitle.textContent = 'Edit User';
+        if (submitButton) submitButton.textContent = 'Update User';
+        if (passwordLabel) passwordLabel.textContent = 'Password';
+        if (passwordInput) {
+            passwordInput.removeAttribute('required');
+            passwordInput.placeholder = 'Kosongkan jika tidak ingin mengubah';
+            passwordInput.value = '';
+        }
+        if (passwordHint) passwordHint.style.display = 'block';
+
+        // Fill form with user data
+        const fields = {
+            'userId': user.id,
+            'name': user.name,
+            'username': user.username,
+            'email': user.email,
+            'phone': user.phone_number || '',
+            'role': user.role
+        };
+
+        Object.entries(fields).forEach(([fieldId, value]) => {
+            const field = document.getElementById(fieldId);
+            if (field) field.value = value;
+        });
+
+        openModal('userFormModal');
+        
+    } catch (error) {
+        console.error('Error fetching user for edit:', error);
+        showStatus('Gagal memuat data user untuk edit.', 'error');
+    }
+}
+
+function resetUserForm() {
+    const form = document.getElementById('userForm');
+    if (!form) return;
+
+    form.reset();
+    
+    const userId = document.getElementById('userId');
+    const passwordInput = document.getElementById('password');
+    const passwordHint = document.getElementById('passwordHint');
+    
+    if (userId) userId.value = '';
+    if (passwordInput) {
+        passwordInput.setAttribute('required', 'required');
+        passwordInput.type = 'password';
+        passwordInput.placeholder = 'Masukkan password';
+    }
+    if (passwordHint) passwordHint.style.display = 'none';
+    
+    // Reset password toggle icon
+    const passwordToggleIcon = passwordInput?.nextElementSibling?.querySelector('i');
+    if (passwordToggleIcon) {
+        passwordToggleIcon.classList.remove('fa-eye-slash');
+        passwordToggleIcon.classList.add('fa-eye');
+    }
+    
+    // Reset field styles
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.style.borderColor = '#e9ecef';
+        input.classList.remove('shake', 'password-error');
+    });
+    
+    currentUserId = null;
+}
+
+// === EVENT LISTENERS ===
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial render
+    renderUsers();
+    
+    // Profile dropdown close on outside click
+    document.addEventListener('click', function(event) {
+        const profileDropdown = document.querySelector('.profile-dropdown');
+        const profileMenu = document.getElementById('profileMenu');
+        
+        if (profileDropdown && profileMenu && !profileDropdown.contains(event.target)) {
+            profileMenu.classList.remove('show');
+        }
+    });
+
+    // Modal close on outside click
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal-overlay') || event.target.classList.contains('modal')) {
+            const modalId = event.target.getAttribute('id');
+            if (modalId) closeModal(modalId);
+        }
+    });
+
+    // ESC key to close modal
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const activeModal = document.querySelector('.modal.active, .modal[style*="flex"]');
+            if (activeModal) {
+                const modalId = activeModal.getAttribute('id');
+                if (modalId) closeModal(modalId);
+            }
+        }
+    });
+
+    // Phone number validation
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            const value = e.target.value;
+            
+            if (value && !/^\d*$/.test(value)) {
+                e.target.value = value.replace(/[^\d]/g, '');
+                e.target.classList.add('shake');
+                
+                setTimeout(() => {
+                    e.target.classList.remove('shake');
+                }, 500);
+                
+                showStatus('Nomor HP hanya boleh berisi angka!', 'error');
+            }
+        });
+    }
+
+    // Add user button event
+    const addUserBtn = document.querySelector('[data-bs-target="#userFormModal"]');
+    if (addUserBtn) {
+        addUserBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openCreateUserModal();
+        });
+    }
+
+    // Delete confirmation button
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', confirmDelete);
+    }
+
+    // User form submission
+    const userForm = document.getElementById('userForm');
+    if (userForm) {
+        userForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const userForm = document.getElementById('userForm');
             const formData = new FormData(userForm);
             const userData = Object.fromEntries(formData);
 
-            // Frontend validation for empty fields
-            // Exclude 'status' from required field check if it's no longer part of the form
+            // Validation
             const requiredFields = userForm.querySelectorAll('input[required]:not([type="hidden"]), select[required]');
             let isValid = true;
             let firstInvalidField = null;
 
-            // Clear previous error highlights
+            // Reset field styles
             userForm.querySelectorAll('input, select').forEach(field => {
                 field.style.borderColor = '#e9ecef';
             });
 
+            // Check required fields
             requiredFields.forEach(field => {
                 if (!field.value.trim()) {
                     isValid = false;
@@ -411,29 +639,22 @@
                 }
             });
 
-            // Special validation for phone number
+            // Phone validation
             const phoneInput = document.getElementById('phone');
-            if (phoneInput.value.trim() && !/^\d+$/.test(phoneInput.value.trim())) {
+            if (phoneInput && phoneInput.value.trim() && !/^\d+$/.test(phoneInput.value.trim())) {
                 isValid = false;
                 phoneInput.style.borderColor = 'var(--danger-color)';
-                showStatus('Nomor HP hanya boleh berisi angka!', 'error');
                 if (!firstInvalidField) {
                     firstInvalidField = phoneInput;
                 }
-                phoneInput.addEventListener('input', function() {
-                    this.style.borderColor = '#e9ecef';
-                }, { once: true });
             }
 
             if (!isValid) {
                 if (firstInvalidField) {
                     firstInvalidField.focus();
                 }
-                // Only show a general error if no specific error was already shown (e.g., from phone validation)
-                if (!document.getElementById('statusIndicator').classList.contains('show')) {
-                    showStatus('Mohon lengkapi semua field yang diperlukan!', 'error');
-                }
-                return; // Stop form submission if validation fails
+                showStatus('Mohon lengkapi semua field yang diperlukan!', 'error');
+                return;
             }
 
             try {
@@ -443,26 +664,25 @@
                 let successMessage;
 
                 if (currentUserId) {
-                    // Logic for EDIT user
                     method = 'PUT';
                     url = `${API_BASE_URL}/${currentUserId}`;
-                    successMessage = 'User berhasil diupdate!';
-                    // If password field is empty, don't send it in the request
+                    successMessage = 'Data user berhasil diperbarui!';
+                    
+                    // Remove empty password for update
                     if (!userData.password) {
                         delete userData.password;
                     }
                 } else {
-                    // Logic for ADD new user
                     method = 'POST';
                     url = API_BASE_URL;
-                    successMessage = 'User berhasil ditambahkan!';
+                    successMessage = 'Data user berhasil ditambahkan!';
                 }
 
                 response = await fetch(url, {
                     method: method,
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : '', // Include CSRF token if using Blade
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
                     },
                     body: JSON.stringify(userData),
                 });
@@ -471,26 +691,38 @@
                     const errorData = await response.json();
                     let errorMessage = 'Terjadi kesalahan. Silakan coba lagi.';
                     if (errorData.errors) {
-                        // Handle validation errors from Laravel
-                        errorMessage = Object.values(errorData.errors).flat().join('<br>');
+                        errorMessage = Object.values(errorData.errors).flat().join(', ');
                     } else if (errorData.message) {
                         errorMessage = errorData.message;
                     }
                     throw new Error(errorMessage);
                 }
 
-                showStatus(successMessage);
-                renderUsers();
+                showStatus(successMessage, 'success');
                 closeModal('userFormModal');
+                await renderUsers();
+                
             } catch (error) {
                 console.error('Error submitting user form:', error);
                 showStatus(`Error: ${error.message}`, 'error');
             }
         });
+    }
+});
 
-        // Call renderUsers when DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', renderUsers);
+// === EXPOSE FUNCTIONS TO GLOBAL SCOPE ===
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.toggleSidebar = toggleSidebar;
+window.toggleProfile = toggleProfile;
+window.togglePasswordVisibility = togglePasswordVisibility;
+window.changePage = changePage;
+window.goToPage = goToPage;
+window.editUser = editUser;
+window.openDeleteModal = openDeleteModal;
+window.openCreateUserModal = openCreateUserModal;
     </script>
+
 @push('styles')
 <link rel="stylesheet" href="{{asset('css/ds_admin.css')}}">
 @endpush

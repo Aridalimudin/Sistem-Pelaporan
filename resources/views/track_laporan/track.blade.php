@@ -1,40 +1,38 @@
 @extends('layouts.main')
 @section('title', 'Track Laporan - MTS AR-RIYADL')
 @section('content')
-    
-    <input type="hidden" id="isReporter" value="{{(bool)$reporter}}">
-    <!-- Konten Track Laporan (akan otomatis disembunyikan) -->
-    <div class="container text-center mt-5" id="trackingPage">
+
+    <input type="hidden" id="isReporter" value="{{(bool)$reporter ? '1' : '0'}}">
+    <div class="container text-center mt-5 {{ (bool)$reporter ? 'hidden' : '' }}" id="trackingPage">
         <div class="tracking-header">
             <h3 class="fw-bold">TRACK LAPORAN ANDA</h3>
             <p>Klik tombol di bawah untuk melacak status laporan Anda</p>
         </div>
 
         <div class="col-md-6 mx-auto">
-            <button class="btn btn-primary btn-track mt-3 w-100" onclick="openTrackingPopup()">
+            <button class="btn btn-primary btn-track mt-3 w-100" onclick="trackReportModule.openTrackingPopup()">
                 <i class="fas fa-search me-2"></i>Track Laporan
             </button>
         </div>
     </div>
 
-    <!-- Popup Input Tracking dengan design baru -->
     <div id="trackingPopup" class="popup">
         <div class="popup-content shadow-lg rounded">
-            <span class="close" onclick="closePopup()">&times;</span>
+            <span class="close" onclick="trackReportModule.closePopup()">&times;</span>
             <div class="popup-header">
                 <i class="fas fa-search-location popup-icon"></i>
                 <h5 class="fw-bold">TRACK LAPORAN</h5>
                 <p>Masukkan kode unik laporan Anda untuk melacak status</p>
             </div>
-            
+
             <div class="popup-body">
                 <form action="{{route('track')}}" id="form-track" method="GET">
                     <div class="input-group mb-3">
                         <span class="input-group-text bg-primary text-white">
                             <i class="fas fa-fingerprint"></i>
                         </span>
-                        <input type="text" name="code" id="trackingCode" class="form-control shadow-sm" 
-                            placeholder="Contoh: HTC-1234" required>
+                        <input type="text" name="code" id="trackingCode" class="form-control shadow-sm"
+                                placeholder="Contoh: HTC-1234" required>
                     </div>
                     <div id="errorMessage" class="text-danger mb-3" style="display: none;">
                         <small><i class="fas fa-exclamation-circle me-1"></i>Kode laporan harus diisi</small>
@@ -49,7 +47,6 @@
         </div>
     </div>
 
-    <!-- Popup Error Message dengan design baru -->
     <div id="errorPopup" class="popup">
         <div class="error-popup-content">
             <div class="error-icon-container">
@@ -59,671 +56,969 @@
             </div>
             <h5 class="error-title">LAPORAN TIDAK DITEMUKAN</h5>
             <p class="error-message">Kode atau laporan tidak tersedia. Silakan periksa kembali kode yang Anda masukkan.</p>
-            <button class="error-btn" onclick="closePopup()">
+            <button class="error-btn" onclick="trackReportModule.closePopup()">
                 Tutup
             </button>
         </div>
     </div>
 
-    <!-- Detail Laporan Section dengan design baru -->
     @if((bool)$reporter)
-    <div class="container hidden mt-4 mb-5" id="detailPage">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card shadow-lg detail-card">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0 text-center">DETAIL LAPORAN</h4>
-                        <div class="kode-container">
-                            <span>Kode Laporan:</span>
-                            <span id="kode-laporan" class="badge bg-light text-primary">{{$reporter->code}}</span>
-                        </div>
-                    </div>
-                    <!-- Tracking Progress Section yang Baru dan Elegant -->
-                    <div class="tracking-wrapper">
-                    <!-- Progress Timeline -->
-                    <div class="progress-timeline">
-                        <div class="timeline-line">
-                            <div class="timeline-progress" style="width: 50%;"></div>
+        <div class="container mt-4 mb-5" id="detailPage">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="card shadow-lg detail-card">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0 text-center">DETAIL LAPORAN</h4>
+                            <div class="kode-container">
+                                <span>Kode Laporan:</span>
+                                <span id="kode-laporan" class="badge bg-light text-primary">{{$reporter->code}}</span>
+                            </div>
                         </div>
                         
-                        <div class="timeline-steps">
-                            <div class="timeline-step completed" data-step="0">
-                                <div class="step-circle">
-                                    <i class="fas fa-paper-plane"></i>
+
+                        <div class="tracking-wrapper">
+                            <div class="progress-timeline">
+                                <div class="timeline-line">
+                                    {{-- The width of this progress line will be controlled by JS --}}
+                                    <div class="timeline-progress {{ $reporter->status == 4 ? 'rejected' : '' }}" style="width: 50%;"></div>
                                 </div>
-                                <div class="step-info">
-                                    <h6 class="step-title">Terkirim</h6>
-                                    <span class="step-time">{{$sendReporter->created_at->format('d M Y')}}</span>
+
+                                <div class="timeline-steps {{ $reporter->status == 4 ? 'rejected-timeline' : '' }}">
+                                    @php
+                                        $steps = [
+                                            ['title' => 'Terkirim', 'icon' => 'fas fa-paper-plane'],
+                                            ['title' => 'Diverifikasi', 'icon' => 'fas fa-check-circle'],
+                                            ['title' => 'Diproses', 'icon' => 'fas fa-cogs'],
+                                            ['title' => 'Selesai', 'icon' => 'fas fa-flag-checkered'],
+                                            ['title' => 'Ditolak', 'icon' => 'fas fa-times-circle'],
+                                        ];
+                                    @endphp
+                                    @foreach($steps as $index => $step)
+                                        <div class="timeline-step" data-step="{{ $index }}">
+                                            <div class="step-circle">
+                                                <i class="{{ $step['icon'] }}"></i>
+                                            </div>
+                                            <div class="step-info">
+                                                <h6 class="step-title">{{ $step['title'] }}</h6>
+                                                <span class="step-time"></span>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
 
-                            <div class="timeline-step completed" data-step="1">
-                                <div class="step-circle">
-                                    <i class="fas fa-clipboard-check"></i>
-                                </div>
-                                <div class="step-info">
-                                    <h6 class="step-title">Diterima</h6>
-                                    <span class="step-time">{{$sendReporter->created_at->format('d M Y')}}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="timeline-step active current" data-step="2">
-                                <div class="step-circle">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="step-info">
-                                    <h6 class="step-title">Diverifikasi</h6>
-                                    <span class="step-time">{{$sendReporter->created_at->format('d M Y')}}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="timeline-step pending" data-step="3">
-                                <div class="step-circle">
-                                    <i class="fas fa-cogs"></i>
-                                </div>
-                                <div class="step-info">
-                                    <h6 class="step-title">Diproses</h6>
-                                    <span class="step-time">{{$sendReporter->created_at->format('d M Y')}}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="timeline-step pending" data-step="4">
-                                <div class="step-circle">
-                                    <i class="fas fa-flag-checkered"></i>
-                                </div>
-                                <div class="step-info">
-                                    <h6 class="step-title">Selesai</h6>
-                                    <span class="step-time">{{$sendReporter->created_at->format('d M Y')}}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Status Description Card -->
-                    <div class="status-card">
-                        <div class="status-header">
-                            <div class="status-icon">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div class="status-title">
-                                <h5>Status: Laporan Terkirim</h5>
-                                <span class="status-date">{{$sendReporter->created_at->format('d M Y')}}</span>
-                            </div>
-                        </div>
-                        <div class="status-description">
-                            <p>>Laporan Anda telah berhasil masuk ke dalam sistem dan mendapatkan kode unik untuk tracking. Tim kami akan segera meninjau laporan yang Anda berikan.</p>
-                        </div>
-                        <div class="status-progress-bar">
-                            <div class="progress-bar-container">
-                                <div class="progress-bar-fill" style="width: 60%;"></div>
-                            </div>
-                            <span class="progress-text">20% Selesai</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Detail Informasi Laporan -->
-                    <div class="row mt-5">
-                        <div class="col-12 mb-3">
-
-                            @if($reporter->urgency == 1)
-                                <div class="alert urgency-alert urgency-ringan" role="alert">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <strong>Laporan Prioritas Rendah</strong> - Dapat ditangani sesuai jadwal rutin dan tidak memerlukan tindakan mendesak
-                                </div>
-                            @elseif($reporter->urgency == 2)
-                                <div class="alert urgency-alert urgency-sedang" role="alert">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <strong>Laporan Prioritas Sedang</strong> - Memerlukan perhatian dalam waktu dekat dan penanganan terencana
-                                </div>
-
-                            @elseif($reporter->urgency == 3)
-                                <div class="alert urgency-alert urgency-tinggi" role="alert">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <strong>Laporan Prioritas Tinggi</strong> - Memerlukan perhatian khusus dan penanganan segera
-                                </div>
-                            @endif
-
-                            
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card info-card mb-4">
-                                    <div class="card-header bg-info text-white">
-                                        <h5 class="mb-0"><i class="fas fa-user me-2"></i>Informasi Pelapor</h5>
+                            {{-- START: STATUS CARD DINAMIS - INI YANG AKAN DIKONTROL JS --}}
+                            <div class="status-card {{ $reporter->status == 4 ? 'rejected' : '' }}">
+                                <div class="status-header">
+                                    <div class="status-icon">
+                                        <i class="{{ $reporter->status == 4 ? 'fas fa-times-circle' : 'fas fa-check-circle' }}"></i>
                                     </div>
-                                    <div class="card-body">
-                                        <table class="table table-borderless">
-                                            <tr>
-                                                <td width="40%"><strong>NIS Pelapor :</strong></td>
-                                                <td>{{$reporter->student?->nis}}</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Email :</strong></td>
-                                                <td>{{$reporter->student?->email}}</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Nama :</strong></td>
-                                                <td>{{$reporter->student?->name}}</td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Tanggal Melapor :   </strong></td>
-                                                <td>{{$reporter->created_at->format('d F Y')}}</td>
-                                            </tr>
-                                        </table>
+                                    <div class="status-title">
+                                        <h5 id="status-title">Status: 
+                                            @if($reporter->status == 4)
+                                                Laporan Ditolak
+                                            @else
+                                                Laporan Terkirim
+                                            @endif
+                                        </h5>
+                                        <span class="status-date" id="status-date">
+                                            @if($reporter->status == 4)
+                                                {{$reporter->updated_at->format('d M Y')}}
+                                            @else
+                                                {{$reporter->created_at->format('d M Y')}}
+                                            @endif
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div class="col-md-6">
-                <div class="card info-card mb-4">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Informasi Kejadian</h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-borderless">
-                            <tr>
-                                <td width="40%"><strong>Kategori Kasus :</strong></td>
-                                <td>
-                                    <ul class="category-list">
-                                        @php
-                                            $categoriesArray = explode(',', $categories);
-                                        @endphp
-                                        @foreach($categoriesArray as $category)
-                                            @php
-                                                $trimmed = trim($category);
-                                                $iconClass = 'icon-default';
-                                                
-                                                if (stripos($trimmed, 'verbal') !== false) {
-                                                    $iconClass = 'icon-verbal';
-                                                } elseif (stripos($trimmed, 'fisik') !== false) {
-                                                    $iconClass = 'icon-fisik';
-                                                } elseif (stripos($trimmed, 'pelecehan') !== false || stripos($trimmed, 'seksual') !== false) {
-                                                    $iconClass = 'icon-seksual';
-                                                }
-                                            @endphp
-                                            <li class="category-item">
-                                                <div class="category-icon {{ $iconClass }}"></div>
-                                                <span class="category-text">{{ $trimmed }}</span>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Pelaku :</strong></td>
-                                <td>Nama Pelaku</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Korban :</strong></td>
-                                <td>Nama Korban</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Lokasi Kejadian :</strong></td>
-                                <td>Ruang Kelas XII-A</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Waktu Kejadian :</strong></td>
-                                <td>18 Feb 2023, 10:30 WIB</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="card info-card mb-4">
-                            <div class="card-header bg-secondary text-white">
-                                <h5 class="mb-0"><i class="fas fa-align-left me-2"></i>Uraian Kejadian</h5>
-                            </div>
-                            <div class="card-body">
-                                <p>{{$reporter->description}}</p>
-                            </div>
-                        </div>
+                                <div class="status-description">
+                                    <p id="status-description">
+                                        @if($reporter->status == 4)
+                                            Laporan Anda tidak dapat diproses lebih lanjut karena tidak memenuhi kriteria yang ditetapkan. Tim kami telah meninjau dokumen yang Anda berikan.
+                                            <br><br>Silakan hubungi admin untuk informasi lebih lanjut atau ajukan laporan baru dengan informasi yang lebih lengkap.
+                                        @else
+                                            Laporan Anda telah berhasil masuk ke dalam sistem dan mendapatkan kode unik untuk tracking. Tim kami akan segera meninjau laporan yang Anda berikan.
+                                        @endif
+                                    </p>
+                                </div>
 
-            <!-- Replace the existing photo evidence section with this -->
-            <div class="card info-card mb-4">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="fas fa-photo-video me-2"></i>Bukti Foto & Video</h5>
-                </div>
-                <div class="card-body">
-                    <!-- Masonry Container -->
-                    <div class="masonry-container">
-                        @foreach($reporter->reporterFile as $key => $value)
-                            @php
-                                $fileExtension = strtolower(pathinfo($value->file, PATHINFO_EXTENSION));
-                                $isVideo = in_array($fileExtension, ['mp4', 'avi', 'mov', 'wmv', 'webm', 'ogg']);
-                                $fileType = $isVideo ? 'video' : 'image';
-                            @endphp
-                            
-                            <div class="masonry-item {{ $fileType }}" style="--item-index: {{ $key }}" onclick="openLightbox({{ $key }})">
-                                @if($isVideo)
-                                    <video class="masonry-video" preload="metadata" muted>
-                                        <source src="{{asset('storage/'. $value->file)}}" type="video/{{ $fileExtension }}">
-                                        Video tidak dapat dimuat
-                                    </video>
-                                    <div class="file-type-badge video">
-                                        <i class="fas fa-play me-1"></i>Video
+                                {{-- REJECTION REASON: Tambahkan div ini di dalam status-card dinamis --}}
+                                @if($reporter->status == 4)
+                                    <div class="rejection-reason" id="rejection-reason-display">
+                                        <div class="reason-label">Alasan Penolakan:</div>
+                                        <div class="reason-text">
+                                            {{ $reporter->rejection_reason ?? 'Dokumen yang dilampirkan tidak lengkap dan informasi yang diberikan kurang detail. Silakan melengkapi dokumen pendukung dan berikan informasi yang lebih spesifik.' }}
+                                        </div>
                                     </div>
                                 @else
-                                    <img src="{{asset('storage/'. $value->file)}}" class="masonry-image" alt="Bukti Kejadian {{ $key + 1 }}">
-                                    <div class="file-type-badge image">
-                                        <i class="fas fa-image me-1"></i>Foto
+                                    <div class="rejection-reason" id="rejection-reason-display" style="display: none;">
+                                        {{-- Konten akan diisi oleh JS jika status berubah --}}
                                     </div>
                                 @endif
+                                
+                                <div class="status-progress-bar">
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar-fill" id="progress-fill" style="width: {{ $reporter->status == 4 ? '100' : '20' }}%;"></div>
+                                    </div>
+                                    <span class="progress-text" id="progress-text">{{ $reporter->status == 4 ? '100% Ditolak' : '20% Selesai' }}</span>
+                                </div>
+                                
+                                {{-- Tombol "Hubungi Admin" akan diinjeksi oleh JS --}}
+                                <div id="action-button-container"></div>
                             </div>
-                        @endforeach
-                        
-                        <!-- Dummy Video Data untuk Testing -->
-                        <div class="masonry-item video" style="--item-index: {{ count($reporter->reporterFile) }}" onclick="openLightbox({{ count($reporter->reporterFile) }})">
-                            <video class="masonry-video" preload="metadata" muted poster="https://via.placeholder.com/400x300/333/fff?text=Video+Dummy">
-                                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-                                Video tidak dapat dimuat
-                            </video>
-                            <div class="file-type-badge video">
-                                <i class="fas fa-play me-1"></i>Video
-                            </div>
-                        </div>
-                        
-                        <div class="masonry-item video" style="--item-index: {{ count($reporter->reporterFile) + 1 }}" onclick="openLightbox({{ count($reporter->reporterFile) + 1 }})">
-                            <video class="masonry-video" preload="metadata" muted poster="https://via.placeholder.com/400x300/666/fff?text=Video+Demo">
-                                <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4" type="video/mp4">
-                                Video tidak dapat dimuat
-                            </video>
-                            <div class="file-type-badge video">
-                                <i class="fas fa-play me-1"></i>Video
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            {{-- END: STATUS CARD DINAMIS --}}
 
-            <!-- Enhanced Lightbox dengan Video Support -->
-            <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
-                <div class="lightbox-content">
-                    <button class="lightbox-close" onclick="closeLightbox()" title="Tutup">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <button class="lightbox-nav lightbox-prev" onclick="prevMedia()" title="Media Sebelumnya">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button class="lightbox-nav lightbox-next" onclick="nextMedia()" title="Media Selanjutnya">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    
-                    <!-- Loading Spinner -->
-                    <div id="lightbox-loading" class="lightbox-loading" style="display: none;">
-                        <div class="spinner"></div>
-                    </div>
-                    
-                    <!-- Image Display -->
-                    <img id="lightbox-image" class="lightbox-image" src="" alt="" style="display: none;">
-                    
-                    <!-- Video Display -->
-                    <video id="lightbox-video" class="lightbox-video" controls preload="metadata" style="display: none;">
-                        <source id="lightbox-video-source" src="" type="">
-                        Browser Anda tidak mendukung pemutar video.
-                    </video>
-                    
-                    <div class="lightbox-counter">
-                        <span id="current-media">1</span> / <span id="total-media">{{ count($reporter->reporterFile) + 2 }}</span>
-                    </div>
-                    
-                    <!-- Video Controls (Optional) -->
-                    <div id="lightbox-video-controls" class="lightbox-video-controls" style="display: none;">
-                        <button class="video-control-btn" onclick="toggleVideoPlayPause()" title="Play/Pause">
-                            <i id="play-pause-icon" class="fas fa-play"></i>
-                        </button>
-                        <button class="video-control-btn" onclick="toggleVideoMute()" title="Mute/Unmute">
-                            <i id="mute-icon" class="fas fa-volume-up"></i>
-                        </button>
-                        <button class="video-control-btn" onclick="toggleVideoFullscreen()" title="Fullscreen">
-                            <i class="fas fa-expand"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-                                    
-                                    <div class="text-center mt-4">
-                                        <button class="btn btn-primary px-5" onclick="backToTracking()">
-                                            <i class="fas fa-arrow-left me-2"></i>Kembali ke Tracking
+                            <div class="row mt-5">
+                                <div class="col-12 mb-3">
+                                    @if($reporter->urgency == 1)
+                                        <div class="alert urgency-alert urgency-ringan" role="alert">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Laporan Prioritas Rendah</strong> - Dapat ditangani sesuai jadwal rutin dan tidak memerlukan tindakan mendesak
+                                        </div>
+                                    @elseif($reporter->urgency == 2)
+                                        <div class="alert urgency-alert urgency-sedang" role="alert">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Laporan Prioritas Sedang</strong> - Memerlukan perhatian dalam waktu dekat dan penanganan terencana
+                                        </div>
+                                    @elseif($reporter->urgency == 3)
+                                        <div class="alert urgency-alert urgency-tinggi" role="alert">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Laporan Prioritas Tinggi</strong> - Memerlukan perhatian khusus dan penanganan segera
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card info-card mb-4">
+                                        <div class="card-header bg-info text-white">
+                                            <h5 class="mb-0"><i class="fas fa-user me-2"></i>Informasi Pelapor</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <td width="40%"><strong>NIS Pelapor :</strong></td>
+                                                    <td>{{$reporter->student?->nis}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Email :</strong></td>
+                                                    <td>{{$reporter->student?->email}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Nama :</strong></td>
+                                                    <td>{{$reporter->student?->name}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Tanggal Lapor : </strong></td>
+                                                    <td>{{$reporter->created_at->format('d F Y')}}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="card info-card mb-4">
+                                        <div class="card-header bg-warning text-dark">
+                                            <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Informasi Kejadian</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <td width="40%"><strong>Kategori Kasus :</strong></td>
+                                                    <td>
+                                                        <ul class="category-list" id="categoryList">
+                                                            @php
+                                                                $categoriesArray = isset($categories) ? explode(',', $categories) : [];
+                                                            @endphp
+                                                            @foreach($categoriesArray as $category)
+                                                                @php
+                                                                    $trimmed = trim($category);
+                                                                    $iconClass = 'icon-default';
+                                                                    if (stripos($trimmed, 'verbal') !== false) {
+                                                                        $iconClass = 'icon-verbal';
+                                                                    } elseif (stripos($trimmed, 'fisik') !== false) {
+                                                                        $iconClass = 'icon-fisik';
+                                                                    } elseif (stripos(str_replace('seksual', '', $trimmed), 'pelecehan') !== false) { // Menangani 'pelecehan' tanpa 'seksual'
+                                                                        $iconClass = 'icon-seksual'; // Asumsi jika hanya 'pelecehan' tetap masuk seksual
+                                                                    } elseif (stripos($trimmed, 'seksual') !== false) {
+                                                                        $iconClass = 'icon-seksual';
+                                                                    }
+                                                                @endphp
+                                                                <li class="category-item">
+                                                                    <div class="category-icon {{ $iconClass }}"></div>
+                                                                    <span class="category-text">{{ $trimmed }}</span>
+                                                                </li>
+                                                            @endforeach
+                                                        </ul>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Pelaku :</strong></td>
+                                                    <td>{{ $reporter->nama_pelaku ?? 'Nama Pelaku' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Korban :</strong></td>
+                                                    <td>{{ $reporter->nama_korban ?? 'Nama Korban' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Saksi :</strong></td>
+                                                    <td>{{ $reporter->nama_saksi ?? 'Nama Saksi' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Lokasi Kejadian :</strong></td>
+                                                    <td>{{ $reporter->lokasi ?? 'Ruang Kelas XII-A' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Waktu Kejadian :</strong></td>
+                                                    <td>{{ ($reporter->tanggal ?? false) ? \Carbon\Carbon::parse($reporter->tanggal)->format('d M Y') . ', ' . \Carbon\Carbon::parse($reporter->jam)->format('H:i') . ' WIB' : '18 Feb 2023, 10:30 WIB' }}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card info-card mb-4">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h5 class="mb-0"><i class="fas fa-align-left me-2"></i>Uraian Kejadian</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>{{$reporter->description}}</p>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 col-lg-6 mb-4">
+                                    <div class="card info-card h-100">
+                                        <div class="card-header bg-success text-white">
+                                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informasi Tambahan</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            @if ($reporter->additional_info)
+                                                <p>{{ $reporter->additional_info }}</p>
+                                            @else
+                                                <p class="text-muted">Belum ada informasi tambahan yang dilaporkan.</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 col-lg-6 mb-4">
+                                    <div class="card info-card h-100">
+                                        <div class="card-header bg-danger text-white">
+                                            <h5 class="mb-0"><i class="fas fa-hands-helping me-2"></i>Tindakan yang Diharapkan</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            @if ($reporter->expected_action)
+                                                <p>{{ $reporter->expected_action }}</p>
+                                            @else
+                                                <p class="text-muted">Pelapor belum menentukan tindakan yang diharapkan.</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card info-card mb-4">
+                                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-photo-video me-2"></i>Bukti Foto & Video</h5>
+                                        {{-- Tombol Tambah Bukti Baru --}}
+                                        <button class="btn btn-sm btn-light" onclick="trackReportModule.openUploadEvidenceModal()">
+                                            <i class="fas fa-plus me-1"></i> Tambah Bukti
                                         </button>
                                     </div>
+                                    <div class="card-body">
+                                        <div class="masonry-container" id="masonryContainer">
+                                            @foreach($reporter->reporterFile as $key => $value)
+                                                @php
+                                                    $fileExtension = strtolower(pathinfo($value->file, PATHINFO_EXTENSION));
+                                                    $isVideo = in_array($fileExtension, ['mp4', 'avi', 'mov', 'wmv', 'webm', 'ogg']);
+                                                    $fileType = $isVideo ? 'video' : 'image';
+                                                @endphp
+
+                                                <div class="masonry-item {{ $fileType }}" style="--item-index: {{ $key }}" onclick="trackReportModule.openLightbox({{ $key }})">
+                                                    @if($isVideo)
+                                                        <video class="masonry-video" preload="metadata" muted>
+                                                            <source src="{{asset('storage/'. $value->file)}}" type="video/{{ $fileExtension }}">
+                                                            Video tidak dapat dimuat
+                                                        </video>
+                                                        <div class="file-type-badge video">
+                                                            <i class="fas fa-play me-1"></i>Video
+                                                        </div>
+                                                    @else
+                                                        <img src="{{asset('storage/'. $value->file)}}" class="masonry-image" alt="Bukti Kejadian {{ $key + 1 }}">
+                                                        <div class="file-type-badge image">
+                                                            <i class="fas fa-image me-1"></i>Foto
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="lightbox" class="lightbox" onclick="trackReportModule.closeLightbox(event)">
+                                    <div class="lightbox-content">
+                                        <button class="lightbox-close" onclick="trackReportModule.closeLightboxExplicit()" title="Tutup">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        <button class="lightbox-nav lightbox-prev" onclick="trackReportModule.prevMedia()" title="Media Sebelumnya">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button class="lightbox-nav lightbox-next" onclick="trackReportModule.nextMedia()" title="Media Selanjutnya">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+
+                                        <div id="lightbox-loading" class="lightbox-loading" style="display: none;">
+                                            <div class="spinner"></div>
+                                        </div>
+
+                                        <img id="lightbox-image" class="lightbox-image" src="" alt="" style="display: none;">
+
+                                        <video id="lightbox-video" class="lightbox-video" controls preload="metadata" style="display: none;">
+                                            <source id="lightbox-video-source" src="" type="">
+                                            Browser Anda tidak mendukung pemutar video.
+                                        </video>
+
+                                        <div class="lightbox-counter">
+                                            <span id="current-media">1</span> / <span id="total-media">{{ count($reporter->reporterFile) }}</span>
+                                        </div>
+
+                                        <div id="lightbox-video-controls" class="lightbox-video-controls" style="display: none;">
+                                            <button class="video-control-btn" onclick="trackReportModule.toggleVideoPlayPause()" title="Play/Pause">
+                                                <i id="play-pause-icon" class="fas fa-play"></i>
+                                            </button>
+                                            <button class="video-control-btn" onclick="trackReportModule.toggleVideoMute()" title="Mute/Unmute">
+                                                <i id="mute-icon" class="fas fa-volume-up"></i>
+                                            </button>
+                                            <button class="video-control-btn" onclick="trackReportModule.toggleVideoFullscreen()" title="Fullscreen">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center mt-4">
+                                    <button class="btn btn-primary px-5" onclick="trackReportModule.backToTracking()">
+                                        <i class="fas fa-arrow-left me-2"></i>Kembali ke Tracking
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                @endif
+            </div>
+        </div>
 
-@push('styles')
-<link rel="stylesheet" href="{{asset('css/style_track.css')}}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-@endpush
+        {{-- START: Tombol dan Modal Reminder (Dipindahkan ke dalam blok @if) --}}
+        <div id="reminderButton" class="floating-reminder-btn" onclick="showReminderConfirmation()">
+            <div class="btn-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div class="btn-text">
+                <span>Reminder</span>
+                <small>Laporan</small>
+            </div>
+            <div class="btn-pulse"></div>
+        </div>
 
-@push('scripts')
-<script>
-// Fungsi untuk mendeteksi jika halaman diakses dari navbar
-document.addEventListener('DOMContentLoaded', function() {
-    // Cek apakah ada parameter di URL yang menunjukkan akses dari navbar
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromNav = urlParams.get('fromNav');
-    
-    // Otomatis buka popup saat halaman dimuat jika dari navbar
-    // Jika tidak ada parameter spesifik, gunakan otomatis buka popup
-    if($("#isReporter").val() == ""){
-        openTrackingPopup();
-        $("#detailPage").addClass('hidden');
-        $("#trackingPage").removeClass('hidden');
-    }else{
-        $("#detailPage").removeClass('hidden');
-        $("#trackingPage").addClass('hidden');
-    }
+        <div id="reminderModal" class="reminder-modal">
+            <div class="reminder-modal-content">
+                <div class="reminder-modal-header">
+                    <div class="reminder-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h4>Kirim Permintaan Tindak Lanjut</h4>
+                    <p>Apakah Anda ingin mengirim permintaan agar laporan ini segera diproses oleh pihak sekolah?</p>
+                </div>
+                <div class="reminder-modal-body">
+                    <div class="reminder-info">
+                        <div class="info-item">
+                            <span class="info-label">Kode Laporan:</span>
+                            <span class="info-value">{{$reporter->code}}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Status Saat Ini:</span>
+                            <span class="info-value">
+                                @switch($reporter->status)
+                                    @case(0)
+                                        Laporan Terkirim
+                                        @break
+                                    @case(1)
+                                        Verifikasi Laporan
+                                        @break
+                                    @case(2)
+                                        Laporan Diproses
+                                        @break
+                                    @case(3)
+                                        Laporan Selesai
+                                        @break
+                                    @case(4)
+                                        Laporan Ditolak
+                                        @break
+                                    @default
+                                        Laporan Tidak Diketahui
+                                @endswitch
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="reminder-modal-footer">
+                    <button class="btn-cancel" onclick="closeReminderModal()">Batal</button>
+                    <button class="btn-confirm" onclick="sendReminder()">Kirim Reminder</button>
+                </div>
+            </div>
+        </div>
 
-});
+        <div id="uploadEvidenceModal" class="popup">
+            <div class="popup-content shadow-lg rounded">
+                <span class="close" onclick="trackReportModule.closeUploadEvidenceModal()">&times;</span>
+                <div class="popup-header">
+                    <i class="fas fa-upload popup-icon"></i>
+                    <h5 class="fw-bold">UNGGAH BUKTI TAMBAHAN</h5>
+                    <p>Pilih file foto atau video yang ingin Anda tambahkan.</p>
+                </div>
 
-// Fungsi untuk membuka popup tracking
-function openTrackingPopup() {
-    document.getElementById('trackingPopup').style.display = 'flex';
-    document.getElementById('trackingCode').focus();
-    // Reset pesan error jika ada
-    document.getElementById('errorMessage').style.display = 'none';
-    document.getElementById('trackingCode').classList.remove('is-invalid');
-}
+                <div class="popup-body">
+                    <form id="uploadEvidenceForm" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="report_code" value="{{ $reporter->code }}">
+                        <div class="mb-3">
+                            <label for="evidenceFiles" class="form-label">Pilih File (Foto/Video):</label>
+                            <input type="file" class="form-control" id="evidenceFiles" name="evidence_files[]" accept="image/*,video/*" multiple required>
+                            <small class="form-text text-muted">Maksimal 5 file, ukuran maksimal 10MB per file. Format: JPG, PNG, MP4, MOV, WEBM.</small>
+                        </div>
+                        <div id="uploadErrorMessage" class="text-danger mb-3" style="display: none;">
+                            <small><i class="fas fa-exclamation-circle me-1"></i>Pilih setidaknya satu file.</small>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary px-5">
+                                <i class="fas fa-cloud-upload-alt me-2"></i>Unggah Bukti
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {{-- END: Modal Unggah Bukti Tambahan --}}
 
-// Fungsi untuk menutup semua popup
-function closePopup() {
-    const popups = document.querySelectorAll('.popup');
-    popups.forEach(popup => {
-        popup.style.display = 'none';
-    });
-}
+    @endif
 
-// Fungsi untuk memeriksa kode tracking
-function checkTrackingCode() {
-    const trackingCode = document.getElementById('trackingCode').value.trim();
-    
-    if (!trackingCode) {
-        // Tampilkan pesan error inline saja
-        document.getElementById('errorMessage').style.display = 'block';
-        document.getElementById('trackingCode').classList.add('is-invalid');
-        document.getElementById('trackingCode').focus();
-        return;
-    }
-    
-    // Hapus pesan error jika ada
-    document.getElementById('errorMessage').style.display = 'none';
-    document.getElementById('trackingCode').classList.remove('is-invalid');
-    
-    // Pastikan kode dimulai dengan "HTC-" untuk valid
-    if (trackingCode.toUpperCase().startsWith('HTC-')) {
-        // Tutup popup tracking
-        closePopup();
-        
-        // Tampilkan halaman detail dan sembunyikan halaman tracking
-        document.getElementById('trackingPage').style.display = 'none';
-        document.getElementById('detailPage').style.display = 'block';
-        
-        // Update kode laporan di halaman detail
-        document.getElementById('kode-laporan').textContent = trackingCode;
-        
-        // Animasi untuk halaman detail
-        document.getElementById('detailPage').classList.add('fade-in');
-        
-        // Scrolling ke atas halaman
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-        // Tutup popup tracking
-        closePopup();
-        
-        // Tampilkan popup error
-        document.getElementById('errorPopup').style.display = 'flex';
-    }
+    @include('track_laporan.complete')
+    @include('track_laporan.feedback')
 
-    $("#form-track").submit();
-}
+    @push('styles')
+    <link rel="stylesheet" href="{{asset('css/style_track.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    @endpush
 
-// Fungsi untuk kembali ke halaman tracking
-function backToTracking() {
-    document.getElementById('detailPage').style.display = 'none';
-    document.getElementById('trackingPage').style.display = 'block';
-    
-    // Reset input tracking code
-    document.getElementById('trackingCode').value = '';
-    
-    // Buka kembali popup tracking
-    openTrackingPopup();
-}
-
-// Menambahkan event listener untuk keyboard
-document.addEventListener('keydown', function(event) {
-    // Tutup popup dengan tombol Escape
-    if (event.key === 'Escape') {
-        closePopup();
-    }
-    
-    // Submit tracking code dengan tombol Enter saat di input field
-    if (event.key === 'Enter' && document.activeElement === document.getElementById('trackingCode')) {
-        checkTrackingCode();
-    }
-});
-</script>
-
+    @push('scripts')
     <script>
-        // Data untuk setiap step dengan informasi lengkap
-            const trackingSteps = {
+        const trackReportModule = (function() {
+            // Fungsi contactAdmin sudah ada, tidak perlu diubah
+            function contactAdmin() {
+                alert('Fitur hubungi admin akan segera tersedia. Silakan hubungi admin melalui email atau telepon yang tertera di website.');
+            }
+
+            let originalCurrentStep = 0;
+            let isPreviewMode = false;
+            let mediaFiles = [];
+            let currentMediaIndex = 0;
+            let isVideoPlaying = false;
+
+            const trackingStepsData = {
                 0: {
                     title: "Terkirim",
                     status: "Laporan Terkirim",
-                    date: "19 Februari 2023",
                     description: "Laporan Anda telah berhasil masuk ke dalam sistem dan mendapatkan kode unik untuk tracking. Tim kami akan segera meninjau laporan yang Anda berikan.",
                     icon: "fas fa-paper-plane",
-                    progress: 20
+                    progress: 20,
+                    hasAction: false,
+                    date: "{{ @$terkirim?->created_at->format('d M Y') ?? '' }}"
                 },
                 1: {
-                    title: "Diterima", 
-                    status: "Laporan Diterima",
-                    date: "20 Februari 2023",
-                    description: "Laporan Anda telah diterima. Silakan lengkapi dokumen lainnya agar laporan Anda bisa melanjutkan ke proses verifikasi.",
+                    title: "Verifikasi",
+                    status: "Verifikasi Laporan",
+                    description: "Laporan Anda masuk dalam tahap verifikasi. Silakan lengkapi dokumen lainnya agar laporan Anda dapat segera diproses lebih lanjut oleh tim kami.",
                     icon: "fas fa-clipboard-check",
                     progress: 40,
-                    hasAction: true, 
-                    actionText: "Lengkapi Dokumen", 
-                    actionType: "complete_documents" 
+                    hasAction: "{{ @$reporter->status == 2 ? false : true }}",
+                    actionText: "Lengkapi Dokumen",
+                    actionType: "complete_documents",
+                    date: "{{ @$verifikasi?->created_at->format('d M Y') ?? '' }}"
                 },
                 2: {
-                    title: "Diverifikasi",
-                    status: "Diverifikasi", 
-                    date: "21 Februari 2023",
-                    description: "Laporan Anda telah melalui proses verifikasi dan dinyatakan valid. Semua informasi yang diperlukan telah lengkap dan laporan akan segera diteruskan ke tahap penanganan selanjutnya.",
-                    icon: "fas fa-check-circle",
-                    progress: 60
+                    title: "Proses",
+                    status: "Laporan Sedang Diproses",
+                    description: "Laporan sedang dalam tahap penanganan oleh tim yang berwenang. Investigasi mendalam sedang dilakukan untuk menindaklanjuti kasus yang Anda laporkan.",
+                    icon: "fas fa-cogs",
+                    progress: 80,
+                    hasAction: false,
+                    date: "{{ @$proses?->created_at->format('d M Y') ?? '' }}"
                 },
                 3: {
-                    title: "Diproses",
-                    status: "Sedang Diproses",
-                    date: "-",
-                    description: "Laporan sedang dalam tahap penanganan oleh tim yang berwenang. Investigasi mendalam sedang dilakukan untuk menindaklanjuti kasus yang Anda laporkan.",
-                    icon: "fas fa-cogs", 
-                    progress: 80
+                    title: "Selesai",
+                    status: "Laporan Selesai Ditangani",
+                    description: "Laporan Anda telah selesai ditangani. Tindakan yang diperlukan telah dilakukan sesuai dengan kebijakan dan prosedur yang berlaku.<br><br>Untuk melihat detail penyelesaian laporan dan memberikan penilaian penyelesaian, silakan klik tombol \"Berikan Penilaian\" di bawah ini. Terima kasih atas partisipasi Anda.",
+                    icon: "fas fa-flag-checkered",
+                    progress: 100,
+                    hasAction: true,
+                    actionText: "Berikan Penilaian",
+                    actionType: "give_feedback",
+                    date: "{{ @$done?->created_at->format('d M Y') ?? '' }}",
                 },
                 4: {
-                    title: "Selesai",
-                    status: "Selesai Ditangani",
-                    date: "-", 
-                    description: "Laporan Anda telah selesai ditangani. Tindakan yang diperlukan telah dilakukan sesuai dengan kebijakan dan prosedur yang berlaku. Terima kasih atas partisipasi Anda.",
-                    icon: "fas fa-flag-checkered",
-                    progress: 100
-                }
+                    title: "Ditolak",
+                    status: "Laporan Ditolak",
+                    description: `Laporan Anda tidak dapat diproses lebih lanjut karena tidak memenuhi kriteria yang ditetapkan. Tim kami telah meninjau dokumen yang Anda berikan.
+                    <br><br>Silakan hubungi admin untuk informasi lebih lanjut atau ajukan laporan baru dengan informasi yang lebih lengkap.`,
+                    rejection_reason: `{{ @$reporter->rejection_reason ?? 'Dokumen yang dilampirkan tidak lengkap dan informasi yang diberikan kurang detail. Silakan melengkapi dokumen pendukung dan berikan informasi yang lebih spesifik.' }}`,
+                    icon: "fas fa-times-circle",
+                    progress: 100, 
+                    hasAction: true,
+                    actionText: "Hubungi Admin",
+                    actionType: "contact_admin",
+                    date: "{{ @$reject?->created_at->format('d M Y') ?? '' }}",
+                    isRejected: true
+                },
             };
 
-            // Store the original current step to maintain timeline integrity
-            let originalCurrentStep = 0;
+            function init() {
+                const isReporterVal = document.getElementById('isReporter').value;
+                const reporterExists = isReporterVal === '1';
 
-            // Fixed function to update status card only without changing timeline state
+                if (!reporterExists) {
+                    trackReportModule.openTrackingPopup();
+                    document.getElementById('detailPage').classList.add('hidden');
+                    document.getElementById('trackingPage').classList.remove('hidden');
+                } else {
+                    document.getElementById('detailPage').classList.remove('hidden');
+                    document.getElementById('trackingPage').classList.add('hidden');
+                    trackReportModule.initializeElegantTracking({{ intval($reporter->status ?? 0) }});
+                    // Initialize media files here as well, since it's on detail page load
+                    initializeMediaFiles();
+                }
+
+                document.addEventListener('keydown', handleKeyboardNavigation);
+
+                const lightboxVideo = document.getElementById('lightbox-video');
+                if (lightboxVideo) {
+                    lightboxVideo.addEventListener('play', () => { isVideoPlaying = true; updatePlayPauseIcon(); });
+                    lightboxVideo.addEventListener('pause', () => { isVideoPlaying = false; updatePlayPauseIcon(); });
+                    lightboxVideo.addEventListener('ended', () => { isVideoPlaying = false; updatePlayPauseIcon(); setTimeout(trackReportModule.nextMedia, 1000); });
+                }
+
+                document.querySelectorAll('.masonry-video').forEach(video => {
+                    if (!video.poster) {
+                        video.addEventListener('loadeddata', function() { this.currentTime = 1; });
+                        video.addEventListener('seeked', function() {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = this.videoWidth;
+                            canvas.height = this.videoHeight;
+                            ctx.drawImage(this, 0, 0);
+                            this.poster = canvas.toDataURL();
+                        });
+                    }
+                });
+
+                const categoryListElement = document.getElementById('categoryList');
+                if (categoryListElement && reporterExists) {
+                    const categoriesString = @json($categories ?? '');
+                    generateCategoryList(categoriesString);
+                }
+
+                // Event listener untuk form unggah bukti
+                const uploadEvidenceForm = document.getElementById('uploadEvidenceForm');
+                if (uploadEvidenceForm) {
+                    uploadEvidenceForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        uploadEvidence();
+                    });
+                }
+            }
+
+            function initializeMediaFiles() {
+                const masonryItems = document.querySelectorAll('.masonry-item');
+                mediaFiles = [];
+                masonryItems.forEach((item, index) => {
+                    const isVideo = item.classList.contains('video');
+                    let mediaSrc = '';
+                    let mediaType = '';
+
+                    if (isVideo) {
+                        const video = item.querySelector('video source');
+                        mediaSrc = video ? video.src : '';
+                        mediaType = video ? video.type : 'video/' + item.querySelector('video source').src.split('.').pop();
+                    } else {
+                        const img = item.querySelector('img');
+                        mediaSrc = img ? img.src : '';
+                        mediaType = 'image';
+                    }
+
+                    mediaFiles.push({
+                        src: mediaSrc,
+                        type: mediaType,
+                        isVideo: isVideo,
+                        index: index
+                    });
+                });
+                document.getElementById('total-media').textContent = mediaFiles.length;
+            }
+
+            function openTrackingPopup() {
+                document.getElementById('trackingPopup').style.display = 'flex';
+                document.getElementById('trackingCode').focus();
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('trackingCode').classList.remove('is-invalid');
+            }
+
+            function closePopup() {
+                const popups = document.querySelectorAll('.popup');
+                popups.forEach(popup => {
+                    popup.style.display = 'none';
+                });
+
+                if (typeof window.closeCompleteDocumentsForm === 'function') {
+                    window.closeCompleteDocumentsForm();
+                }
+            }
+
+            function checkTrackingCode() {
+                const trackingCode = document.getElementById('trackingCode').value.trim();
+
+                if (!trackingCode) {
+                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('trackingCode').classList.add('is-invalid');
+                    document.getElementById('trackingCode').focus();
+                    return;
+                }
+
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('trackingCode').classList.remove('is-invalid');
+
+                document.getElementById('form-track').submit();
+            }
+
+            function backToTracking() {
+                document.getElementById('detailPage').style.display = 'none';
+                document.getElementById('trackingPage').style.display = 'block';
+                document.getElementById('trackingCode').value = '';
+                trackReportModule.openTrackingPopup();
+            }
+
             function updateStatusCardOnly(stepNumber) {
-                const stepData = trackingSteps[stepNumber];
+                const stepData = trackingStepsData[stepNumber];
                 if (!stepData) return;
-                
+
                 const statusCard = document.querySelector('.status-card');
                 statusCard.classList.add('loading');
-                
+
+                if (stepData.isRejected) {
+                    statusCard.classList.add('rejected');
+                } else {
+                    statusCard.classList.remove('rejected');
+                }
+
                 setTimeout(() => {
-                    // Update status header
-                    const statusIcon = document.querySelector('.status-icon i');
-                    const statusTitle = document.querySelector('.status-title h5');
-                    const statusDate = document.querySelector('.status-date');
-                    const statusDescription = document.querySelector('.status-description p');
-                    const progressBar = document.querySelector('.progress-bar-fill');
-                    const progressText = document.querySelector('.progress-text');
-                    
+                    const statusIcon = statusCard.querySelector('.status-icon i');
+                    const statusTitle = statusCard.querySelector('.status-title h5');
+                    const statusDate = statusCard.querySelector('.status-date');
+                    const statusDescription = statusCard.querySelector('.status-description p');
+                    const progressBar = statusCard.querySelector('.progress-bar-fill');
+                    const progressText = statusCard.querySelector('.progress-text');
+                    const rejectionReasonDiv = statusCard.querySelector('#rejection-reason-display'); // Menggunakan ID
+
                     if (statusIcon) statusIcon.className = stepData.icon;
                     if (statusTitle) statusTitle.textContent = `Status: ${stepData.status}`;
                     if (statusDate) statusDate.textContent = stepData.date;
-                    if (statusDescription) statusDescription.textContent = stepData.description;
+                    
+                    // Set innerHTML for description to parse <br> and <strong> tags
+                    if (statusDescription) {
+                        statusDescription.innerHTML = stepData.description;
+                    }
+
                     if (progressBar) progressBar.style.width = `${stepData.progress}%`;
-                    if (progressText) progressText.textContent = `${stepData.progress}% Selesai`;
+                    if (progressText) {
+                        if (stepData.isRejected) {
+                            progressText.textContent = `${stepData.progress}% Ditolak`;
+                        } else {
+                            progressText.textContent = `${stepData.progress}% Selesai`;
+                        }
+                    }
+                    
+                    // Show/hide rejection reason based on status
+                    if (rejectionReasonDiv) {
+                        if (stepData.isRejected) {
+                            rejectionReasonDiv.style.display = 'block';
+                            rejectionReasonDiv.innerHTML = `
+                                <div class="reason-label">Alasan Penolakan:</div>
+                                <div class="reason-text">${stepData.rejection_reason}</div>
+                            `;
+                        } else {
+                            rejectionReasonDiv.style.display = 'none';
+                            rejectionReasonDiv.innerHTML = ''; // Kosongkan konten saat disembunyikan
+                        }
+                    }
+
 
                     updateActionButton(stepData);
-                    
                     statusCard.classList.remove('loading');
                 }, 300);
             }
 
-            // Function to update the actual timeline state (for real progress changes)
             function updateStatusCard(stepNumber) {
-                const stepData = trackingSteps[stepNumber];
+                const stepData = trackingStepsData[stepNumber];
                 if (!stepData) return;
-                
+
                 const statusCard = document.querySelector('.status-card');
                 statusCard.classList.add('loading');
-                
+
+                if (stepData.isRejected) {
+                    statusCard.classList.add('rejected');
+                } else {
+                    statusCard.classList.remove('rejected');
+                }
+
                 setTimeout(() => {
-                    // Update status header
-                    const statusIcon = document.querySelector('.status-icon i');
-                    const statusTitle = document.querySelector('.status-title h5');
-                    const statusDate = document.querySelector('.status-date');
-                    const statusDescription = document.querySelector('.status-description p');
-                    const progressBar = document.querySelector('.progress-bar-fill');
-                    const progressText = document.querySelector('.progress-text');
-                    
+                    const statusIcon = statusCard.querySelector('.status-icon i');
+                    const statusTitle = statusCard.querySelector('.status-title h5');
+                    const statusDate = statusCard.querySelector('.status-date');
+                    const statusDescription = statusCard.querySelector('.status-description p');
+                    const progressBar = statusCard.querySelector('.progress-bar-fill');
+                    const progressText = statusCard.querySelector('.progress-text');
+                    const rejectionReasonDiv = statusCard.querySelector('#rejection-reason-display'); // Menggunakan ID
+
                     if (statusIcon) statusIcon.className = stepData.icon;
                     if (statusTitle) statusTitle.textContent = `Status: ${stepData.status}`;
                     if (statusDate) statusDate.textContent = stepData.date;
-                    if (statusDescription) statusDescription.textContent = stepData.description;
+                    
+                    // Set innerHTML for description to parse <br> and <strong> tags
+                    if (statusDescription) {
+                        statusDescription.innerHTML = stepData.description;
+                    }
+
                     if (progressBar) progressBar.style.width = `${stepData.progress}%`;
-                    if (progressText) progressText.textContent = `${stepData.progress}% Selesai`;
-                    
-                    // Update timeline progress for real state changes
+                    if (progressText) {
+                        if (stepData.isRejected) {
+                            progressText.textContent = `${stepData.progress}% Ditolak`;
+                        } else {
+                            progressText.textContent = `${stepData.progress}% Selesai`;
+                        }
+                    }
+
+                    // Show/hide rejection reason based on status
+                    if (rejectionReasonDiv) {
+                        if (stepData.isRejected) {
+                            rejectionReasonDiv.style.display = 'block';
+                            rejectionReasonDiv.innerHTML = `
+                                <div class="reason-label">Alasan Penolakan:</div>
+                                <div class="reason-text">${stepData.rejection_reason}</div>
+                            `;
+                        } else {
+                            rejectionReasonDiv.style.display = 'none';
+                            rejectionReasonDiv.innerHTML = ''; // Kosongkan konten saat disembunyikan
+                        }
+                    }
+
                     const timelineProgress = document.querySelector('.timeline-progress');
-                    if (timelineProgress) timelineProgress.style.width = `${stepNumber * 25}%`;
+                    if (timelineProgress) {
+                        if (stepData.isRejected) {
+                            timelineProgress.style.width = '0%';
+                            timelineProgress.classList.add('rejected');
+                        } else {
+                            // Calculate width for normal progress (0 to 4)
+                            const totalNormalSteps = Object.keys(trackingStepsData).length - 1; // Exclude rejected step
+                            timelineProgress.style.width = `${(stepNumber / (totalNormalSteps - 1)) * 100}%`;
+                            timelineProgress.classList.remove('rejected');
+                        }
+                    }
 
-                    // Update timeline steps title and date
                     updateTimelineStepsInfo(stepNumber);
-
-                    // Tambahkan tombol action jika ada
                     updateActionButton(stepData);
-                    
                     statusCard.classList.remove('loading');
                 }, 300);
             }
 
-            // Function baru untuk update informasi timeline steps
+            function updateRejectedTimeline() {
+                const timelineProgress = document.querySelector('.timeline-progress');
+                if (timelineProgress) {
+                    timelineProgress.style.width = '0%';
+                    timelineProgress.classList.add('rejected');
+                }
+
+                document.querySelectorAll('.timeline-step').forEach((step, index) => {
+                    const stepData = trackingStepsData[index];
+                    step.classList.remove('completed', 'active', 'current', 'pending', 'rejected');
+
+                    // Always display 'Terkirim' (0) and 'Ditolak' (5) when rejected
+                    if (index === 4) {
+                        step.classList.add('rejected', 'current');
+                        step.style.display = 'flex';
+                        step.style.cursor = 'pointer';
+                        step.setAttribute('title', `Klik untuk melihat detail: ${stepData.title}`);
+                    } else if (index === 0) {
+                        step.classList.add('completed');
+                        step.style.display = 'flex';
+                        step.style.cursor = 'pointer';
+                        step.setAttribute('title', `Klik untuk melihat detail: ${stepData.title}`);
+                    } else {
+                        step.classList.add('pending');
+                        step.style.display = 'none'; // Hide other normal steps
+                    }
+                });
+                // Add a class to the timeline-steps container to control its children's display
+                document.querySelector('.timeline-steps').classList.add('rejected-timeline');
+            }
+
             function updateTimelineStepsInfo(currentStep) {
                 document.querySelectorAll('.timeline-step').forEach((step, index) => {
-                    const stepData = trackingSteps[index];
+                    const stepData = trackingStepsData[index];
                     if (stepData) {
                         const stepTitle = step.querySelector('.step-title');
                         const stepTime = step.querySelector('.step-time');
                         const stepIcon = step.querySelector('.step-circle i');
-                        
+
                         if (stepTitle) stepTitle.textContent = stepData.title;
-                        if (stepTime) stepTime.textContent = stepData.date;
+                        if (stepTime) {
+                            stepTime.textContent = stepData.date;
+                        }
                         if (stepIcon) stepIcon.className = stepData.icon;
                     }
                 });
             }
 
-            // Function baru untuk menambah/menghapus tombol action
             function updateActionButton(stepData) {
-                // Hapus tombol action yang sudah ada
-                const existingButton = document.querySelector('.status-action-button');
-                if (existingButton) {
-                    existingButton.remove();
-                }
-                
-                // Tambahkan tombol jika step memiliki action
-                if (stepData.hasAction) {
-                    const statusCard = document.querySelector('.status-card');
-                    const actionButton = document.createElement('div');
-                    actionButton.className = 'status-action-button';
-                    actionButton.innerHTML = `
-                        <button class="btn-complete-documents" onclick="showCompleteDocumentsForm()">
-                            <i class="fas fa-plus-circle"></i>
-                            ${stepData.actionText}
-                        </button>
+                const actionButtonContainer = document.getElementById('action-button-container');
+                actionButtonContainer.innerHTML = ''; // Clear existing button
+
+                if (Boolean(Boolean(stepData.hasAction)) && stepData.actionType === "complete_documents") {
+                    actionButtonContainer.innerHTML = `
+                        <div class="text-center mt-3"> <button class="btn-complete-documents" onclick="window.openCompleteDocumentsForm()">
+                                <i class="fas fa-plus-circle"></i>
+                                ${stepData.actionText}
+                            </button>
+                        </div>
                     `;
-                    statusCard.appendChild(actionButton);
+                } else if (Boolean(stepData.hasAction) && stepData.actionType === "contact_admin") {
+                    actionButtonContainer.innerHTML = `
+                        <div class="text-center mt-3">
+                            <a href="#" class="contact-admin-btn" onclick="trackReportModule.contactAdmin()">
+                                <i class="fas fa-headset"></i>
+                                ${stepData.actionText}
+                            </a>
+                        </div>
+                    `;
+                } else if (stepData.actionType === "give_feedback" && stepData.title === "Selesai") { // Menambahkan kondisi untuk "Selesai"
+                    actionButtonContainer.innerHTML = `
+                        <div class="text-center mt-3">
+                            <button type="button" class="btn btn-primary btn-lg px-4" onclick="trackReportModule.openCompletionModal()">
+                                <i class="fas fa-star me-2"></i>Berikan Penilaian
+                            </button>
+                        </div>
+                    `;
                 }
             }
 
-            // Fixed function to handle step clicks without breaking the timeline
+            function showSuccessMessage(message) { // Ubah agar bisa menerima pesan
+                const successMessageDiv = document.createElement('div');
+                successMessageDiv.className = 'success-notification';
+                successMessageDiv.innerHTML = `
+                    <div class="success-content">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>Berhasil!</h4>
+                        <p>${message}</p>
+                    </div>
+                `;
+
+                document.body.appendChild(successMessageDiv);
+
+                setTimeout(() => {
+                    successMessageDiv.classList.add('show');
+                }, 100);
+
+                setTimeout(() => {
+                    successMessageDiv.classList.remove('show');
+                    setTimeout(() => {
+                        successMessageDiv.remove();
+                    }, 500);
+                }, 5000); // Pesan akan hilang setelah 5 detik
+            }
+
+            function showErrorMessage(message) { // Fungsi untuk menampilkan pesan error
+                const errorMessageDiv = document.createElement('div');
+                errorMessageDiv.className = 'error-notification'; // Anda perlu menambahkan gaya CSS untuk ini
+                errorMessageDiv.innerHTML = `
+                    <div class="error-content">
+                        <i class="fas fa-times-circle"></i>
+                        <h4>Gagal!</h4>
+                        <p>${message}</p>
+                    </div>
+                `;
+
+                document.body.appendChild(errorMessageDiv);
+
+                setTimeout(() => {
+                    errorMessageDiv.classList.add('show');
+                }, 100);
+
+                setTimeout(() => {
+                    errorMessageDiv.classList.remove('show');
+                    setTimeout(() => {
+                        errorMessageDiv.remove();
+                    }, 500);
+                }, 5000); // Pesan akan hilang setelah 5 detik
+            }
+
             function handleStepClick(stepElement, stepNumber) {
-                // Only allow clicks on completed or active steps
-                if (!stepElement.classList.contains('completed') && !stepElement.classList.contains('active')) {
+                // Allow clicking on 'completed', 'active', or 'rejected' steps
+                if (!stepElement.classList.contains('completed') && !stepElement.classList.contains('active') && !stepElement.classList.contains('rejected')) {
                     return;
                 }
-                
-                // Remove current class from all steps TEMPORARILY for visual feedback
+
+                // Remove 'current' class from all steps
                 document.querySelectorAll('.timeline-step').forEach(step => {
                     step.classList.remove('current');
                 });
-                
-                // Add current class to clicked step TEMPORARILY
+
+                // Add 'current' class to the clicked step
                 stepElement.classList.add('current');
-                
-                // Update status card with the clicked step data
+
+                // Update only the status card based on the clicked step
                 updateStatusCardOnly(stepNumber);
-                
-                // DON'T restore original step states immediately - let user see the clicked step info
-                // The restoration will happen when they click on the actual current step or after some time
-                
-                // Smooth scroll to status card
+
+                // Scroll to the status card
                 document.querySelector('.status-card').scrollIntoView({
                     behavior: 'smooth',
                     block: 'nearest'
                 });
-                
-                // Add ripple effect
+
                 createRippleEffect(stepElement);
-                
-                // Set a flag to remember we're in "preview mode"
-                window.isPreviewMode = true;
-                
-                // Auto-restore after 10 seconds or when user clicks current step
+                isPreviewMode = true; // Enter preview mode
                 setTimeout(() => {
-                    if (window.isPreviewMode) {
+                    if (isPreviewMode && stepNumber !== originalCurrentStep) {
                         restoreToCurrentStep();
                     }
-                }, 10000);
+                }, 10000); // Revert after 10 seconds of inactivity in preview mode
             }
 
-            // New function to restore to current step
             function restoreToCurrentStep() {
-                window.isPreviewMode = false;
-                
-                // Restore visual states
-                restoreOriginalStepStates();
-                
-                // Restore status card to current step
-                updateStatusCardOnly(originalCurrentStep);
+                isPreviewMode = false;
+                if (originalCurrentStep === 4) {
+                    updateRejectedTimeline();
+                } else {
+                    restoreOriginalStepStates();
+                }
+                updateStatusCardOnly(originalCurrentStep); // Update status card to original step's data
             }
 
-            // Function to restore original step states
             function restoreOriginalStepStates() {
+                document.querySelector('.timeline-steps').classList.remove('rejected-timeline');
                 document.querySelectorAll('.timeline-step').forEach((step, index) => {
                     const stepNumber = index;
-                    
-                    // Clear all state classes first
-                    step.classList.remove('completed', 'active', 'current', 'pending');
-                    
-                    // Set proper states based on original current step
+                    step.classList.remove('completed', 'active', 'current', 'pending', 'rejected');
+
+                    if (stepNumber === 4) { // Hide the rejected step for normal flow
+                        step.style.display = 'none';
+                        return;
+                    }
+
                     if (stepNumber < originalCurrentStep) {
                         step.classList.add('completed');
                     } else if (stepNumber === originalCurrentStep) {
@@ -731,15 +1026,10 @@ document.addEventListener('keydown', function(event) {
                     } else {
                         step.classList.add('pending');
                     }
+                    step.style.display = 'flex'; // Ensure normal steps are visible
                 });
-                
-                // Also update the status card back to current step if we're not in preview mode
-                if (!window.isPreviewMode) {
-                    updateStatusCardOnly(originalCurrentStep);
-                }
             }
 
-            // Function to create ripple effect
             function createRippleEffect(element) {
                 const ripple = document.createElement('div');
                 ripple.style.cssText = `
@@ -751,22 +1041,22 @@ document.addEventListener('keydown', function(event) {
                     pointer-events: none;
                     z-index: 100;
                 `;
-                
+
                 const rect = element.getBoundingClientRect();
                 const size = Math.max(rect.width, rect.height);
                 ripple.style.width = ripple.style.height = size + 'px';
                 ripple.style.left = (rect.width / 2 - size / 2) + 'px';
                 ripple.style.top = (rect.height / 2 - size / 2) + 'px';
-                
+
                 element.style.position = 'relative';
                 element.appendChild(ripple);
-                
+
                 setTimeout(() => {
                     ripple.remove();
                 }, 600);
             }
 
-            // CSS for ripple animation
+            // CSS untuk animasi ripple
             const rippleCSS = `
                 @keyframes ripple {
                     to {
@@ -779,38 +1069,41 @@ document.addEventListener('keydown', function(event) {
             style.textContent = rippleCSS;
             document.head.appendChild(style);
 
-            // Function to initialize tracking
-            function initializeElegantTracking(currentStep = 0) {
+            function initializeElegantTracking(currentStep) {
                 currentStep = parseInt(currentStep);
                 originalCurrentStep = currentStep;
-                window.isPreviewMode = false; // Initialize preview mode flag
-                updateTrackingSteps(currentStep);
-                updateStatusCard(currentStep);
-                
-                // Add event listeners for each step
+                isPreviewMode = false;
+
+                if (currentStep === 4) { // If status is rejected
+                    updateRejectedTimeline();
+                    updateStatusCard(currentStep);
+                } else {
+                    updateTrackingSteps(currentStep);
+                    updateStatusCard(currentStep);
+                }
+
                 document.querySelectorAll('.timeline-step').forEach((step, index) => {
                     const stepNumber = index;
-                    
+
                     step.addEventListener('click', () => {
-                        // If clicking on current step while in preview mode, restore to current
-                        if (stepNumber === originalCurrentStep && window.isPreviewMode) {
+                        if (stepNumber === originalCurrentStep && isPreviewMode) {
                             restoreToCurrentStep();
                         } else {
                             handleStepClick(step, stepNumber);
                         }
                     });
-                    
-                    // Add hover effects only for clickable steps
-                    if (step.classList.contains('completed') || step.classList.contains('active')) {
+
+                    // Perbarui kondisi cursor dan title
+                    if (step.classList.contains('completed') || step.classList.contains('active') || step.classList.contains('rejected')) {
                         step.style.cursor = 'pointer';
-                        step.setAttribute('title', `Klik untuk melihat detail: ${trackingSteps[stepNumber].title}`);
-                        
+                        step.setAttribute('title', `Klik untuk melihat detail: ${trackingStepsData[stepNumber].title}`);
+
                         step.addEventListener('mouseenter', () => {
                             if (!step.classList.contains('current')) {
                                 step.style.transform = 'translateY(-8px) scale(1.02)';
                             }
                         });
-                        
+
                         step.addEventListener('mouseleave', () => {
                             if (!step.classList.contains('current')) {
                                 step.style.transform = 'translateY(0) scale(1)';
@@ -821,22 +1114,26 @@ document.addEventListener('keydown', function(event) {
                         step.setAttribute('title', `Belum mencapai tahap ini`);
                     }
                 });
-                
-                // Add click listener to status card to restore current step when clicked
+
                 document.querySelector('.status-card').addEventListener('click', (e) => {
-                    // Only restore if we're in preview mode and not clicking on action buttons
-                    if (window.isPreviewMode && !e.target.closest('.status-action-button')) {
+                    if (isPreviewMode && !e.target.closest('.status-action-button')) {
                         restoreToCurrentStep();
                     }
                 });
             }
 
-            // Function to update step states properly
             function updateTrackingSteps(currentStep) {
                 document.querySelectorAll('.timeline-step').forEach((step, index) => {
                     const stepNumber = index;
-                    step.classList.remove('completed', 'active', 'current', 'pending');
-                    
+                    const stepData = trackingStepsData[index];
+
+                    step.classList.remove('completed', 'active', 'current', 'pending', 'rejected');
+
+                    if (stepNumber === 4) { // Hide the rejected step for normal flow
+                        step.style.display = 'none';
+                        return;
+                    }
+
                     if (stepNumber < currentStep) {
                         step.classList.add('completed');
                     } else if (stepNumber === currentStep) {
@@ -844,26 +1141,29 @@ document.addEventListener('keydown', function(event) {
                     } else {
                         step.classList.add('pending');
                     }
+                    step.style.display = 'flex'; // Ensure normal steps are visible
                 });
+                document.querySelector('.timeline-steps').classList.remove('rejected-timeline');
             }
 
-            // Function for step change animation (for real progress updates)
             function animateStepChange(newStep) {
                 originalCurrentStep = newStep;
                 const statusCard = document.querySelector('.status-card');
                 const timeline = document.querySelector('.progress-timeline');
-                
-                // Animation fade out
+
                 statusCard.style.transform = 'translateY(20px)';
                 statusCard.style.opacity = '0.7';
                 timeline.style.transform = 'scale(0.98)';
                 timeline.style.opacity = '0.8';
-                
+
                 setTimeout(() => {
-                    updateTrackingSteps(newStep);
+                    if (newStep === 4) {
+                        updateRejectedTimeline();
+                    } else {
+                        updateTrackingSteps(newStep);
+                    }
                     updateStatusCard(newStep);
-                    
-                    // Animation fade in
+
                     statusCard.style.transform = 'translateY(0)';
                     statusCard.style.opacity = '1';
                     timeline.style.transform = 'scale(1)';
@@ -871,984 +1171,943 @@ document.addEventListener('keydown', function(event) {
                 }, 300);
             }
 
-            // Initialize when DOM is loaded
-            document.addEventListener('DOMContentLoaded', function() {
-                // Initialize dengan status dari server (0 = Terkirim, 1 = Diterima, dst)
-                initializeElegantTracking("{{intval($reporter?->status ?? 0)}}");
-            });
-
-            function showCompleteDocumentsForm() {
-            // Buat modal overlay
-            const modalOverlay = document.createElement('div');
-            modalOverlay.className = 'modal-overlay';
-            modalOverlay.innerHTML = `
-                <div class="modal-content wizard-modal">
-                    <div class="modal-header">
-                        <h4><i class="fas fa-file-upload"></i> Lengkapi Laporan Kejadian</h4>
-                        <button class="modal-close" onclick="closeCompleteDocumentsForm()">&times;</button>
-                    </div>
-                    <div class="step-progress">
-                        <!-- Progress Line Background -->
-                        <div class="progress-line">
-                            <div class="progress-fill" style="width: 0%;"></div>
-                        </div>
-                        
-                        <!-- Container untuk semua step -->
-                        <div class="steps-container">
-                            <!-- Step 1 -->
-                            <div class="step-indicator active" data-step="1">
-                                <div class="step-number">1</div>
-                                <div class="step-label">Waktu Kejadian</div>
-                            </div>
-                            
-                            <!-- Step 2 -->
-                            <div class="step-indicator" data-step="2">
-                                <div class="step-number">2</div>
-                                <div class="step-label">Pihak Terlibat</div>
-                            </div>
-                            
-                            <!-- Step 3 -->
-                            <div class="step-indicator" data-step="3">
-                                <div class="step-number">3</div>
-                                <div class="step-label">Tindakan</div>
-                            </div>
-                            
-                            <!-- Step 4 -->
-                            <div class="step-indicator" data-step="4">
-                                <div class="step-number">4</div>
-                                <div class="step-label">Bukti</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-body">
-                        <form id="completeDocumentsForm">
-                            <!-- Step 1: Waktu Kejadian -->
-                            <div class="form-step active" data-step="1">
-                                <div class="step-header">
-                                    <h5><i class="fas fa-clock"></i> Waktu Kejadian</h5>
-                                    <p>Berikan informasi waktu dan lokasi terjadinya kejadian</p>
-                                </div>
-                                
-                                <div class="form-row">
-                                    <div class="form-group half-width">
-                                        <label for="incidentDate">Tanggal Kejadian *</label>
-                                        <input type="date" id="incidentDate" name="incidentDate" required>
-                                    </div>
-                                    <div class="form-group half-width">
-                                        <label for="incidentTime">Jam Kejadian *</label>
-                                        <input type="time" id="incidentTime" name="incidentTime" required>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="incidentLocation">Lokasi Kejadian *</label>
-                                    <textarea id="incidentLocation" name="incidentLocation" rows="4" placeholder="Sebutkan lokasi lengkap tempat kejadian..." required></textarea>
-                                </div>
-                            </div>
-
-                            <!-- Step 2: Pihak Terlibat -->
-                            <div class="form-step" data-step="2">
-                                <div class="step-header">
-                                    <h5><i class="fas fa-users"></i> Pihak yang Terlibat</h5>
-                                    <p>Identifikasi semua pihak yang terlibat dalam kejadian</p>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="victimName">Nama Korban *</label>
-                                    <input type="text" id="victimName" name="victimName" placeholder="Nama lengkap korban" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="victimClass">Kelas Korban *</label>
-                                    <input type="text" id="victimClass" name="victimClass" placeholder="Contoh: XII IPA 1, Staff, Guru, dll." required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="perpetratorName">Nama Pelaku *</label>
-                                    <input type="text" id="perpetratorName" name="perpetratorName" placeholder="Nama lengkap pelaku" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="perpetratorClass">Kelas/Status Pelaku *</label>
-                                    <input type="text" id="perpetratorClass" name="perpetratorClass" placeholder="Contoh: XI IPS 2, Staff, Guru, dll." required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="witnessName">Nama Saksi (Jika Ada)</label>
-                                    <textarea id="witnessName" name="witnessName" rows="3" placeholder="Sebutkan nama saksi dan kelas/statusnya jika ada..."></textarea>
-                                </div>
-                            </div>
-
-                            <!-- Step 3: Tindakan yang Diharapkan -->
-                            <div class="form-step" data-step="3">
-                                <div class="step-header">
-                                    <h5><i class="fas fa-clipboard-check"></i> Tindakan yang Diharapkan</h5>
-                                    <p>Jelaskan tindakan atau solusi yang Anda harapkan</p>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="expectedAction">Tindakan yang Diharapkan *</label>
-                                    <textarea id="expectedAction" name="expectedAction" rows="6" placeholder="Jelaskan tindakan atau solusi yang Anda harapkan dari pihak sekolah..." required></textarea>
-                                </div>
-                            </div>
-
-                            <!-- Step 4: Bukti Tambahan -->
-                            <div class="form-step" data-step="4">
-                                <div class="step-header">
-                                    <h5><i class="fas fa-paperclip"></i> Bukti Tambahan</h5>
-                                    <p>Tambahkan informasi dan dokumen pendukung</p>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="additionalInfo">Informasi Tambahan</label>
-                                    <textarea id="additionalInfo" name="additionalInfo" rows="4" placeholder="Berikan informasi tambahan terkait kejadian..."></textarea>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="supportingDocuments">Dokumen/Foto Pendukung</label>
-                                    <div class="file-upload-area">
-                                        <input type="file" id="supportingDocuments" name="supportingDocuments" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                                        <div class="file-upload-text">
-                                            <i class="fas fa-cloud-upload-alt"></i>
-                                            <p>Klik untuk pilih file atau drag & drop</p>
-                                            <small>Format: PDF, DOC, DOCX, JPG, PNG (Max 5MB per file)</small>
-                                        </div>
-                                    </div>
-                                    <div id="file-list"></div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="confirmData" name="confirmData" required>
-                                        <label for="confirmData">Saya menyatakan bahwa semua informasi yang diberikan adalah benar dan dapat dipertanggungjawabkan</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    
-                    <div class="modal-footer wizard-footer">
-                        <button type="button" class="btn-back" onclick="previousStep()" style="display: none;">
-                            <i class="fas fa-arrow-left"></i>
-                            Sebelumnya
-                        </button>
-                        <button type="button" class="btn-cancel" onclick="closeCompleteDocumentsForm()">Batal</button>
-                        <button type="button" class="btn-next" onclick="nextStep()">
-                            Selanjutnya
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
-                        <button type="submit" class="btn-submit" onclick="submitCompleteDocuments()" style="display: none;">
-                            <i class="fas fa-paper-plane"></i>
-                            Kirim Laporan
-                        </button>
-                    </div>
-                </div>
-            `;
-                    
-                    document.body.appendChild(modalOverlay);
-                    // Step 1 active
-                    document.querySelector('.progress-fill').style.width = '0%';
-                    // Step 2 active  
-                    document.querySelector('.progress-fill').style.width = '33%';
-                    // Step 3 active
-                    document.querySelector('.progress-fill').style.width = '66%';
-                    // Step 4 active
-                    document.querySelector('.progress-fill').style.width = '100%';
-                    
-                    // Add event listener untuk file upload
-                    setupFileUpload();
-                    // Initialize wizard
-                    initializeWizard();
-                    
-                    // Set max date to today for incident date
-                    const today = new Date().toISOString().split('T')[0];
-                    document.getElementById('incidentDate').max = today;
-                    
-                    // Animate modal
-                    setTimeout(() => {
-                        modalOverlay.classList.add('show');
-                    }, 10);
+            function handleKeyboardNavigation(event) {
+                if (event.key === 'Escape') {
+                    trackReportModule.closePopup();
+                    trackReportModule.closeUploadEvidenceModal(); // Tutup juga modal unggah bukti
+                    trackReportModule.closeLightboxExplicit(); // Tutup lightbox juga
                 }
-
-                let currentWizardStep = 1;
-                const totalSteps = 4;
-
-                function initializeWizard() {
-            currentWizardStep = 1;
-            updateStepIndicator();
-            setupFileUpload();
-        }
-
-        function nextStep() {
-            if (!validateCurrentStep()) {
-                return;
-            }
-            
-            if (currentWizardStep < totalSteps) {
-                document.querySelector(`.form-step[data-step="${currentWizardStep}"]`).classList.remove('active');
-                currentWizardStep++;
-                
-                setTimeout(() => {
-                    document.querySelector(`.form-step[data-step="${currentWizardStep}"]`).classList.add('active');
-                    updateStepIndicator();
-                    updateNavigationButtons();
-                }, 150);
-            }
-        }
-
-        function previousStep() {
-            if (currentWizardStep > 1) {
-                document.querySelector(`.form-step[data-step="${currentWizardStep}"]`).classList.remove('active');
-                currentWizardStep--;
-                
-                setTimeout(() => {
-                    document.querySelector(`.form-step[data-step="${currentWizardStep}"]`).classList.add('active');
-                    updateStepIndicator();
-                    updateNavigationButtons();
-                }, 150);
-            }
-        }
-
-        function updateStepIndicator() {
-            document.querySelectorAll('.step-indicator').forEach((indicator, index) => {
-                const stepNumber = index + 1;
-                indicator.classList.remove('active', 'completed');
-                
-                if (stepNumber < currentWizardStep) {
-                    indicator.classList.add('completed');
-                } else if (stepNumber === currentWizardStep) {
-                    indicator.classList.add('active');
-                }
-            });
-            
-            const progressFill = document.querySelector('.progress-fill');
-            const progressPercentage = ((currentWizardStep - 1) / (totalSteps - 1)) * 100;
-            progressFill.style.width = progressPercentage + '%';
-        }
-
-        function updateNavigationButtons() {
-            const btnBack = document.querySelector('.btn-back');
-            const btnNext = document.querySelector('.btn-next');
-            const btnSubmit = document.querySelector('.btn-submit');
-            
-            btnBack.style.display = currentWizardStep > 1 ? 'inline-flex' : 'none';
-            
-            if (currentWizardStep === totalSteps) {
-                btnNext.style.display = 'none';
-                btnSubmit.style.display = 'inline-flex';
-            } else {
-                btnNext.style.display = 'inline-flex';
-                btnSubmit.style.display = 'none';
-            }
-        }
-
-        function validateCurrentStep() {
-            const currentStepElement = document.querySelector(`.form-step[data-step="${currentWizardStep}"]`);
-            const requiredFields = currentStepElement.querySelectorAll('[required]');
-            
-            for (let field of requiredFields) {
-                if (!field.value.trim()) {
-                    field.focus();
-                    field.classList.add('error');
-                    
-                    setTimeout(() => {
-                        field.classList.remove('error');
-                    }, 3000);
-                    
-                    showErrorMessage('Mohon lengkapi semua field yang wajib diisi');
-                    return false;
+                if (event.key === 'Enter' && document.activeElement === document.getElementById('trackingCode')) {
+                    trackReportModule.checkTrackingCode();
                 }
             }
-            
-            return true;
-        }
 
-        function showErrorMessage(message) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.innerHTML = `
-                <i class="fas fa-exclamation-circle"></i>
-                ${message}
-            `;
-            
-            const modalBody = document.querySelector('.modal-body');
-            modalBody.insertBefore(errorDiv, modalBody.firstChild);
-            
-            setTimeout(() => {
-                errorDiv.remove();
-            }, 3000);
-        }
+            const categoryMap = {
+                'bullying verbal': { iconClass: 'icon-bullying-verbal', symbol: '💬' },
+                'bullying fisik': { iconClass: 'icon-bullying-fisik', symbol: '👊' },
+                'pelecehan seksual verbal': { iconClass: 'icon-pelecehan-verbal', symbol: '🗣️' },
+                'pelecehan seksual fisik': { iconClass: 'icon-pelecehan-fisik', symbol: '⚠️' },
+                'default': { iconClass: 'icon-default', symbol: '📋' }
+            };
 
-        // Function untuk setup file upload
-        function setupFileUpload() {
-            const fileInput = document.getElementById('supportingDocuments');
-            const fileList = document.getElementById('file-list');
-            
-            if (!fileInput || !fileList) return;
-            
-            fileInput.addEventListener('change', function(e) {
-                displaySelectedFiles(e.target.files);
-            });
-            
-            // Drag and drop functionality
-            const uploadArea = document.querySelector('.file-upload-area');
-            
-            uploadArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                uploadArea.classList.add('drag-over');
-            });
-            
-            uploadArea.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                uploadArea.classList.remove('drag-over');
-            });
-            
-            uploadArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                uploadArea.classList.remove('drag-over');
-                const files = e.dataTransfer.files;
-                fileInput.files = files;
-                displaySelectedFiles(files);
-            });
-        }
-
-        // Function untuk menampilkan file yang dipilih
-        function displaySelectedFiles(files) {
-            const fileList = document.getElementById('file-list');
-            if (!fileList) return;
-            
-            fileList.innerHTML = '';
-            
-            Array.from(files).forEach((file, index) => {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <div class="file-info">
-                        <i class="fas fa-file"></i>
-                        <span class="file-name">${file.name}</span>
-                        <span class="file-size">(${formatFileSize(file.size)})</span>
-                    </div>
-                    <button type="button" class="remove-file" onclick="removeFile(${index})">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                fileList.appendChild(fileItem);
-            });
-        }
-
-        // Function untuk format ukuran file
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        // Function untuk menghapus file
-        function removeFile(index) {
-            const fileInput = document.getElementById('supportingDocuments');
-            if (!fileInput) return;
-            
-            const dt = new DataTransfer();
-            const files = Array.from(fileInput.files);
-            
-            files.splice(index, 1);
-            files.forEach(file => dt.items.add(file));
-            
-            fileInput.files = dt.files;
-            displaySelectedFiles(fileInput.files);
-        }
-
-        // Function untuk menutup form
-        function closeCompleteDocumentsForm() {
-            const modalOverlay = document.querySelector('.modal-overlay');
-            if (modalOverlay) {
-                modalOverlay.classList.remove('show');
-                setTimeout(() => {
-                    modalOverlay.remove();
-                }, 300);
-            }
-        }
-
-        // Function untuk submit form
-        function submitCompleteDocuments() {
-            const form = document.getElementById('completeDocumentsForm');
-            if (!form) return;
-            
-            // Validasi form
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-            
-            // Simulasi proses submit
-            const submitBtn = document.querySelector('.btn-submit');
-            const originalText = submitBtn.innerHTML;
-            
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
-            submitBtn.disabled = true;
-            
-            // Simulasi API call
-            setTimeout(() => {
-                // Success
-                showSuccessMessage();
-                closeCompleteDocumentsForm();
-                
-                // Reset button
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                
-            }, 2000);
-        }
-
-        // Function untuk menampilkan pesan sukses
-        function showSuccessMessage() {
-            const successMessage = document.createElement('div');
-            successMessage.className = 'success-notification';
-            successMessage.innerHTML = `
-                <div class="success-content">
-                    <i class="fas fa-check-circle"></i>
-                    <h4>Laporan Berhasil Dikirim!</h4>
-                    <p>Terima kasih telah melengkapi laporan kejadian. Tim kami akan segera memproses laporan Anda dan mengambil tindakan yang diperlukan.</p>
-                </div>
-            `;
-            
-            document.body.appendChild(successMessage);
-            
-            setTimeout(() => {
-                successMessage.classList.add('show');
-            }, 100);
-            
-            setTimeout(() => {
-                successMessage.classList.remove('show');
-                setTimeout(() => {
-                    successMessage.remove();
-                }, 300);
-            }, 5000);
-        }
-
-        // Export functions
-        window.showCompleteDocumentsForm = showCompleteDocumentsForm;
-        window.closeCompleteDocumentsForm = closeCompleteDocumentsForm;
-        window.submitCompleteDocuments = submitCompleteDocuments;
-        window.initializeElegantTracking = initializeElegantTracking;
-        window.animateStepChange = animateStepChange;
-        window.updateStatusCard = updateStatusCard;
-    </script>
-    <script>
-        // Demo: Simulasi data categories
-        const categories = "Bullying Verbal,Bullying Fisik,Pelecehan Seksual Verbal,Pelecehan Seksual Fisik";
-        
-        // Function untuk generate category list dengan icon
-        function generateCategoryList(categoriesString) {
-            const categoryList = document.getElementById('categoryList');
-            const categoriesArray = categoriesString.split(',');
-            
-            categoryList.innerHTML = '';
-            
-            categoriesArray.forEach(category => {
-                const trimmedCategory = category.trim();
-                const iconClass = getIconClass(trimmedCategory);
-                const iconSymbol = getIconSymbol(trimmedCategory);
-                
-                const listItem = document.createElement('li');
-                listItem.className = 'category-item';
-                
-                listItem.innerHTML = `
-                    <div class="category-icon ${iconClass}">${iconSymbol}</div>
-                    <span class="category-text">${trimmedCategory}</span>
-                `;
-                
-                categoryList.appendChild(listItem);
-            });
-        }
-
-        // Function untuk generate badges
-        function generateBadges(categoriesString) {
-            const badgeContainer = document.getElementById('badgeContainer');
-            const categoriesArray = categoriesString.split(',');
-            
-            badgeContainer.innerHTML = '';
-            
-            categoriesArray.forEach(category => {
-                const trimmedCategory = category.trim();
-                const badgeClass = getBadgeClass(trimmedCategory);
-                
-                const badge = document.createElement('span');
-                badge.className = `category-badge ${badgeClass}`;
-                badge.textContent = trimmedCategory;
-                
-                badgeContainer.appendChild(badge);
-            });
-        }
-        
-        // Function untuk menentukan class icon berdasarkan kategori
-        function getIconClass(category) {
-            const lowerCategory = category.toLowerCase();
-            
-            if (lowerCategory.includes('bullying') && lowerCategory.includes('verbal')) {
-                return 'icon-bullying-verbal';
-            } else if (lowerCategory.includes('bullying') && lowerCategory.includes('fisik')) {
-                return 'icon-bullying-fisik';
-            } else if (lowerCategory.includes('pelecehan') && lowerCategory.includes('verbal')) {
-                return 'icon-pelecehan-verbal';
-            } else if (lowerCategory.includes('pelecehan') && lowerCategory.includes('fisik')) {
-                return 'icon-pelecehan-fisik';
-            } else {
+            function getIconClass(category) {
+                const lowerCategory = category.toLowerCase();
+                if (lowerCategory.includes('bullying') && lowerCategory.includes('verbal')) return 'icon-bullying-verbal';
+                if (lowerCategory.includes('bullying') && lowerCategory.includes('fisik')) return 'icon-bullying-fisik';
+                if (lowerCategory.includes('pelecehan') && lowerCategory.includes('verbal')) return 'icon-pelecehan-verbal';
+                if (lowerCategory.includes('pelecehan') && lowerCategory.includes('fisik')) return 'icon-pelecehan-fisik';
                 return 'icon-default';
             }
-        }
 
-        // Function untuk menentukan symbol icon
-        function getIconSymbol(category) {
-            const lowerCategory = category.toLowerCase();
-            
-            if (lowerCategory.includes('bullying') && lowerCategory.includes('verbal')) {
-                return '💬';
-            } else if (lowerCategory.includes('bullying') && lowerCategory.includes('fisik')) {
-                return '👊';
-            } else if (lowerCategory.includes('pelecehan') && lowerCategory.includes('verbal')) {
-                return '🗣️';
-            } else if (lowerCategory.includes('pelecehan') && lowerCategory.includes('fisik')) {
-                return '⚠️';
-            } else {
+            function getIconSymbol(category) {
+                const lowerCategory = category.toLowerCase();
+                if (lowerCategory.includes('bullying') && lowerCategory.includes('verbal')) return '';
+                if (lowerCategory.includes('bullying') && lowerCategory.includes('fisik')) return '';
+                if (lowerCategory.includes('pelecehan') && lowerCategory.includes('verbal')) return '';
+                if (lowerCategory.includes('pelecehan') && lowerCategory.includes('fisik')) return '';
                 return '📋';
             }
-        }
 
-        // Function untuk badge class
-        function getBadgeClass(category) {
-            const lowerCategory = category.toLowerCase();
-            
-            if (lowerCategory.includes('bullying') && lowerCategory.includes('verbal')) {
+            function generateCategoryList(categoriesString) {
+                const categoryList = document.getElementById('categoryList');
+                if (!categoryList) {
+                    console.warn('Elemen #categoryList tidak ditemukan. Tidak dapat menggenerate daftar kategori.');
+                    return;
+                }
+
+                const categoriesArray = categoriesString.split(',');
+                categoryList.innerHTML = '';
+
+                categoriesArray.forEach(category => {
+                    const trimmedCategory = category.trim();
+                    const iconClass = getIconClass(trimmedCategory);
+                    const iconSymbol = getIconSymbol(trimmedCategory);
+
+                    const listItem = document.createElement('li');
+                    listItem.className = 'category-item';
+
+                    listItem.innerHTML = `
+                        <div class="category-icon ${iconClass}">${iconSymbol}</div>
+                        <span class="category-text">${trimmedCategory}</span>
+                    `;
+                    categoryList.appendChild(listItem);
+                });
+            }
+
+            function getBadgeClass(category) {
+                const lowerCategory = category.toLowerCase();
+                if (lowerCategory.includes('bullying') && lowerCategory.includes('verbal')) return 'bullying-verbal';
+                if (lowerCategory.includes('bullying') && lowerCategory.includes('fisik')) return 'bullying-fisik';
+                if (lowerCategory.includes('pelecehan') && lowerCategory.includes('verbal')) return 'pelecehan-verbal';
+                if (lowerCategory.includes('pelecehan') && lowerCategory.includes('fisik')) return 'pelecehan-fisik';
                 return 'bullying-verbal';
-            } else if (lowerCategory.includes('bullying') && lowerCategory.includes('fisik')) {
-                return 'bullying-fisik';
-            } else if (lowerCategory.includes('pelecehan') && lowerCategory.includes('verbal')) {
-                return 'pelecehan-verbal';
-            } else if (lowerCategory.includes('pelecehan') && lowerCategory.includes('fisik')) {
-                return 'pelecehan-fisik';
-            } else {
-                return 'bullying-verbal'; // default
             }
-        }
-        
-        // Generate list dan badges saat halaman dimuat
-        document.addEventListener('DOMContentLoaded', function() {
-            generateCategoryList(categories);
-            generateBadges(categories);
-        });
 
-// Lightbox functionality
-let currentImageIndex = 0;
-let images = [];
+            function openLightbox(index) {
+                currentMediaIndex = index;
+                const lightbox = document.getElementById('lightbox');
+                const lightboxImage = document.getElementById('lightbox-image');
+                const lightboxVideo = document.getElementById('lightbox-video');
+                const lightboxVideoSource = document.getElementById('lightbox-video-source');
+                const loading = document.getElementById('lightbox-loading');
+                const videoControls = document.getElementById('lightbox-video-controls');
 
-// Initialize images array
-document.addEventListener('DOMContentLoaded', function() {
-    const imageElements = document.querySelectorAll('.masonry-image');
-    images = Array.from(imageElements).map(img => ({
-        src: img.src,
-        alt: img.alt
-    }));
-    
-    document.getElementById('total-images').textContent = images.length;
-});
+                lightbox.classList.add('active');
+                document.body.style.overflow = 'hidden';
 
-function openLightbox(index) {
-    currentImageIndex = index;
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImage = document.getElementById('lightbox-image');
-    
-    lightboxImage.classList.remove('loaded');
-    lightboxImage.src = images[index].src;
-    lightboxImage.alt = images[index].alt;
-    
-    // Update counter
-    document.getElementById('current-image').textContent = index + 1;
-    
-    lightbox.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    // Add loaded class when image is loaded
-    lightboxImage.onload = function() {
-        this.classList.add('loaded');
-    };
-}
+                loading.style.display = 'block';
+                lightboxImage.style.display = 'none';
+                lightboxVideo.style.display = 'none';
+                videoControls.style.display = 'none';
 
-function closeLightbox(event) {
-    if (event && event.target !== event.currentTarget && !event.target.classList.contains('lightbox-close')) {
-        return;
-    }
-    
-    const lightbox = document.getElementById('lightbox');
-    lightbox.classList.remove('active');
-    document.body.style.overflow = 'auto';
-}
+                lightboxVideo.pause();
+                isVideoPlaying = false;
+                updatePlayPauseIcon();
 
-function nextImage() {
-    currentImageIndex = (currentImageIndex + 1) % images.length;
-    openLightbox(currentImageIndex);
-}
+                const currentMedia = mediaFiles[index];
 
-function prevImage() {
-    currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
-    openLightbox(currentImageIndex);
-}
+                if (currentMedia.isVideo) {
+                    lightboxVideoSource.src = currentMedia.src;
+                    lightboxVideoSource.type = currentMedia.type;
+                    lightboxVideo.load();
 
-// Keyboard navigation
-document.addEventListener('keydown', function(e) {
-    const lightbox = document.getElementById('lightbox');
-    if (lightbox.classList.contains('active')) {
-        switch(e.key) {
-            case 'Escape':
-                closeLightbox();
-                break;
-            case 'ArrowLeft':
-                prevImage();
-                break;
-            case 'ArrowRight':
-                nextImage();
-                break;
-        }
-    }
-});
-// Enhanced Lightbox with Video Support
-let currentMediaIndex = 0;
-let mediaFiles = [];
-let isVideoPlaying = false;
+                    lightboxVideo.addEventListener('loadeddata', function handler() {
+                        loading.style.display = 'none';
+                        lightboxVideo.style.display = 'block';
+                        lightboxVideo.classList.add('loaded');
+                        videoControls.style.display = 'flex';
+                        lightboxVideo.removeEventListener('loadeddata', handler);
+                    });
 
-// Initialize media files data
-document.addEventListener('DOMContentLoaded', function() {
-    // Collect all media files from the masonry container
-    const masonryItems = document.querySelectorAll('.masonry-item');
-    mediaFiles = [];
-    
-    masonryItems.forEach((item, index) => {
-        const isVideo = item.classList.contains('video');
-        let mediaSrc = '';
-        let mediaType = '';
-        
-        if (isVideo) {
-            const video = item.querySelector('video source');
-            mediaSrc = video ? video.src : '';
-            mediaType = video ? video.type : 'video/mp4';
-        } else {
-            const img = item.querySelector('img');
-            mediaSrc = img ? img.src : '';
-            mediaType = 'image';
-        }
-        
-        mediaFiles.push({
-            src: mediaSrc,
-            type: mediaType,
-            isVideo: isVideo,
-            index: index
-        });
-    });
-    
-    // Update total media counter
-    document.getElementById('total-media').textContent = mediaFiles.length;
-});
+                    lightboxVideo.addEventListener('error', function handler() {
+                        loading.style.display = 'none';
+                        console.error('Error loading video:', currentMedia.src);
+                        lightboxVideo.removeEventListener('error', handler);
+                    });
 
-function openLightbox(index) {
-    currentMediaIndex = index;
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImage = document.getElementById('lightbox-image');
-    const lightboxVideo = document.getElementById('lightbox-video');
-    const lightboxVideoSource = document.getElementById('lightbox-video-source');
-    const loading = document.getElementById('lightbox-loading');
-    const videoControls = document.getElementById('lightbox-video-controls');
-    
-    // Show lightbox
-    lightbox.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    
-    // Show loading
-    loading.style.display = 'block';
-    lightboxImage.style.display = 'none';
-    lightboxVideo.style.display = 'none';
-    videoControls.style.display = 'none';
-    
-    // Reset video state
-    lightboxVideo.pause();
-    isVideoPlaying = false;
-    updatePlayPauseIcon();
-    
-    const currentMedia = mediaFiles[index];
-    
-    if (currentMedia.isVideo) {
-        // Load video
-        lightboxVideoSource.src = currentMedia.src;
-        lightboxVideoSource.type = currentMedia.type;
-        lightboxVideo.load();
-        
-        lightboxVideo.addEventListener('loadstart', function() {
-            loading.style.display = 'block';
-        });
-        
-        lightboxVideo.addEventListener('canplay', function() {
-            loading.style.display = 'none';
-            lightboxVideo.style.display = 'block';
-            lightboxVideo.classList.add('loaded');
-            videoControls.style.display = 'flex';
-        });
-        
-        lightboxVideo.addEventListener('error', function() {
-            loading.style.display = 'none';
-            console.error('Error loading video:', currentMedia.src);
-        });
-        
-    } else {
-        // Load image
-        lightboxImage.src = currentMedia.src;
-        lightboxImage.classList.remove('loaded');
-        
-        lightboxImage.onload = function() {
-            loading.style.display = 'none';
-            lightboxImage.style.display = 'block';
-            lightboxImage.classList.add('loaded');
-        };
-        
-        lightboxImage.onerror = function() {
-            loading.style.display = 'none';
-            console.error('Error loading image:', currentMedia.src);
-        };
-    }
-    
-    // Update counter
-    document.getElementById('current-media').textContent = index + 1;
-    
-    // Keyboard navigation
-    document.addEventListener('keydown', handleKeyboardNavigation);
-}
+                } else {
+                    lightboxImage.src = currentMedia.src;
+                    lightboxImage.classList.remove('loaded');
 
-function closeLightbox(event) {
-    if (event && event.target !== event.currentTarget && 
-        !event.target.classList.contains('lightbox-close')) {
-        return;
-    }
-    
-    const lightbox = document.getElementById('lightbox');
-    const lightboxVideo = document.getElementById('lightbox-video');
-    
-    // Pause video if playing
-    if (lightboxVideo.style.display === 'block') {
-        lightboxVideo.pause();
-    }
-    
-    lightbox.classList.remove('active');
-    document.body.style.overflow = '';
-    
-    // Clean up
-    setTimeout(() => {
-        document.getElementById('lightbox-image').style.display = 'none';
-        document.getElementById('lightbox-video').style.display = 'none';
-        document.getElementById('lightbox-video-controls').style.display = 'none';
-        document.getElementById('lightbox-image').classList.remove('loaded');
-        document.getElementById('lightbox-video').classList.remove('loaded');
-    }, 300);
-    
-    // Remove keyboard listener
-    document.removeEventListener('keydown', handleKeyboardNavigation);
-}
+                    lightboxImage.onload = function() {
+                        loading.style.display = 'none';
+                        lightboxImage.style.display = 'block';
+                        lightboxImage.classList.add('loaded');
+                    };
 
-function nextMedia() {
-    if (currentMediaIndex < mediaFiles.length - 1) {
-        openLightbox(currentMediaIndex + 1);
-    } else {
-        openLightbox(0); // Loop to first
-    }
-}
-
-function prevMedia() {
-    if (currentMediaIndex > 0) {
-        openLightbox(currentMediaIndex - 1);
-    } else {
-        openLightbox(mediaFiles.length - 1); // Loop to last
-    }
-}
-
-function handleKeyboardNavigation(e) {
-    switch(e.key) {
-        case 'Escape':
-            closeLightbox();
-            break;
-        case 'ArrowRight':
-            nextMedia();
-            break;
-        case 'ArrowLeft':
-            prevMedia();
-            break;
-        case ' ':
-            e.preventDefault();
-            if (document.getElementById('lightbox-video').style.display === 'block') {
-                toggleVideoPlayPause();
+                    lightboxImage.onerror = function() {
+                        loading.style.display = 'none'; // Corrected from style.none to style.display
+                        console.error('Error loading image:', currentMedia.src);
+                    };
+                }
+                document.getElementById('current-media').textContent = index + 1;
             }
-            break;
-    }
-}
 
-// Video Control Functions
-function toggleVideoPlayPause() {
-    const video = document.getElementById('lightbox-video');
-    if (video.paused) {
-        video.play();
-        isVideoPlaying = true;
-    } else {
-        video.pause();
-        isVideoPlaying = false;
-    }
-    updatePlayPauseIcon();
-}
+            function closeLightbox(event) {
+                // HANYA tutup lightbox jika klik dilakukan pada OVERLAY (lightbox itu sendiri)
+                // Ini mencegah klik di dalam lightbox-content atau tombol navigasi menutupnya
+                if (event && event.target === event.currentTarget) { // Jika target klik adalah elemen lightbox itu sendiri
+                    const lightbox = document.getElementById('lightbox');
+                    const lightboxVideo = document.getElementById('lightbox-video');
 
-function updatePlayPauseIcon() {
-    const icon = document.getElementById('play-pause-icon');
-    if (isVideoPlaying) {
-        icon.classList.remove('fa-play');
-        icon.classList.add('fa-pause');
-    } else {
-        icon.classList.remove('fa-pause');
-        icon.classList.add('fa-play');
-    }
-}
+                    if (lightboxVideo.style.display === 'block') {
+                        lightboxVideo.pause();
+                    }
 
-function toggleVideoMute() {
-    const video = document.getElementById('lightbox-video');
-    const icon = document.getElementById('mute-icon');
-    
-    video.muted = !video.muted;
-    
-    if (video.muted) {
-        icon.classList.remove('fa-volume-up');
-        icon.classList.add('fa-volume-mute');
-    } else {
-        icon.classList.remove('fa-volume-mute');
-        icon.classList.add('fa-volume-up');
-    }
-}
+                    lightbox.classList.remove('active');
+                    document.body.style.overflow = '';
 
-function toggleVideoFullscreen() {
-    const video = document.getElementById('lightbox-video');
-    
-    if (video.requestFullscreen) {
-        video.requestFullscreen();
-    } else if (video.webkitRequestFullscreen) {
-        video.webkitRequestFullscreen();
-    } else if (video.mozRequestFullScreen) {
-        video.mozRequestFullScreen();
-    } else if (video.msRequestFullscreen) {
-        video.msRequestFullscreen();
-    }
-}
-
-// Enhanced Touch/Swipe Support
-let touchStartX = 0;
-let touchEndX = 0;
-let touchStartY = 0;
-let touchEndY = 0;
-
-document.getElementById('lightbox').addEventListener('touchstart', function(e) {
-    touchStartX = e.changedTouches[0].screenX;
-    touchStartY = e.changedTouches[0].screenY;
-}, { passive: true });
-
-document.getElementById('lightbox').addEventListener('touchend', function(e) {
-    touchEndX = e.changedTouches[0].screenX;
-    touchEndY = e.changedTouches[0].screenY;
-    handleSwipe();
-}, { passive: true });
-
-function handleSwipe() {
-    const deltaX = touchEndX - touchStartX;
-    const deltaY = touchEndY - touchStartY;
-    const minSwipeDistance = 50;
-    
-    // Horizontal swipe (left/right navigation)
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
-        if (deltaX < 0) {
-            nextMedia(); // Swipe left -> next media
-        } else {
-            prevMedia(); // Swipe right -> previous media
-        }
-    }
-    
-    // Vertical swipe down to close
-    if (deltaY > minSwipeDistance && Math.abs(deltaX) < minSwipeDistance) {
-        closeLightbox();
-    }
-}
-
-// Video event listeners for better UX
-document.addEventListener('DOMContentLoaded', function() {
-    const lightboxVideo = document.getElementById('lightbox-video');
-    
-    if (lightboxVideo) {
-        lightboxVideo.addEventListener('play', function() {
-            isVideoPlaying = true;
-            updatePlayPauseIcon();
-        });
-        
-        lightboxVideo.addEventListener('pause', function() {
-            isVideoPlaying = false;
-            updatePlayPauseIcon();
-        });
-        
-        lightboxVideo.addEventListener('ended', function() {
-            isVideoPlaying = false;
-            updatePlayPauseIcon();
-            // Auto advance to next media after video ends
-            setTimeout(() => {
-                nextMedia();
-            }, 1000);
-        });
-    }
-});
-
-// Preload next/previous media for smoother experience
-function preloadAdjacentMedia() {
-    const nextIndex = (currentMediaIndex + 1) % mediaFiles.length;
-    const prevIndex = currentMediaIndex === 0 ? mediaFiles.length - 1 : currentMediaIndex - 1;
-    
-    // Preload next
-    if (mediaFiles[nextIndex] && !mediaFiles[nextIndex].isVideo) {
-        const img = new Image();
-        img.src = mediaFiles[nextIndex].src;
-    }
-    
-    // Preload previous
-    if (mediaFiles[prevIndex] && !mediaFiles[prevIndex].isVideo) {
-        const img = new Image();
-        img.src = mediaFiles[prevIndex].src;
-    }
-}
-
-// Initialize video thumbnails
-document.addEventListener('DOMContentLoaded', function() {
-    const videos = document.querySelectorAll('.masonry-video');
-    
-    videos.forEach(video => {
-        // Generate thumbnail if no poster
-        if (!video.poster) {
-            video.addEventListener('loadeddata', function() {
-                // Set current time to 1 second to get a good thumbnail
-                this.currentTime = 1;
-            });
+                    setTimeout(() => {
+                        document.getElementById('lightbox-image').style.display = 'none';
+                        document.getElementById('lightbox-video').style.display = 'none';
+                        document.getElementById('lightbox-video-controls').style.display = 'none';
+                        document.getElementById('lightbox-image').classList.remove('loaded');
+                        document.getElementById('lightbox-video').classList.remove('loaded');
+                    }, 300);
+                }
+            }
             
-            video.addEventListener('seeked', function() {
-                // Create canvas to capture frame
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0);
-                
-                // Set the canvas image as poster
-                video.poster = canvas.toDataURL();
-            });
+            function closeLightboxExplicit() { // Fungsi baru untuk menutup secara eksplisit dari tombol X
+                const lightbox = document.getElementById('lightbox');
+                const lightboxVideo = document.getElementById('lightbox-video');
+
+                if (lightboxVideo.style.display === 'block') {
+                    lightboxVideo.pause();
+                }
+
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+
+                setTimeout(() => {
+                    document.getElementById('lightbox-image').style.display = 'none';
+                    document.getElementById('lightbox-video').style.display = 'none';
+                    document.getElementById('lightbox-video-controls').style.display = 'none';
+                    document.getElementById('lightbox-image').classList.remove('loaded');
+                    document.getElementById('lightbox-video').classList.remove('loaded');
+                }, 300);
+            }
+
+
+            function nextMedia() {
+                if (currentMediaIndex < mediaFiles.length - 1) {
+                    openLightbox(currentMediaIndex + 1);
+                } else {
+                    openLightbox(0);
+                }
+            }
+
+            function prevMedia() {
+                if (currentMediaIndex > 0) {
+                    openLightbox(currentMediaIndex - 1);
+                } else {
+                    openLightbox(mediaFiles.length - 1);
+                }
+            }
+
+            // Fungsi Kontrol Video
+            function toggleVideoPlayPause() {
+                const video = document.getElementById('lightbox-video');
+                if (video.paused) {
+                    video.play();
+                    isVideoPlaying = true;
+                } else {
+                    video.pause();
+                    isVideoPlaying = false;
+                }
+                updatePlayPauseIcon();
+            }
+
+            function updatePlayPauseIcon() {
+                const icon = document.getElementById('play-pause-icon');
+                if (isVideoPlaying) {
+                    icon.classList.remove('fa-play');
+                    icon.classList.add('fa-pause');
+                } else {
+                    icon.classList.remove('fa-pause');
+                    icon.classList.add('fa-play');
+                }
+            }
+
+            function toggleVideoMute() {
+                const video = document.getElementById('lightbox-video');
+                const icon = document.getElementById('mute-icon');
+
+                video.muted = !video.muted;
+
+                if (video.muted) {
+                    icon.classList.remove('fa-volume-up');
+                    icon.classList.add('fa-volume-mute');
+                } else {
+                    icon.classList.remove('fa-volume-mute');
+                    icon.classList.add('fa-volume-up');
+                }
+            }
+
+            function toggleVideoFullscreen() {
+                const video = document.getElementById('lightbox-video');
+
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.webkitRequestFullscreen) {
+                    video.webkitRequestFullscreen();
+                } else if (video.mozRequestFullScreen) {
+                    video.mozRequestFullScreen();
+                } else if (video.msRequestFullscreen) {
+                    video.msRequestFullscreen();
+                }
+            }
+
+            function openCompletionModal() { // BARU: Fungsi untuk membuka completionModal
+                const completionModal = new bootstrap.Modal(document.getElementById('completionModal'));
+                completionModal.show();
+            }
+
+            // ===== FUNGSI UNTUK UNGGAH BUKTI TAMBAHAN =====
+            function openUploadEvidenceModal() {
+                document.getElementById('uploadEvidenceModal').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                document.getElementById('uploadErrorMessage').style.display = 'none';
+                document.getElementById('evidenceFiles').value = ''; // Reset input file
+            }
+
+            function closeUploadEvidenceModal() {
+                document.getElementById('uploadEvidenceModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+
+            async function uploadEvidence() {
+                const form = document.getElementById('uploadEvidenceForm');
+                const filesInput = document.getElementById('evidenceFiles');
+                const errorMessageDiv = document.getElementById('uploadErrorMessage');
+
+                if (filesInput.files.length === 0) {
+                    errorMessageDiv.style.display = 'block';
+                    return;
+                } else {
+                    errorMessageDiv.style.display = 'none';
+                }
+
+                const formData = new FormData(form);
+                const reportCode = form.querySelector('input[name="report_code"]').value;
+
+                // Disable button and show loading (optional)
+                const submitButton = form.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Mengunggah...';
+
+                try {
+                    const response = await fetch(`/api/reports/${reportCode}/upload-evidence`, { // Sesuaikan URL API Anda
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Pastikan ada meta csrf-token
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showSuccessMessage(data.message || 'Bukti berhasil ditambahkan!');
+                        closeUploadEvidenceModal();
+                        // Perbarui tampilan bukti di halaman detail
+                        updateEvidenceDisplay(data.new_files); // data.new_files harus berisi array objek file baru
+                    } else {
+                        let errorMsg = 'Terjadi kesalahan saat mengunggah bukti.';
+                        if (data.errors) {
+                            errorMsg = Object.values(data.errors).flat().join('<br>');
+                        } else if (data.message) {
+                            errorMsg = data.message;
+                        }
+                        showErrorMessage(errorMsg);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showErrorMessage('Terjadi kesalahan jaringan atau server.');
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fas fa-cloud-upload-alt me-2"></i>Unggah Bukti';
+                }
+            }
+
+            function updateEvidenceDisplay(newFiles) {
+                const masonryContainer = document.getElementById('masonryContainer');
+                if (!masonryContainer) return;
+
+                newFiles.forEach(file => {
+                    const fileExtension = file.file.split('.').pop().toLowerCase();
+                    const isVideo = ['mp4', 'avi', 'mov', 'wmv', 'webm', 'ogg'].includes(fileExtension);
+                    const fileType = isVideo ? 'video' : 'image';
+                    
+                    const newItem = document.createElement('div');
+                    newItem.className = `masonry-item ${fileType}`;
+                    // Perbarui index untuk klik lightbox
+                    newItem.setAttribute('onclick', `trackReportModule.openLightbox(${mediaFiles.length})`);
+
+                    if (isVideo) {
+                        newItem.innerHTML = `
+                            <video class="masonry-video" preload="metadata" muted>
+                                <source src="${file.url}" type="video/${fileExtension}">
+                                Video tidak dapat dimuat
+                            </video>
+                            <div class="file-type-badge video">
+                                <i class="fas fa-play me-1"></i>Video
+                            </div>
+                        `;
+                    } else {
+                        newItem.innerHTML = `
+                            <img src="${file.url}" class="masonry-image" alt="Bukti Kejadian">
+                            <div class="file-type-badge image">
+                                <i class="fas fa-image me-1"></i>Foto
+                            </div>
+                        `;
+                    }
+                    masonryContainer.appendChild(newItem);
+
+                    // Tambahkan file baru ke array mediaFiles
+                    mediaFiles.push({
+                        src: file.url,
+                        type: isVideo ? `video/${fileExtension}` : 'image',
+                        isVideo: isVideo,
+                        index: mediaFiles.length // Index baru
+                    });
+                });
+                // Perbarui total media di lightbox counter
+                document.getElementById('total-media').textContent = mediaFiles.length;
+
+                // Re-initialize event listeners for new video elements if necessary (for poster generation)
+                document.querySelectorAll('.masonry-video').forEach(video => {
+                    if (!video.poster && !video._posterGenerated) { // Tambahkan flag agar tidak diproses berulang
+                        video.addEventListener('loadeddata', function() { this.currentTime = 1; });
+                        video.addEventListener('seeked', function() {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = this.videoWidth;
+                            canvas.height = this.videoHeight;
+                            ctx.drawImage(this, 0, 0);
+                            this.poster = canvas.toDataURL();
+                            this._posterGenerated = true; // Set flag
+                        });
+                        video.load(); // Load video to trigger loadeddata/seeked
+                    }
+                });
+            }
+
+
+            let touchStartX = 0;
+            let touchEndX = 0;
+            let touchStartY = 0;
+            let touchEndY = 0;
+
+            return {
+                openTrackingPopup: openTrackingPopup,
+                closePopup: closePopup,
+                checkTrackingCode: checkTrackingCode,
+                backToTracking: backToTracking,
+                openLightbox: openLightbox,
+                closeLightbox: closeLightbox,
+                closeLightboxExplicit: closeLightboxExplicit, // Expose the new function
+                nextMedia: nextMedia,
+                prevMedia: prevMedia,
+                toggleVideoPlayPause: toggleVideoPlayPause,
+                toggleVideoMute: toggleVideoMute,
+                toggleVideoFullscreen: toggleVideoFullscreen,
+                init: init,
+                initializeElegantTracking: initializeElegantTracking,
+                showSuccessMessage: showSuccessMessage,
+                showErrorMessage: showErrorMessage, // Tambahkan fungsi error
+                contactAdmin: contactAdmin,
+                openCompletionModal: openCompletionModal,
+                openUploadEvidenceModal: openUploadEvidenceModal, // Fungsi baru
+                closeUploadEvidenceModal: closeUploadEvidenceModal, // Fungsi baru
+            };
+        })();
+
+        document.addEventListener('DOMContentLoaded', trackReportModule.init);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const lightbox = document.getElementById('lightbox');
+            if (lightbox) {
+                lightbox.addEventListener('touchstart', function(e) {
+                    trackReportModule.touchStartX = e.changedTouches[0].screenX;
+                    trackReportModule.touchStartY = e.changedTouches[0].screenY;
+                }, { passive: true });
+
+                lightbox.addEventListener('touchend', function(e) {
+                    trackReportModule.touchEndX = e.changedTouches[0].screenX;
+                    trackReportModule.touchEndY = e.changedTouches[0].screenY;
+                    // Only perform swipe action if it's primarily horizontal
+                    const deltaX = trackReportModule.touchEndX - trackReportModule.touchStartX;
+                    const deltaY = trackReportModule.touchEndY - trackReportModule.touchStartY;
+                    const minSwipeDistance = 50;
+
+                    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+                        if (deltaX < 0) {
+                            trackReportModule.nextMedia();
+                        } else {
+                            trackReportModule.prevMedia();
+                        }
+                    }
+                    // Add a condition for closing on vertical swipe down
+                    if (deltaY > minSwipeDistance && Math.abs(deltaX) < minSwipeDistance) {
+                        trackReportModule.closeLightboxExplicit(); // Use explicit close for swipe down
+                    }
+                }, { passive: true });
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' && document.getElementById('lightbox').classList.contains('active')) {
+                trackReportModule.nextMedia();
+            } else if (event.key === 'ArrowLeft' && document.getElementById('lightbox').classList.contains('active')) {
+                trackReportModule.prevMedia();
+            } else if (event.key === 'Escape' && document.getElementById('lightbox').classList.contains('active')) { // Menambahkan kondisi untuk Escape pada lightbox
+                trackReportModule.closeLightboxExplicit();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const lightboxVideo = document.getElementById('lightbox-video');
+
+            if (lightboxVideo) {
+                lightboxVideo.addEventListener('play', function() {
+                    trackReportModule.isVideoPlaying = true;
+                    trackReportModule.updatePlayPauseIcon();
+                });
+
+                lightboxVideo.addEventListener('pause', function() {
+                    trackReportModule.isVideoPlaying = false;
+                    trackReportModule.updatePlayPauseIcon();
+                });
+
+                lightboxVideo.addEventListener('ended', function() {
+                    trackReportModule.isVideoPlaying = false;
+                    trackReportModule.updatePlayPauseIcon();
+                    setTimeout(() => {
+                        trackReportModule.nextMedia();
+                    }, 1000);
+                });
+            }
+        });
+
+        // Fungsi untuk menampilkan modal konfirmasi
+        function showReminderConfirmation() {
+            document.getElementById('reminderModal').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Mencegah scroll
         }
-    });
-});
+
+        // Fungsi untuk menutup modal
+        function closeReminderModal() {
+            document.getElementById('reminderModal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Mengizinkan scroll kembali
+        }
+
+        // Fungsi untuk simulasi kirim reminder (hanya tampilan)
+        function sendReminder() {
+            // Tutup modal
+            closeReminderModal();
+            
+            // Tampilkan pesan sukses setelah delay singkat
+            setTimeout(() => {
+                const successMessage = document.createElement('div'); // Mendeklarasikan ulang agar tidak error
+                successMessage.className = 'success-notification';
+                successMessage.innerHTML = `
+                    <div class="success-content">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>Reminder Terkirim!</h4>
+                        <p>Reminder laporan Anda telah berhasil dikirim.</p>
+                    </div>
+                `;
+                document.body.appendChild(successMessage);
+
+                setTimeout(() => {
+                    successMessage.classList.add('show');
+                }, 100);
+
+                setTimeout(() => {
+                    successMessage.classList.remove('show');
+                    setTimeout(() => {
+                        successMessage.remove();
+                    }, 500);
+                }, 3000); // Hilang setelah 3 detik
+            }, 500);
+        }
+
+        // Menutup modal ketika klik di luar area modal
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('reminderModal');
+            const uploadModal = document.getElementById('uploadEvidenceModal'); 
+            const lightbox = document.getElementById('lightbox'); // Dapatkan elemen lightbox
+
+            if (event.target === modal) {
+                closeReminderModal();
+            }
+            if (event.target === uploadModal) { 
+                trackReportModule.closeUploadEvidenceModal();
+            }
+            // Logika untuk menutup lightbox jika klik di luar kontennya
+            if (event.target === lightbox && lightbox.classList.contains('active')) {
+                trackReportModule.closeLightbox(event);
+            }
+        });
+
+        // Efek smooth scroll untuk button (opsional)
+        window.addEventListener('scroll', function() {
+            const button = document.getElementById('reminderButton');
+            if (button) {
+                const scrolled = window.pageYOffset;
+                const rate = scrolled * -0.5;
+                
+                if (scrolled > 100) {
+                    button.style.transform = `translateY(${rate * 0.05}px)`;
+                }
+            }
+        });
     </script>
-@endpush
+
+    <style>
+    /* Floating Reminder Button */
+    .floating-reminder-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        z-index: 1000;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        overflow: hidden;
+        color: white;
+        font-size: 24px;
+    }
+
+    .floating-reminder-btn:hover {
+        width: 160px;
+        border-radius: 35px;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+    }
+
+    .floating-reminder-btn .btn-icon {
+        transition: all 0.3s ease;
+        z-index: 2;
+    }
+
+    .floating-reminder-btn .btn-text {
+        position: absolute;
+        right: 20px;
+        opacity: 0;
+        transform: translateX(20px);
+        transition: all 0.3s ease;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+        line-height: 1.2;
+    }
+
+    .floating-reminder-btn .btn-text small {
+        display: block;
+        font-size: 11px;
+        font-weight: 400;
+        opacity: 0.8;
+    }
+
+    .floating-reminder-btn:hover .btn-icon {
+        transform: translateX(-30px);
+    }
+
+    .floating-reminder-btn:hover .btn-text {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .floating-reminder-btn .btn-pulse {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        70% {
+            transform: translate(-50%, -50%) scale(1.4);
+            opacity: 0;
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(1.4);
+            opacity: 0;
+        }
+    }
+
+    /* Modal Reminder */
+    .reminder-modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+    }
+
+    .reminder-modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        width: 90%;
+        max-width: 450px;
+        overflow: hidden;
+        animation: slideInUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .reminder-modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px 25px;
+        text-align: center;
+    }
+
+    .reminder-modal-header .reminder-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+        animation: bounce 0.6s ease;
+    }
+
+    .reminder-modal-header h4 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .reminder-modal-header p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 16px;
+    }
+
+    .reminder-modal-body {
+        padding: 25px;
+    }
+
+    .reminder-info {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .info-value {
+        font-weight: 500;
+        color: #667eea;
+        background: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+    }
+
+    .reminder-modal-footer {
+        padding: 20px 25px;
+        display: flex;
+        gap: 15px;
+        background: #f8f9fa;
+    }
+
+    .reminder-modal-footer button {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+
+    .btn-confirm {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-confirm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    #action-button-container {
+        text-align: center;
+        margin-top: 20px;  
+    }
+
+    /* ===== SUCCESS NOTIFICATION ===== */
+    .success-notification {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
+        z-index: 10000;
+        transform: translateX(400px);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        max-width: 400px;
+        min-width: 320px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .success-notification.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .success-content {
+        padding: 24px;
+        text-align: center;
+    }
+
+    .success-content i {
+        font-size: 48px;
+        color: #10b981;
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .success-content h4 {
+        margin: 0 0 12px 0;
+        color: #1f2937;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .success-content p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    
+    /* ===== ERROR NOTIFICATION (New Style) ===== */
+    .error-notification {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
+        z-index: 10000;
+        transform: translateX(400px);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        max-width: 400px;
+        min-width: 320px;
+        border: 1px solid #ef4444; /* Warna border merah untuk error */
+    }
+
+    .error-notification.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .error-content {
+        padding: 24px;
+        text-align: center;
+    }
+
+    .error-content i {
+        font-size: 48px;
+        color: #ef4444; /* Warna ikon merah untuk error */
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .error-content h4 {
+        margin: 0 0 12px 0;
+        color: #1f2937; /* Warna teks judul tetap gelap */
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .error-content p {
+        margin: 0;
+        color: #6b7280; /* Warna teks deskripsi tetap abu-abu */
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -30%);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .floating-reminder-btn {
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            font-size: 20px;
+        }
+        
+        .floating-reminder-btn:hover {
+            width: 140px;
+            border-radius: 30px;
+        }
+        
+        .success-notification, .error-notification {
+            top: 15px;
+            right: 15px;
+            padding: 12px 20px;
+        }
+    }
+    </style>
+
+    @endpush
 @endsection
