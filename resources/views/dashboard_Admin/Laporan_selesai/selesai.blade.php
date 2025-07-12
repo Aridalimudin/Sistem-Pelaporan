@@ -530,6 +530,18 @@
             $("#detail-saksi").html(htmlWitnesses);
         }
 
+
+        let starsHtml = '';
+
+        for (let i = 1; i <= 5; i++) {
+            starsHtml += `<span class="fa fa-star ${i <= parseInt(reporter.rating) ? 'checked' : ''}"></span>`;
+        }
+
+        starsHtml += `<span class="rating-text">(${reporter.rating}/5)</span>`;
+
+        $("#star-display").html(starsHtml);
+        $("#feedback-comment").text(reporter.comment)
+
         $("#btnReject").attr('data-id', reporter.id);
         $("#btnAccept").attr('data-id', reporter.id);
         $("#modal-detail").modal('show');

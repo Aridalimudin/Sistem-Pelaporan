@@ -560,9 +560,9 @@
                     description: "Laporan Anda telah selesai ditangani. Tindakan yang diperlukan telah dilakukan sesuai dengan kebijakan dan prosedur yang berlaku.<br><br>Untuk melihat detail penyelesaian laporan dan memberikan penilaian penyelesaian, silakan klik tombol \"Berikan Penilaian\" di bawah ini. Terima kasih atas partisipasi Anda.",
                     icon: "fas fa-flag-checkered",
                     progress: 100,
-                    hasAction: true,
                     actionText: "Berikan Penilaian",
                     actionType: "give_feedback",
+                    hasAction: "{{ @$rating }}",
                     date: "{{ @$done?->created_at->format('d M Y') ?? '' }}",
                 },
                 4: {
@@ -909,7 +909,8 @@
                             </a>
                         </div>
                     `;
-                } else if (stepData.actionType === "give_feedback" && stepData.title === "Selesai") { // Menambahkan kondisi untuk "Selesai"
+                } else if (Boolean(Boolean(stepData.hasAction)) && stepData.actionType === "give_feedback" && stepData.title === "Selesai") { // Menambahkan kondisi untuk "Selesai"
+                console.log(Boolean(Boolean(stepData.hasAction)));
                     actionButtonContainer.innerHTML = `
                         <div class="text-center mt-3">
                             <button type="button" class="btn btn-primary btn-lg px-4" onclick="window.completionInfoModal()">
@@ -927,7 +928,7 @@
                     <div class="success-content">
                         <i class="fas fa-check-circle"></i>
                         <h4>Berhasil!</h4>
-                        <p>${message}</p>
+                        
                     </div>
                 `;
 

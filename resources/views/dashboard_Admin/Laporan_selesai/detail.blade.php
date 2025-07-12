@@ -181,16 +181,6 @@
                         <div class="feedback-content">
                             <!-- Grid layout untuk satisfaction dan rating -->
                             <div class="feedback-grid">
-                                <div class="feedback-item satisfaction">
-                                    <div class="feedback-label">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
-                                        </svg>
-                                        Tingkat Kepuasan
-                                    </div>
-                                    <div class="feedback-value">{{ $satisfactionLevel }}</div>
-                                </div>
-                                
                                 <div class="feedback-item rating">
                                     <div class="feedback-label">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -199,11 +189,8 @@
                                         Rating Kepuasan
                                     </div>
                                     <div class="feedback-value">
-                                        <div class="star-display">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                <span class="fa fa-star @if($i <= $rating) checked @endif"></span>
-                                            @endfor
-                                            <span class="rating-text">({{ $rating }}/5)</span>
+                                        <div class="star-display" id="star-display">
+                                           
                                         </div>
                                     </div>
                                 </div>
@@ -217,7 +204,7 @@
                                     </svg>
                                     Saran atau Komentar
                                 </div>
-                                <div class="feedback-value">{{ $comment }}</div>
+                                <div class="feedback-value" id="feedback-comment"></div>
                             </div>
                         </div>
                     @else

@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Reporter;
 use App\Models\ReporterHistoryTracking;
 use App\Models\Student;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TrackingController extends Controller
 {
@@ -24,7 +27,6 @@ class TrackingController extends Controller
         $previousStatus = null;
         $rejectFound = false;
         $reporter = Reporter::with(['reporterFile','crime','student','reporterDetail.victims','reporterDetail.perpetrators','reporterDetail.witnesses','operation'])->where('code', $request->code)->first();
-
         if($reporter){
             if ($reporter->crime) {
                 $categories = implode(',', array_unique($reporter->crime->pluck('type')->toArray()));
@@ -53,6 +55,8 @@ class TrackingController extends Controller
             });
         }
 
+        $rating = @$reporter->rating ? false : true;
+
         $victimNames = $reporter?->reporterDetail?->victims->map(function ($victim) {
                 return $victim->name . ' (' . $victim->classroom . ')';
         })->implode(', ');
@@ -75,6 +79,47 @@ class TrackingController extends Controller
             return redirect()->route('track')->withErrors(['code_not_found' => 'Kode laporan tidak ditemukan.']);
         }
 
-        return view('track_laporan.track', compact('reporter', 'categories','sendReporter','students','terkirim','verifikasi','proses','done','reject','victimNames','perpetratorsNames','witnesNames','previousStatus'));
+        return view('track_laporan.track', compact('reporter', 'categories','sendReporter','students','terkirim','verifikasi','proses','done','reject','victimNames','perpetratorsNames','witnesNames','previousStatus','rating'));
+    }
+
+    public function submitFeedback(Request $request)
+    {
+        $id = $request->report_id;
+        $reporter = Reporter::find($id);
+
+        if (!$reporter) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Laporan tidak ditemukan.' // Report not found
+            ], 404);
+        }
+
+        DB::beginTransaction(); // Start a database transaction
+
+        try {
+            // Update the reporter's feedback information
+            $reporter->update([
+                'rating' => $request->rating,
+                'comment' => $request->comments,
+            ]);
+
+            DB::commit(); // Commit the transaction if everything is successful
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Umpan balik berhasil disimpan.' // Feedback successfully saved
+            ], 200);
+
+        } catch (Exception $e) {
+            DB::rollBack(); // Rollback the transaction if any error occurs
+
+            // Log the error for debugging purposes
+            Log::error('Gagal menyimpan umpan balik untuk laporan ID ' . $id . ': ' . $e->getMessage());
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Terjadi kesalahan saat menyimpan umpan balik. Mohon coba lagi.' // An error occurred while saving feedback. Please try again.
+            ], 500);
+        }
     }
 }

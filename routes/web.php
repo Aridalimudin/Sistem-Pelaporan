@@ -31,6 +31,7 @@ Route::get('/track', [TrackingController::class, 'index'])->name('track');
 Route::resource('lapor', ReporterController::class);
 Route::post('lapor-upload', [ReporterController::class, 'uploadFile'])->name('lapor.upload');
 Route::post('lapor-detail', [ReporterController::class, 'laporDetailPost'])->name('lapor.detail.post');
+Route::post('submit-user-feedback', [TrackingController::class, 'submitFeedback'])->name('track.submitFeedback');
 Route::get('/api/crimes', [LaporanController::class, 'getCrimes']);
 Route::get('/login', [LoginController::class, 'index'])->name('login.index');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');

@@ -18,6 +18,8 @@ class Reporter extends Model
         'code',
         'description',
         'reason',
+        'rating',
+        'comment',
         'file',
         'urgency',
         'status'

@@ -18,7 +18,9 @@ return new class extends Migration
             $table->unsignedBigInteger('student_id');
             $table->unsignedBigInteger('operation_id')->nullable();
             $table->string('code');
+            $table->integer('rating')->nullable();
             $table->text('description');
+            $table->text('comment')->nullable();
             $table->text('reason')->nullable();
             $table->text('file')->nullable();
             $table->tinyInteger('status')->default(0);
