@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notifikasi Laporan Baru - MTS AR-RIYADL</title>
+    <title>Laporan Siap Diproses - MTS AR-RIYADL</title>
     <link rel="stylesheet" href="{{asset('css/email_bk.css')}}">
 </head>
 <body>
     <div class="email-container">
-        <div class="email-header new">
-            <span class="header-icon">🔔</span>
-            <h2>NOTIFIKASI LAPORAN BARU</h2>
-            <p>Sebuah laporan baru telah diterima di sistem Anda.</p>
+        <div class="email-header ready-process">
+            <span class="header-icon">✅</span>
+            <h2>LAPORAN SIAP DIPROSES</h2>
+            <p>Detail laporan telah lengkap dan siap untuk ditindaklanjuti.</p>
         </div>
 
         <div class="email-body">
             <h3>Assalamu'alaikum, Bapak/Ibu Guru BK {{$user->name}} yang Terhormat</h3>
-            <p>Kami memberitahukan bahwa ada laporan baru yang membutuhkan perhatian Anda. Mohon segera tinjau laporan ini untuk proses selanjutnya.</p>
+            <p>Pelapor dengan kode laporan **{{$report->code}}** telah melengkapi semua dokumen dan informasi yang dibutuhkan. Laporan ini sekarang siap untuk masuk ke tahap investigasi dan penanganan lebih lanjut.</p>
 
             <div class="info-box">
-                <strong>📅 Tanggal Laporan:</strong> {{date('d M Y')}}, {{date('H:i')}}<br>
+                <strong>📅 Tanggal Kelengkapan:</strong> {{date('d M Y')}}, {{date('H:i')}}<br>
                 <strong>📋 Jenis Laporan:</strong> {!! $report->formatted_urgency !!}<br>
                 <strong>👤 Pelapor:</strong> {{$report->student?->name}} (NIS: {{$report->student?->nis}})
             </div>
@@ -27,23 +27,23 @@
             <div class="ticket-code">
                 Kode Laporan: {{$report->code}}
             </div>
-            
-            <div class="alert-box info">
-                <strong>📝 Detail Laporan Singkat:</strong><br>
-                <p>"{{ Str::limit($report->description, 150) }}"</p>
+
+            <div class="alert-box success">
+                <strong>🎉 Informasi Laporan Lengkap!</strong><br>
+                Semua data yang diperlukan untuk laporan ini telah dipenuhi oleh pelapor. Mohon segera proses laporan ini sesuai prioritas.
             </div>
 
             <div class="next-steps">
-                <h4>📋 Tindakan yang Perlu Dilakukan:</h4>
+                <h4>📋 Langkah Selanjutnya:</h4>
                 <ul>
-                    <li>Segera akses sistem pelaporan untuk melihat detail lengkap laporan.</li>
-                    <li>Lakukan verifikasi awal terhadap informasi yang disampaikan.</li>
-                    <li>Tentukan langkah penanganan selanjutnya sesuai prosedur.</li>
+                    <li>Segera mulai proses investigasi dan tindak lanjut.</li>
+                    <li>Koordinasikan dengan pihak terkait jika diperlukan.</li>
+                    <li>Update status laporan di sistem agar pelapor mendapatkan notifikasi.</li>
                 </ul>
             </div>
 
             <div style="text-align: center; margin-top: 25px;">
-                <a href="{{route('admin.reports.show', ['code' => $report->code])}}" class="btn-action">➡️ Lihat Detail Laporan</a>
+                <a href="{{route('admin.reports.show', ['code' => $report->code])}}" class="btn-action">➡️ Mulai Proses Laporan</a>
             </div>
         </div>
 

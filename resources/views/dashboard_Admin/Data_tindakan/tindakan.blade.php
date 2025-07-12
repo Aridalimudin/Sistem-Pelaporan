@@ -5,7 +5,7 @@
 <main id="content" class="content">
     <header>
         <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-        <h1 class="header-title">Kelola Data Kasus</h1>
+        <h1 class="header-title">Kelola Laporan Baru</h1>
         <div class="user-info">
             <div class="profile-dropdown">
                 <button class="profile-btn" onclick="toggleProfile()">
@@ -33,7 +33,7 @@
                     </a>
                     <hr class="profile-divider">
                     <a href="{{ route('logout') }}" class="profile-item logout-item"
-                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i class="fa-solid fa-sign-out-alt"></i>
                         <span>Keluar</span>
                     </a>
@@ -48,7 +48,7 @@
     <input type="hidden" id="permissionData" value=''>
     <div class="management-section">
         <div class="section-header">
-            <h2>Data Kasus</h2>
+            <h2>Data Kasus Baru</h2>
             <div class="header-actions">
                 <div class="filter-container">
                 </div>
@@ -113,7 +113,7 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    @foreach($reporters as $key => $value)
+                    @forelse($reporters as $key => $value)
                         <tr class="table-row" data-index="{{ $key }}">
                             <td>{{ $key + 1 }}</td>
                             <td>{{ $value->code }}</td>
@@ -128,7 +128,11 @@
                                 </button>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-4">Belum ada laporan yang tersedia.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -224,7 +228,7 @@
 
         $("#btnAccept").on("click", function(){
             currentActionType = 'approve';
-            currentReportIdForAction = $(this).attr('data-id'); 
+            currentReportIdForAction = $(this).attr('data-id');
             showConfirmationModal('Apakah Anda yakin akan menerima laporan ini?', () => {
                 performAcceptAction(currentReportIdForAction);
             });
@@ -320,6 +324,13 @@
         allRows = Array.from(document.querySelectorAll('.table-row'));
         filteredRows = [...allRows]; // Initially, all rows are filtered rows
         updateTable();
+
+        // Check if there are no reports and display the message
+        if (allRows.length === 0) {
+            const tableBody = document.getElementById('tableBody');
+            if (tableBody) {
+            }
+        }
     }
 
     /**
@@ -351,6 +362,12 @@
 
         currentPage = 1; // Reset to the first page after a search
         updateTable();
+
+        // Display "No reports" message if filteredRows is empty after search
+        const tbody = document.getElementById('tableBody');
+        if (filteredRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Tidak ada laporan yang cocok dengan pencarian Anda.</td></tr>';
+        }
     }
 
     /**
@@ -424,23 +441,21 @@
      */
     function updateTable() {
         const tbody = document.getElementById('tableBody');
+        // Clear previous content of tbody, will be repopulated with filtered/paginated rows
+        tbody.innerHTML = '';
+
         const totalPages = Math.ceil(filteredRows.length / entriesPerPage);
         const startIndex = (currentPage - 1) * entriesPerPage;
         const endIndex = startIndex + entriesPerPage;
 
-        // Hide all original rows first
-        allRows.forEach(row => {
-            row.style.display = 'none';
-        });
-
-        // Show only the filtered rows for the current page
-        for (let i = 0; i < filteredRows.length; i++) {
-            if (i >= startIndex && i < endIndex) {
-                filteredRows[i].style.display = '';
-            } else {
-                filteredRows[i].style.display = 'none';
+        if (filteredRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Tidak ada laporan yang tersedia.</td></tr>';
+        } else {
+            for (let i = startIndex; i < endIndex && i < filteredRows.length; i++) {
+                tbody.appendChild(filteredRows[i]);
             }
         }
+
 
         // Update pagination information text
         const showing = filteredRows.length === 0 ? 0 : startIndex + 1;
@@ -711,9 +726,6 @@
 </script>
 @endpush
 <style>
-
-
-
 .entries-selector {
     display: flex;
     align-items: center;

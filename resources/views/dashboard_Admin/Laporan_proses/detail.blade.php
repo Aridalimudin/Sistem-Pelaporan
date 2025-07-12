@@ -246,6 +246,91 @@
     <img id="modalImage" src="" alt="Bukti Laporan">
 </div>
 
+
+{{-- Modal for Reject Reason --}}
+<div class="modal fade" id="modal-reject-reason" tabindex="-1" aria-labelledby="rejectReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectReasonModalLabel">Alasan Penolakan Laporan</h5>
+                <button type="button" class="close-btn" data-bs-dismiss="modal" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="rejectReasonSelect">Pilih Alasan:</label>
+                    <select class="form-control" id="rejectReasonSelect">
+                        <option value="">-- Pilih Alasan Penolakan --</option>
+                        <option value="Laporan kurang lengkap">Laporan kurang lengkap</option>
+                        <option value="Laporan tidak jelas/tidak dipahami">Laporan tidak jelas/tidak dipahami</option>
+                        <option value="Tidak ada bukti pendukung yang relevan">Tidak ada bukti pendukung yang relevan</option>
+                        <option value="Laporan duplikat">Laporan duplikat</option>
+                        <option value="Bukan wewenang sekolah">Bukan wewenang sekolah</option>
+                        <option value="Lainnya">Lainnya (mohon jelaskan)</option>
+                    </select>
+                </div>
+                <div class="form-group mt-3" id="otherReasonContainer" style="display: none;">
+                    <label for="otherReasonText">Alasan Lainnya:</label>
+                    <textarea class="form-control" id="otherReasonText" rows="3" placeholder="Masukkan alasan penolakan lainnya..."></textarea>
+                </div>
+                <div id="rejectReasonError" class="text-danger mt-2" style="display: none;">Mohon pilih atau masukkan alasan penolakan.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" id="confirmRejectBtn">Tolak Laporan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Generic Confirmation Modal --}}
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="confirmationModalLabel">Konfirmasi Penyelesaian Laporan</h5> 
+                <button type="button" class="close-btn" data-bs-dismiss="modal" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmationMessage">Anda yakin ingin menyelesaikan laporan ini?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="confirmActionButton">Selesaikan Laporan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Success Notification Toast (example) --}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMessage">
+                {{-- Message will be inserted here --}}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+
+<div id="imageModal" class="image-modal" onclick="closeImageModal()">
+    <span class="close-image" onclick="closeImageModal()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </span>
+    <img id="modalImage" src="" alt="Bukti Laporan">
+</div>
+
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
@@ -949,3 +1034,224 @@ html, body {
 .modal-body::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
+
+/* ===== NEW & IMPROVED REJECT REASON MODAL STYLES ===== */
+#modal-reject-reason .modal-dialog {
+    max-width: 500px; /* Sedikit lebih lebar dari modal konfirmasi */
+    border-radius: 20px;
+}
+
+#modal-reject-reason .modal-content {
+    border-radius: 20px; /* Sudut membulat */
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Bayangan halus */
+}
+
+#modal-reject-reason .modal-header {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; /* Gradien merah */
+    color: white;
+    padding: 20px 25px; /* Padding lebih luas */
+    border-bottom: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+#modal-reject-reason .modal-title {
+    font-size: 1.5rem; /* Ukuran judul lebih besar */
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: white;
+}
+#modal-reject-reason .close-btn {
+    position: static;
+    transform: none;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%; /* Tombol close bulat */
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+}
+#modal-reject-reason .close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+#modal-reject-reason .modal-body {
+    padding: 25px; /* Padding body lebih banyak */
+    background-color: #fcfdfe; /* Latar belakang body sedikit off-white */
+    font-size: 1rem;
+    color: #333;
+    line-height: 1.6;
+}
+
+#modal-reject-reason .form-group {
+    margin-bottom: 20px; /* Jarak antar form group */
+}
+
+#modal-reject-reason .form-group label {
+    font-weight: 600;
+    color: #4a5568; /* Warna label lebih gelap */
+    margin-bottom: 8px;
+    display: block;
+    font-size: 0.95rem;
+}
+#modal-reject-reason .form-control {
+    width: 100%;
+    padding: 12px 15px; /* Padding lebih banyak */
+    border: 1px solid #e2e8f0; /* Border lebih halus */
+    border-radius: 10px; /* Sudut membulat */
+    font-size: 1rem;
+    background-color: white; /* Latar belakang input putih */
+    transition: all 0.3s ease;
+}
+#modal-reject-reason .form-control:focus {
+    border-color: #ef4444; /* Border merah saat fokus */
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25); /* Shadow saat fokus */
+    outline: none;
+}
+#modal-reject-reason #rejectReasonError {
+    font-size: 0.875rem;
+    color: #ef4444;
+    margin-top: 5px;
+}
+
+#modal-reject-reason .modal-footer {
+    border-top: 1px solid #e0e0e0;
+    padding: 20px 25px; /* Padding footer lebih banyak */
+    background-color: #fcfdfe;
+    justify-content: flex-end;
+    gap: 15px; /* Jarak antar tombol */
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+/* Styles for the generic confirmation modal */
+#confirmationModal .modal-dialog {
+    max-width: 450px;
+    border-radius: 20px;
+}
+
+#confirmationModal .modal-content {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+#confirmationModal .modal-header {
+    background: linear-gradient(135deg, #7b68ee 0%, #a020f0 100%) !important;
+    color: white;
+    padding: 20px 25px;
+    border-bottom: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+#confirmationModal .modal-header .modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: white;
+}
+
+#confirmationModal .modal-header .close-btn {
+    position: static;
+    transform: none;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+#confirmationModal .modal-body {
+    padding: 25px;
+    background-color: #fcfdfe;
+    font-size: 1.05rem;
+    color: #333;
+    line-height: 1.6;
+}
+
+#confirmationModal .modal-footer {
+    padding: 20px 25px;
+    border-top: 1px solid #e0e0e0;
+    background-color: #fcfdfe;
+    justify-content: flex-end;
+    gap: 15px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+#confirmationModal .modal-footer .btn-secondary {
+    background: #6c757d;
+    color: white;
+    border-radius: 10px;
+    padding: 10px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#confirmationModal .modal-footer .btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#confirmationModal .modal-footer .btn-primary {
+    background: linear-gradient(135deg, #7b68ee 0%, #a020f0 100%) !important;
+    color: white;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(123, 104, 238, 0.4);
+}
+
+#confirmationModal .modal-footer .btn-primary:hover {
+    background: linear-gradient(135deg, #6a5acd 0%, #8a2be2 100%) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(123, 104, 238, 0.5);
+}
+
+/* Styles for Toast Notification */
+.toast-container {
+    z-index: 1080; /* Higher than modals if you want it on top */
+}
+.toast {
+    max-width: 350px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    opacity: 0.95;
+    animation: slideInFromRight 0.5s ease-out forwards; /* Animasi masuk */
+}
+.toast.bg-success {
+    background-color: #10b981 !important; /* Green */
+}
+.toast.bg-danger {
+    background-color: #ef4444 !important; /* Red */
+}
+.toast-body {
+    font-weight: 500;
+}
+
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 0.95;
+    }
+}
+</style>

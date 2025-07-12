@@ -40,6 +40,7 @@
             <button class="btn btn-primary" onclick="nextStep()" id="nextBtn">Lanjutkan</button>
         </div>
     </div>
+    {{-- OLD: Removed the separate modal-loading-overlay --}}
 </div>
 
 <style>
@@ -59,7 +60,7 @@
         --border-error: #f87171; /* Warna border merah untuk error */
     }
 
-    /* Modal Overlay */
+    /* Modal Overlay (Outer wrapper) */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -71,10 +72,14 @@
         align-items: center;
         justify-content: center;
         backdrop-filter: blur(4px);
-        opacity: 1;
+        opacity: 0; 
         transition: opacity 0.3s ease;
         z-index: 1000;
     }
+    .modal-overlay.show { 
+        opacity: 1;
+    }
+
 
     /* Animasi Modal */
     @keyframes modalSlideIn {
@@ -106,13 +111,14 @@
         width: 100%;
         max-width: 700px;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-        position: relative;
+        position: relative; 
         display: flex;
         flex-direction: column;
         gap: 35px;
+        z-index: 1001; 
     }
 
-    /* Close Button - Diperbaiki positioning */
+    /* Close Button */
     .close-btn {
         position: absolute;
         top: 20px;
@@ -139,7 +145,7 @@
         transform: scale(1.1);
     }
 
-    /* Modal Header - Diperbaiki alignment dan padding */
+    /* Modal Header */
     .modal-header {
         text-align: left;
         padding: 30px 40px 25px 40px;
@@ -254,27 +260,6 @@
         border-color: var(--success-color);
     }
 
-    .step-label {
-        text-align: center;
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--text-gray);
-        transition: color 0.3s ease;
-        line-height: 1.3;
-        padding: 0 5px;
-        word-wrap: break-word;
-    }
-
-    .step.active .step-label {
-        color: var(--primary-color);
-        font-weight: 600;
-    }
-
-    .step.completed .step-label {
-        color: var(--success-color);
-        font-weight: 600;
-    }
-
     /* Icon centang untuk langkah yang selesai */
     .step.completed .step-indicator::before {
         content: "✓";
@@ -314,7 +299,7 @@
         text-align: center;
     }
 
-    /* Form Elements - Diperbaiki spacing dan layout */
+    /* Form Elements */
     .form-row {
         display: flex;
         gap: 20px;
@@ -324,10 +309,9 @@
     .form-group {
         flex: 1;
         margin-bottom: 0;
-        position: relative; /* Tambahkan ini untuk positioning pesan error */
+        position: relative; 
     }
 
-    /* Khusus untuk lokasi kejadian - diperbaiki spacing */
     .location-group {
         margin-top: 10px;
     }
@@ -451,10 +435,23 @@
     .btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+        /* Tambahkan style untuk spinner di dalam tombol */
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .btn:disabled:hover {
-        transform: none;
+    .btn:disabled .spinner-border {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.15em;
+        margin-right: 0.5rem;
+    }
+    
+    .btn:disabled .spinner-grow { /* If using spinner-grow */
+        width: 1rem;
+        height: 1rem;
+        margin-right: 0.5rem;
     }
 
     /* --- New Error Styling --- */
@@ -481,6 +478,7 @@
         margin-left: 30px; /* Adjust as needed to align with text */
     }
 
+    /* REMOVED: modal-loading-overlay CSS as it's no longer a separate overlay */
 
     /* Responsive Adjustments */
     @media (max-width: 768px) {
@@ -638,10 +636,8 @@
         let currentStepWizard = 1;
         const totalStepsWizard = 3;
 
-        // Objek untuk menyimpan data form sementara dari setiap langkah
         const formDataWizard = {};
 
-        // Ini akan tetap menjadi sumber data siswa Anda
         let studentDatabase = JSON.parse($("#data-siswa").val());
 
         const stepData = {
@@ -711,7 +707,6 @@
         };
 
         function updateWizardSteps() {
-            // Destroy existing Select2 instances before replacing content to prevent memory leaks
             $('.select2-multiple').select2('destroy');
 
             for (let i = 1; i <= totalStepsWizard; i++) {
@@ -737,15 +732,11 @@
             document.getElementById('contentTitle').textContent = contentData.title;
             document.getElementById('contentForm').innerHTML = contentData.content;
 
-            // --- LOAD SAVED DATA & INITIALIZE SELECT2 ---
             loadFormDataForCurrentStep();
 
-            // If it's step 2, initialize Select2
             if (currentStepWizard === 2) {
                 initializeSelect2();
             }
-            // --- END LOAD SAVED DATA & INITIALIZE SELECT2 ---
-
             attachValidationListeners();
 
             const prevBtn = document.getElementById('prevBtn');
@@ -753,28 +744,29 @@
 
             prevBtn.disabled = currentStepWizard === 1;
 
-            if (currentStepWizard === totalStepsWizard) {
-                nextBtn.textContent = 'Kirim Laporan';
+            // Reset nextBtn text to default "Lanjutkan" when navigating steps
+            if (currentStepWizard < totalStepsWizard) {
+                nextBtn.innerHTML = 'Lanjutkan'; // Revert to plain text
+                nextBtn.disabled = false; // Ensure it's enabled on normal navigation
             } else {
-                nextBtn.textContent = 'Lanjutkan';
+                nextBtn.innerHTML = 'Kirim Laporan'; // Final step text
+                nextBtn.disabled = false; // Ensure it's enabled initially on final step
             }
         }
 
-        // Function to save current step's data before moving
         function saveFormDataFromCurrentStep() {
             const currentContentForm = document.getElementById('contentForm');
             const inputs = currentContentForm.querySelectorAll('input, textarea, select');
 
             inputs.forEach(input => {
                 const name = input.name;
-                if (name) { // Only process elements with a name attribute
+                if (name) { 
                     if (input.type === 'checkbox') {
                         formDataWizard[name] = input.checked;
                     } else if (input.hasAttribute('multiple') && input.tagName === 'SELECT') {
-                        // For multiple select, get all selected values (array of strings)
                         formDataWizard[name] = Array.from(input.options)
-                                                    .filter(option => option.selected)
-                                                    .map(option => option.value);
+                                                .filter(option => option.selected)
+                                                .map(option => option.value);
                     } else {
                         formDataWizard[name] = input.value;
                     }
@@ -783,7 +775,6 @@
             console.log("Saved formDataWizard:", formDataWizard);
         }
 
-        // Function to load data into current step's fields
         function loadFormDataForCurrentStep() {
             const currentContentForm = document.getElementById('contentForm');
             const inputs = currentContentForm.querySelectorAll('input, textarea, select');
@@ -796,9 +787,7 @@
                     if (input.type === 'checkbox') {
                         input.checked = savedValue;
                     } else if (input.hasAttribute('multiple') && input.tagName === 'SELECT') {
-                        // For multiple select, Select2 will handle setting values after initialization
-                        // We just make sure the values are in formDataWizard
-                        // The updateSelect2Options will use these values to pre-select
+                        // Select2 will handle setting values after initialization, so just ensure data is here
                     } else {
                         input.value = savedValue;
                     }
@@ -838,8 +827,7 @@
                         return false;
                     }
                 } else if (field.tagName === 'SELECT' && field.hasAttribute('multiple')) {
-                    // For multiple Select2, check if at least one option is selected
-                    if ($(field).val() === null || $(field).val().length === 0) { // Check for null or empty array
+                    if ($(field).val() === null || $(field).val().length === 0) { 
                         const labelText = field.previousElementSibling && field.previousElementSibling.tagName === 'LABEL' ? field.previousElementSibling.textContent : '';
                         showValidationError(field, `${labelText ? labelText + ' ' : ''}harus dipilih setidaknya satu.`);
                         return false;
@@ -860,10 +848,8 @@
 
             fields.forEach(field => {
                 if (field.classList.contains('select2-multiple')) {
-                    // Select2 uses its own events for changes
                     $(field).on('change', function() {
                         validateField(this);
-                        // Also save data on change for Select2 fields
                         saveFormDataFromCurrentStep();
                     });
                 } else {
@@ -873,8 +859,7 @@
                     field.addEventListener('change', () => {
                         validateField(field);
                     });
-                    // Save data on change for regular inputs
-                    field.addEventListener('blur', () => { // Using blur to save when user leaves the field
+                    field.addEventListener('blur', () => { 
                         saveFormDataFromCurrentStep();
                     });
                 }
@@ -887,12 +872,10 @@
             let isValid = true;
             let firstInvalidField = null;
 
-            // Clear all previous errors for the current step before re-validating
             requiredFields.forEach(field => hideValidationError(field));
 
             for (let field of requiredFields) {
                 if (field.classList.contains('select2-multiple')) {
-                    // Specific validation for Select2 multiple required
                     if (field.hasAttribute('required') && ($(field).val() === null || $(field).val().length === 0)) {
                         isValid = false;
                         showValidationError(field, `Mohon pilih setidaknya satu ${field.previousElementSibling.textContent.toLowerCase().replace(':', '')}.`);
@@ -909,9 +892,7 @@
             }
 
             if (!isValid && firstInvalidField) {
-                // Attempt to focus on the first invalid field
                 if (firstInvalidField.classList.contains('select2-multiple')) {
-                    // For Select2, opening it is the closest to "focusing"
                     $(firstInvalidField).select2('open');
                 } else if (firstInvalidField.type !== 'checkbox') {
                     firstInvalidField.focus();
@@ -922,20 +903,19 @@
 
         function nextStep() {
             if (validateCurrentStep()) {
-                saveFormDataFromCurrentStep(); // Save data before moving to the next step
+                saveFormDataFromCurrentStep();
                 if (currentStepWizard < totalStepsWizard) {
                     currentStepWizard++;
                     updateWizardSteps();
                 } else {
-                    submitReportToLaravel(); // Submit the report when all steps are completed and valid
+                    // Only submit if it's the final step
+                    submitReportToLaravel();
                 }
             }
         }
 
         function previousStep() {
-            // We still save data when going back, just in case user comes back later
             saveFormDataFromCurrentStep();
-            // Clear errors when navigating back
             const currentContentForm = document.getElementById('contentForm');
             const fields = currentContentForm.querySelectorAll('input[required], textarea[required], input[type="checkbox"][required], select[required]');
             fields.forEach(field => hideValidationError(field));
@@ -951,24 +931,21 @@
             if (modalOverlay) {
                 const actualModal = modalOverlay.querySelector('.modal');
 
-                // Reset formDataWizard when opening the form for a fresh start
                 for (const key in formDataWizard) {
                     delete formDataWizard[key];
                 }
                 currentStepWizard = initialStep;
                 updateWizardSteps();
 
+                // Ensure it's displayed first, then fade in
                 modalOverlay.style.display = 'flex';
-                if (actualModal) {
-                    actualModal.style.display = 'block';
-                }
-
-                setTimeout(() => {
-                    modalOverlay.style.opacity = '1';
+                // Wait for display change to render, then apply opacity and animation
+                requestAnimationFrame(() => {
+                    modalOverlay.classList.add('show');
                     if (actualModal) {
                         actualModal.style.animation = 'modalSlideIn 0.3s ease-out forwards';
                     }
-                }, 10);
+                });
             }
         }
 
@@ -976,11 +953,14 @@
             const modalOverlay = document.getElementById('completeDocumentsModal');
             const actualModal = modalOverlay.querySelector('.modal');
             if (modalOverlay && actualModal) {
+                // Ensure buttons are re-enabled if modal is closed prematurely
+                hideProcessingOnSubmitButton(); 
+
                 actualModal.style.animation = 'modalSlideOut 0.3s ease-in forwards';
-                modalOverlay.style.opacity = '0';
+                modalOverlay.classList.remove('show'); // Use class for opacity transition
 
                 setTimeout(() => {
-                    modalOverlay.style.display = 'none';
+                    modalOverlay.style.display = 'none'; // Finally hide with display:none
                     actualModal.style.animation = '';
                     const allErrorMessages = document.querySelectorAll('.error-message');
                     allErrorMessages.forEach(msg => {
@@ -990,13 +970,11 @@
                             parentGroup.classList.remove('error');
                         }
                     });
-                    // Destroy Select2 instances when closing the modal
                     $('.select2-multiple').select2('destroy');
-                    // Clear saved data when closing the form
                     for (const key in formDataWizard) {
                         delete formDataWizard[key];
                     }
-                }, 300);
+                }, 300); // Match CSS transition duration
             }
         }
 
@@ -1006,16 +984,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('completeDocumentsModal');
             if (modal) {
-                modal.style.display = 'none';
-                modal.style.opacity = '0';
+                modal.style.display = 'none'; // Initially hidden
+                modal.classList.remove('show'); // Ensure no initial opacity
             }
         });
 
         // --- Select2 Specific Functions ---
 
         function initializeSelect2() {
-            // Initialize all select2 multiple fields
-            // Pass initial data from formDataWizard if available
             const initialKorban = formDataWizard['id_korban[]'] || [];
             const initialPelaku = formDataWizard['id_pelaku[]'] || [];
             const initialSaksi = formDataWizard['id_saksi[]'] || [];
@@ -1027,21 +1003,16 @@
                 dropdownParent: $('#completeDocumentsModal')
             });
 
-            // Attach event listeners for selection changes
             $('#id_korban, #id_pelaku, #id_saksi').on('change', function() {
-                // Re-run the option update only after Select2 has registered the change
                 updateSelect2Options();
-                validateField(this); // Validate the changed field
-                saveFormDataFromCurrentStep(); // Save data after a Select2 change
+                validateField(this); 
+                saveFormDataFromCurrentStep(); 
             });
 
-            // Call once to set initial options and pre-select based on saved data
-            // This needs to happen AFTER Select2 is initialized
             updateSelect2Options(initialKorban, initialPelaku, initialSaksi);
         }
 
         function updateSelect2Options(initialKorban = [], initialPelaku = [], initialSaksi = []) {
-            // Get currently selected values from Select2s, or use initial values if provided (on load)
             const selectedKorban = initialKorban.length > 0 ? initialKorban : ($('#id_korban').val() || []);
             const selectedPelaku = initialPelaku.length > 0 ? initialPelaku : ($('#id_pelaku').val() || []);
             const selectedSaksi = initialSaksi.length > 0 ? initialSaksi : ($('#id_saksi').val() || []);
@@ -1056,7 +1027,6 @@
                     return !allSelectedIds.has(student.id) || currentSelectedValues.includes(student.id.toString());
                 });
 
-                // Destroy and re-initialize to force update of options
                 $(fieldId).select2('destroy');
                 $(fieldId).empty().select2({
                     data: availableOptions,
@@ -1065,7 +1035,6 @@
                     width: '100%',
                     dropdownParent: $('#completeDocumentsModal')
                 });
-                // Set the previously selected values
                 $(fieldId).val(currentSelectedValues).trigger('change.select2');
             };
 
@@ -1076,14 +1045,16 @@
 
 
         async function submitReportToLaravel() {
-            const reporterId = $("#reporter_id").val(); // **Ganti dengan ID reporter yang sebenarnya (dari sesi login/konteks aplikasi Anda)**
+            const reporterId = $("#reporter_id").val(); 
+
+            showProcessingOnSubmitButton(); // Show loading directly on the submit button
 
             const formData = {
                 reporter_id: reporterId,
                 report_date: formDataWizard['tanggal'],
                 location: formDataWizard['lokasi'],
                 description: formDataWizard['info_tambahan'],
-                notes_by_student: formDataWizard['tindakan'], // Make sure this matches the 'name' attribute
+                notes_by_student: formDataWizard['tindakan'], 
                 victims: formDataWizard['id_korban[]'],
                 perpetrators: formDataWizard['id_pelaku[]'],
                 witnesses: formDataWizard['id_saksi[]']
@@ -1104,26 +1075,72 @@
                 if (!response.ok) {
                     const errorData = await response.json();
                     console.error('Error submitting report:', errorData);
-                    alert('Gagal mengirim laporan: ' + (errorData.message || 'Terjadi kesalahan.'));
-                    return;
+                    if (typeof trackReportModule !== 'undefined' && typeof trackReportModule.showErrorMessage === 'function') {
+                        trackReportModule.showErrorMessage('Gagal mengirim laporan: ' + (errorData.message || 'Terjadi kesalahan.'));
+                    } else {
+                        alert('Gagal mengirim laporan: ' + (errorData.message || 'Terjadi kesalahan.'));
+                    }
+                    return; 
                 }
 
                 const result = await response.json();
                 console.log('Report submitted successfully:', result);
 
                 if (typeof trackReportModule !== 'undefined' && typeof trackReportModule.showSuccessMessage === 'function') {
-                    trackReportModule.showSuccessMessage();
+                    trackReportModule.showSuccessMessage('Laporan berhasil dikirim! Terima kasih sudah melengkapi laporan Anda.'); 
                 } else {
-                    alert('Laporan berhasil dikirim! Terima kasih atas laporan Anda.');
+                    alert('Laporan berhasil dikirim! Terima kasih sudah melengkapi laporan Anda.');
                 }
-                closeCompleteDocumentsForm();
+                
+                // Delay closing the form slightly to allow success message to be seen or animation
+                setTimeout(() => {
+                    closeCompleteDocumentsForm(); 
+                    // Reload after the modal closes completely
+                    setTimeout(() => {
+                        location.reload();
+                    }, 350); // Small delay after modal close animation
+                }, 500); 
 
             } catch (error) {
-                alert('Terjadi kesalahan jaringan atau tak terduga. Mohon coba lagi.');
+                console.error('Network or unexpected error:', error);
+                if (typeof trackReportModule !== 'undefined' && typeof trackReportModule.showErrorMessage === 'function') {
+                    trackReportModule.showErrorMessage('Terjadi kesalahan jaringan atau tak terduga. Mohon coba lagi.');
+                } else {
+                    alert('Terjadi kesalahan jaringan atau tak terduga. Mohon coba lagi.');
+                }
+            } finally {
+                hideProcessingOnSubmitButton(); // Ensure button state is reverted on success/failure
             }
         }
 
-        // Function to simulate fetching student data from Laravel API
+        // NEW: Function to show loading directly on the submit button
+        function showProcessingOnSubmitButton() {
+            const nextBtn = document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const closeBtn = document.querySelector('.close-btn');
+
+            // Save original text and disable button
+            nextBtn.dataset.originalText = nextBtn.textContent; // Store original text
+            nextBtn.disabled = true;
+            nextBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...`; // Add spinner and text
+
+            prevBtn.disabled = true;
+            closeBtn.disabled = true; // Disable close button
+        }
+
+        // NEW: Function to hide loading directly on the submit button
+        function hideProcessingOnSubmitButton() {
+            const nextBtn = document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const closeBtn = document.querySelector('.close-btn');
+
+            // Restore original text and enable button
+            nextBtn.disabled = false;
+            nextBtn.innerHTML = nextBtn.dataset.originalText; // Restore original text
+
+            prevBtn.disabled = false;
+            closeBtn.disabled = false; // Enable close button
+        }
 
     </script>
 @endpush

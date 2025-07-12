@@ -5,7 +5,7 @@
 <main id="content" class="content">
     <header>
         <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-        <h1 class="header-title">Kelola Data Kasus</h1>
+        <h1 class="header-title">Kelola Proses Kasus</h1>
         <div class="user-info">
             <div class="profile-dropdown">
                 <button class="profile-btn" onclick="toggleProfile()">
@@ -33,7 +33,7 @@
                     </a>
                     <hr class="profile-divider">
                     <a href="{{ route('logout') }}" class="profile-item logout-item"
-                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i class="fa-solid fa-sign-out-alt"></i>
                         <span>Keluar</span>
                     </a>
@@ -48,7 +48,7 @@
     <input type="hidden" id="permissionData" value=''>
     <div class="management-section">
         <div class="section-header">
-            <h2>Data Kasus</h2>
+            <h2>Data Proses Kasus</h2>
             <div class="header-actions">
                 <div class="filter-container">
                 </div>
@@ -113,7 +113,7 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    @foreach($reporters as $key => $value)
+                    @forelse($reporters as $key => $value)
                         <tr class="table-row" data-index="{{ $key }}">
                             <td>{{ $key + 1 }}</td>
                             <td>{{ $value->code }}</td>
@@ -128,7 +128,11 @@
                                 </button>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-4">Belum ada laporan yang tersedia.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -172,99 +176,132 @@
     </script>
 @endif
 <script>
-    // Table functionality variables
     let currentPage = 1;
-    let entriesPerPage = 10; // Default entries per page
-    let allRows = []; // Stores all initial table rows
-    let filteredRows = []; // Stores rows after search/filter
-    let sortDirection = {}; // Stores sorting direction for each column
+    let entriesPerPage = 10;
+    let allRows = [];
+    let filteredRows = [];
+    let sortDirection = {};
 
     $(document).ready(function(){
-        // Initialize table
         initializeTable();
 
-      
-
-        
-
-        // Button event handlers for Accept/Reject (unchanged from your original)
-        $("#btnAccept").on("click", function(){
-           if(confirm('Apakah Anda yakin akan menyelesaikan laporan ini?')){
-                let id = $(this).attr('data-id');
-                $("#form-proses").submit();
-           }
+        // Menggunakan delegasi event untuk tombol "Tolak Laporan" dari modal utama
+        $("#btnReject").on("click", function(){
+            $('#modal-reject-reason').modal('show'); // Tampilkan modal alasan penolakan
+            const reportId = $(this).attr('data-id');
+            $('#confirmRejectBtn').attr('data-id', reportId); // Set ID ke tombol konfirmasi tolak
         });
 
-        $("#btnReject").on("click", function(){
-           if(confirm('Apakah Anda yakin akan me-reject data ini?')){
-                let id = $(this).attr('data-id');
-                $.ajax({
-                    url: '{{route("laporan-masuk.reject")}}',
-                    method: 'POST',
-                    data: {
-                        "id" : id,
-                        "_token" : "{{csrf_token()}}"
-                    },
-                    dataType: 'json',
-                    beforeSend: function() {
-                        $("#btnReject").prop('disabled', true).text('Processing...');
-                    },
-                    success: function(response) {
-                        if (response.status) {
-                            showAlert('Data berhasil di-reject!', 'success');
-                            location.reload(); // Reload to reflect changes
-                        } else {
-                            showAlert('Gagal me-reject data: ' + (response.message || 'Terjadi kesalahan.'), 'error');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("AJAX Error:", status, error, xhr.responseText);
-                        showAlert('Terjadi kesalahan saat menghubungi server. Mohon coba lagi.', 'error');
-                    },
-                    complete: function() {
-                        $("#btnReject").prop('disabled', false).html('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Tolak Laporan');
+        // Event listener untuk pilihan alasan penolakan
+        $('#rejectReasonSelect').on('change', function() {
+            if ($(this).val() === 'Lainnya') {
+                $('#otherReasonContainer').show();
+            } else {
+                $('#otherReasonContainer').hide();
+                $('#otherReasonText').val(''); // Kosongkan jika bukan 'Lainnya'
+            }
+            $('#rejectReasonError').hide(); // Sembunyikan error saat ada perubahan
+        });
+
+        // Event listener untuk tombol "Tolak Laporan" di modal alasan penolakan
+        $('#confirmRejectBtn').on('click', function() {
+            let rejectReason = $('#rejectReasonSelect').val();
+            let otherReason = $('#otherReasonText').val().trim();
+            const reportId = $(this).attr('data-id');
+
+            if (rejectReason === '') {
+                $('#rejectReasonError').show();
+                return;
+            }
+
+            if (rejectReason === 'Lainnya' && otherReason === '') {
+                $('#rejectReasonError').text('Mohon masukkan alasan penolakan lainnya.').show();
+                return;
+            }
+
+            let finalReason = rejectReason === 'Lainnya' ? otherReason : rejectReason;
+
+            $.ajax({
+                url: '{{route("laporan-masuk.reject")}}', // Pastikan rute ini benar
+                method: 'POST',
+                data: {
+                    "id": reportId,
+                    "reason": finalReason, // Kirim alasan penolakan
+                    "_token": "{{csrf_token()}}"
+                },
+                dataType: 'json',
+                beforeSend: function() {
+                    $("#confirmRejectBtn").prop('disabled', true).text('Processing...');
+                },
+                success: function(response) {
+                    if (response.status) {
+                        showAlert('Laporan berhasil ditolak!', 'success');
+                        $('#modal-reject-reason').modal('hide'); // Tutup modal penolakan
+                        $('#modal-detail').modal('hide'); // Tutup modal detail
+                        location.reload();
+                    } else {
+                        showAlert('Gagal menolak laporan: ' + (response.message || 'Terjadi kesalahan.'), 'error');
                     }
-                });
-           }
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error:", status, error, xhr.responseText);
+                    showAlert('Terjadi kesalahan saat menghubungi server. Mohon coba lagi.', 'error');
+                },
+                complete: function() {
+                    $("#confirmRejectBtn").prop('disabled', false).html('Tolak Laporan');
+                }
+            });
+        });
+
+        // Event listener untuk tombol "Selesaikan Laporan" dari modal utama
+        $("#btnAccept").on("click", function(){
+            const operationId = $('#operation_id').val();
+            const description = $('#description').val();
+            const fileInput = $('#file')[0]; // Ambil elemen input file
+
+            if (!operationId) {
+                showAlert('Mohon pilih tindakan untuk menyelesaikan laporan.', 'error');
+                return;
+            }
+            if (!description.trim()) {
+                showAlert('Mohon masukkan alasan/komentar untuk menyelesaikan laporan.', 'error');
+                return;
+            }
+
+            // Tampilkan modal konfirmasi sebelum submit form
+            $('#confirmationModal').modal('show');
+            // Atur fungsi untuk tombol konfirmasi di modal konfirmasi
+            $('#confirmActionButton').off('click').on('click', function() {
+                $('#form-proses').submit(); // Submit form jika dikonfirmasi
+            });
         });
 
         $("#operation_id").on("change", function(){
-            if($(this).val() != ""){
-                $("#btnAccept").attr('disabled', false)
-            }else{
-                $("#btnAccept").attr('disabled', true)
-
+            if($(this).val() !== ""){
+                $("#btnAccept").attr('disabled', false);
+            } else {
+                $("#btnAccept").attr('disabled', true);
             }
         });
     });
 
-    /**
-     * Initializes the table by capturing all rows and updating the display.
-     */
     function initializeTable() {
         allRows = Array.from(document.querySelectorAll('.table-row'));
-        filteredRows = [...allRows]; // Initially, all rows are filtered rows
+        filteredRows = [...allRows];
         updateTable();
     }
 
-    /**
-     * Changes the number of entries displayed per page.
-     * @param {string} value - The new number of entries per page.
-     */
     function changeEntriesPerPage(value) {
         entriesPerPage = parseInt(value);
-        currentPage = 1; // Reset to the first page when entries per page changes
+        currentPage = 1;
         updateTable();
     }
 
-    /**
-     * Filters table rows based on the search input.
-     */
     function searchTable() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
         if (searchTerm === '') {
-            filteredRows = [...allRows]; // If search is empty, show all original rows
+            filteredRows = [...allRows];
         } else {
             filteredRows = allRows.filter(row => {
                 const cells = row.querySelectorAll('td');
@@ -274,34 +311,26 @@
             });
         }
 
-        currentPage = 1; // Reset to the first page after a search
+        currentPage = 1;
         updateTable();
     }
 
-    /**
-     * Sorts the table by the specified column index.
-     * @param {number} columnIndex - The index of the column to sort.
-     */
     function sortTable(columnIndex) {
-        // Toggle sort direction
         const isAscending = sortDirection[columnIndex] !== 'asc';
         sortDirection[columnIndex] = isAscending ? 'asc' : 'desc';
 
-        // Update sort icons for all headers
         document.querySelectorAll('.sort-icon').forEach((icon, index) => {
             if (index === columnIndex) {
                 icon.className = `fa-solid fa-sort-${isAscending ? 'up' : 'down'} sort-icon active`;
             } else {
-                icon.className = 'fa-solid fa-sort sort-icon'; // Reset other icons
+                icon.className = 'fa-solid fa-sort sort-icon';
             }
         });
 
-        // Sort the filtered rows
         filteredRows.sort((a, b) => {
             const aValue = a.cells[columnIndex].textContent.trim();
             const bValue = b.cells[columnIndex].textContent.trim();
 
-            // Handle numerical sorting if applicable
             const aNum = parseFloat(aValue);
             const bNum = parseFloat(bValue);
 
@@ -309,20 +338,15 @@
                 return isAscending ? aNum - bNum : bNum - aNum;
             }
 
-            // Default to string comparison
             return isAscending
                 ? aValue.localeCompare(bValue)
                 : bValue.localeCompare(aValue);
         });
 
-        currentPage = 1; // Reset to first page after sorting
+        currentPage = 1;
         updateTable();
     }
 
-    /**
-     * Changes the current page by a given direction (+1 for next, -1 for previous).
-     * @param {number} direction - The direction to change the page.
-     */
     function changePage(direction) {
         const totalPages = Math.ceil(filteredRows.length / entriesPerPage);
 
@@ -335,67 +359,48 @@
         updateTable();
     }
 
-    /**
-     * Navigates to a specific page number.
-     * @param {number} page - The page number to navigate to.
-     */
     function goToPage(page) {
         currentPage = page;
         updateTable();
     }
 
-    /**
-     * Updates the table display based on current page, entries per page, and filters.
-     */
     function updateTable() {
         const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
         const totalPages = Math.ceil(filteredRows.length / entriesPerPage);
         const startIndex = (currentPage - 1) * entriesPerPage;
         const endIndex = startIndex + entriesPerPage;
 
-        // Hide all original rows first
-        allRows.forEach(row => {
-            row.style.display = 'none';
-        });
-
-        // Show only the filtered rows for the current page
-        for (let i = 0; i < filteredRows.length; i++) {
-            if (i >= startIndex && i < endIndex) {
-                filteredRows[i].style.display = '';
-            } else {
-                filteredRows[i].style.display = 'none';
+        if (filteredRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Belum ada laporan yang tersedia.</td></tr>';
+        } else {
+            for (let i = startIndex; i < endIndex && i < filteredRows.length; i++) {
+                tbody.appendChild(filteredRows[i]);
             }
         }
 
-        // Update pagination information text
         const showing = filteredRows.length === 0 ? 0 : startIndex + 1;
         const to = Math.min(endIndex, filteredRows.length);
         document.getElementById('paginationInfo').textContent =
             `Menampilkan ${showing} sampai ${to} dari ${filteredRows.length} data`;
 
-        // Update pagination buttons and page numbers
         updatePagination(totalPages);
     }
 
-    /**
-     * Updates the pagination controls (buttons and page numbers).
-     * @param {number} totalPages - The total number of pages.
-     */
     function updatePagination(totalPages) {
         const paginationNumbers = document.getElementById('paginationNumbers');
         if (!paginationNumbers) return;
 
         let numbersHtml = '';
-        const maxPageNumbersToShow = 5; // How many page numbers to show at once
+        const maxPageNumbersToShow = 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxPageNumbersToShow / 2));
         let endPage = Math.min(totalPages, startPage + maxPageNumbersToShow - 1);
 
-        // Adjust startPage if we are at the end of total pages
         if (endPage - startPage + 1 < maxPageNumbersToShow) {
             startPage = Math.max(1, endPage - maxPageNumbersToShow + 1);
         }
 
-        // Add first page and ellipsis if needed
         if (startPage > 1) {
             numbersHtml += `<button class="page-number" onclick="goToPage(1)">1</button>`;
             if (startPage > 2) {
@@ -403,7 +408,6 @@
             }
         }
 
-        // Add page numbers
         for (let i = startPage; i <= endPage; i++) {
             numbersHtml += `
                 <button class="page-number ${i === currentPage ? 'active' : ''}"
@@ -411,7 +415,6 @@
             `;
         }
 
-        // Add last page and ellipsis if needed
         if (endPage < totalPages) {
             if (endPage < totalPages - 1) {
                 numbersHtml += `<span class="pagination-ellipsis">...</span>`;
@@ -421,7 +424,6 @@
 
         paginationNumbers.innerHTML = numbersHtml;
 
-        // Update button states (Previous/Next)
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         if (prevBtn) prevBtn.disabled = currentPage === 1;
@@ -434,42 +436,45 @@
         const toast = new bootstrap.Toast(toastLiveExample);
 
         toastMessage.textContent = message;
-        toastLiveExample.classList.remove('bg-success', 'bg-danger'); // Clear previous types
+        toastLiveExample.classList.remove('bg-success', 'bg-danger');
         if (type === 'success') {
             toastLiveExample.classList.add('bg-success');
         } else if (type === 'error') {
             toastLiveExample.classList.add('bg-danger');
         } else {
-            // Default to a neutral color if 'info' or other type
-            toastLiveExample.classList.add('bg-primary'); // You might want to define bg-info or bg-primary in your CSS
+            toastLiveExample.classList.add('bg-primary');
         }
         toast.show();
     }
 
-    /**
-     * Populates and displays the detail modal for a reporter.
-     * @param {HTMLElement} element - The button element that triggered the view.
-     */
     function viewDetail(element) {
-        let reporter = $(element).data('report'); // Use .data() for data attributes
-        let url = $(element).data('url'); // Use .data() for data attributes
+        let reporter = $(element).data('report');
+        let url = $(element).data('url');
         let reporter_detail = reporter.reporter_detail;
+
+        // Reset form input
+        $("#operation_id").val('');
+        $("#description").val('');
+        $("#file").val('');
+        $("#btnAccept").attr('disabled', true); // Disable accept button by default
+
+        // Fill in Reporter Information
         $("#detailTanggal").text(reporter.formatted_created_date);
         $("#detailNIS").text(reporter.student.nis);
         $("#detailEmail").text(reporter.student.email);
         $("#detailUraian").text(reporter.description);
         $("#form-proses").attr('action', url);
-        // Populate keywords
+
+        // Fill in Keywords
         const keywordsContainer = $("#detailKataKunci");
+        keywordsContainer.empty(); // Clear previous keywords
         if (reporter.crime && reporter.crime.length > 0) {
             let html = "";
             reporter.crime.forEach(function (item) {
-                // You'll need to map your 'item.name' to the appropriate class (severity-high, severity-medium, location, category, time)
-                // For now, I'll use a generic class or you can add logic based on `item.name` or another property in your `crime` object.
                 let keywordClass = '';
                 let iconSvg = '';
 
-                // Example of adding logic for keyword classes and icons based on keyword name
+                // Assign keyword class and icon based on content
                 if (item.name.toLowerCase().includes('bullying') || item.name.toLowerCase().includes('intimidasi')) {
                     keywordClass = 'severity-high';
                     iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -486,10 +491,9 @@
                     keywordClass = 'time';
                     iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                 } else {
-                    keywordClass = 'category'; // Default class if no match
-                    iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; // Generic tag icon
+                    keywordClass = 'category'; // Default if no specific keyword matches
+                    iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                 }
-
 
                 html += `<span class="keyword-tag ${keywordClass}">${iconSvg} ${item.name}</span>`;
             });
@@ -498,17 +502,15 @@
             keywordsContainer.html('<span class="text-muted">Tidak ada kata kunci</span>');
         }
 
-        // Populate evidence files (images/videos)
-        const buktiGrid = $("#detailBukti .bukti-grid"); // Target the .bukti-grid inside #detailBukti
-        buktiGrid.empty(); // Clear previous content
+        // Fill in Supporting Evidence
+        const buktiGrid = $("#detailBukti .bukti-grid");
+        buktiGrid.empty();
 
         if (reporter.reporter_file && reporter.reporter_file.length > 0) {
             let htmlMedia = "";
             reporter.reporter_file.forEach(function (file) {
-                const fileName = file.file.split('/').pop(); // Get file name from URL
-                // In a real application, you might want to fetch file size dynamically or store it in the database
-                // For now, a placeholder size is used.
-                const fileSize = 'N/A'; // Or a default like 'Unknown size'
+                const fileName = file.file.split('/').pop();
+                const fileSize = 'N/A'; // You might need an actual file size here
 
                 if (isImage(file.file)) {
                     htmlMedia += `
@@ -547,57 +549,79 @@
             `);
         }
 
+        // Fill in Time and Location of Incident, Additional Information, Expected Actions
         if(reporter_detail){
             $("#detailTanggalKejadian").text(reporter_detail.formatted_report_date);
             $("#detailLokasiKejadian").text(reporter_detail.location);
-            $("#detailInfoTambahan").text(reporter_detail.description);
-            $("#detailTindakan").text(reporter_detail.notes_by_student);
+            // Ensure these are filled if they exist, otherwise use placeholders
+            $("#detailInfoTambahan").html(reporter_detail.description_additional || '<div class="info-placeholder"><p>Tidak ada informasi tambahan</p></div>');
+            $("#detailTindakan").html(reporter_detail.notes_by_student || '<div class="info-placeholder"><p>Tidak ada tindakan yang diharapkan</p></div>');
 
+            // Fill in Victims
             let victims = reporter_detail.victims;
             let htmlVictims = "";
-            if(victims.length > 0){
+            if(victims && victims.length > 0){
                 victims.forEach(row => {
-                htmlVictims += ` <div class="detail-item">
-                        <div class="detail-label">Nama Korban</div>
-                        <div class="detail-value" id="detailNamaKorban">${row.name+' '+row.classroom}</div>
-                    </div>`;
+                    htmlVictims += `
+                        <div class="detail-item">
+                            <div class="detail-label">Nama Korban</div>
+                            <div class="detail-value" id="detailNamaKorban">${row.name + (row.classroom ? ' (' + row.classroom + ')' : '')}</div>
+                        </div>`;
                 });
+            } else {
+                htmlVictims = '<div class="info-placeholder"><p>Tidak ada korban yang terdaftar</p></div>';
             }
+            $("#detail-korban").html(htmlVictims);
 
+            // Fill in Perpetrators
             let perpetrators = reporter_detail.perpetrators;
             let htmlPerpetrators = "";
-            if(perpetrators.length > 0){
+            if(perpetrators && perpetrators.length > 0){
                 perpetrators.forEach(row => {
-                htmlPerpetrators += ` <div class="detail-item">
-                        <div class="detail-label">Nama Pelaku</div>
-                        <div class="detail-value" id="detailNamaPelaku">${row.name+' '+row.classroom}</div>
-                    </div>`;
+                    htmlPerpetrators += `
+                        <div class="detail-item">
+                            <div class="detail-label">Nama Pelaku</div>
+                            <div class="detail-value" id="detailNamaPelaku">${row.name + (row.classroom ? ' (' + row.classroom + ')' : '')}</div>
+                        </div>`;
                 });
+            } else {
+                htmlPerpetrators = '<div class="info-placeholder"><p>Tidak ada pelaku yang terdaftar</p></div>';
             }
+            $("#detail-pelaku").html(htmlPerpetrators);
 
+            // Fill in Witnesses
             let witnesses = reporter_detail.witnesses;
             let htmlWitnesses = "";
-            if(witnesses.length > 0){
+            if(witnesses && witnesses.length > 0){
                 witnesses.forEach(row => {
-                htmlWitnesses += ` <div class="detail-item">
-                        <div class="detail-label">Nama Sanksi</div>
-                        <div class="detail-value" id="detailNamaSaksi">${row.name+' '+row.classroom}</div>
-                    </div>`;
+                    htmlWitnesses += `
+                        <div class="detail-item">
+                            <div class="detail-label">Nama Saksi</div>
+                            <div class="detail-value" id="detailNamaSaksi">${row.name + (row.classroom ? ' (' + row.classroom + ')' : '')}</div>
+                        </div>`;
                 });
+            } else {
+                htmlWitnesses = '<div class="info-placeholder"><p>Tidak ada saksi yang terdaftar</p></div>';
             }
-
-            $("#detail-korban").html(htmlVictims);
-            $("#detail-pelaku").html(htmlPerpetrators);
             $("#detail-saksi").html(htmlWitnesses);
+
+        } else {
+            // Clear or set placeholders if reporter_detail is null
+            $("#detailTanggalKejadian").text('N/A');
+            $("#detailLokasiKejadian").text('N/A');
+            $("#detailInfoTambahan").html('<div class="info-placeholder"><p>Tidak ada informasi tambahan</p></div>');
+            $("#detailTindakan").html('<div class="info-placeholder"><p>Tidak ada tindakan yang diharapkan</p></div>');
+            $("#detail-korban").html('<div class="info-placeholder"><p>Tidak ada korban yang terdaftar</p></div>');
+            $("#detail-pelaku").html('<div class="info-placeholder"><p>Tidak ada pelaku yang terdaftar</p></div>');
+            $("#detail-saksi").html('<div class="info-placeholder"><p>Tidak ada saksi yang terdaftar</p></div>');
         }
 
-        // Update status indicator in the footer
         $("#btnReject").attr('data-id', reporter.id);
         $("#btnAccept").attr('data-id', reporter.id);
-        $("#modal-detail").modal('show'); // Assuming you have a Bootstrap modal or similar
-    }
 
-    // --- Utility Functions (unchanged from your original) ---
+        // Show the main detail modal
+        $('#modal-detail').modal('show');
+    }
 
     function toggleSidebar() {
         document.getElementById("sidebar").classList.toggle("active");
@@ -626,7 +650,7 @@
         const modalImage = document.getElementById('modalImage');
         if (imageModal && modalImage) {
             modalImage.src = imageSrc;
-            imageModal.style.display = 'flex'; // Use 'flex' for centering
+            imageModal.style.display = 'flex';
         }
     }
 
@@ -634,11 +658,10 @@
         const imageModal = document.getElementById('imageModal');
         if (imageModal) {
             imageModal.style.display = 'none';
-            document.getElementById('modalImage').src = ''; // Clear image src
+            document.getElementById('modalImage').src = '';
         }
     }
 
-    // Close profile menu when clicking outside
     document.addEventListener('click', function(event) {
         const profileDropdown = document.querySelector('.profile-dropdown');
         const profileMenu = document.getElementById('profileMenu');
@@ -650,9 +673,7 @@
 </script>
 @endpush
 <style>
-
-
-
+/* ... (Bagian CSS Anda yang sudah ada tetap sama) ... */
 .entries-selector {
     display: flex;
     align-items: center;

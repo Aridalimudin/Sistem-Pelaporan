@@ -21,8 +21,9 @@ class TrackingController extends Controller
         $proses = null;
         $done = null;
         $reject = null;
-
-        $reporter = Reporter::with(['reporterFile','crime','student','reporterDetail.victims','reporterDetail.perpetrators','reporterDetail.witnesses'])->where('code', $request->code)->first();
+        $previousStatus = null;
+        $rejectFound = false;
+        $reporter = Reporter::with(['reporterFile','crime','student','reporterDetail.victims','reporterDetail.perpetrators','reporterDetail.witnesses','operation'])->where('code', $request->code)->first();
 
         if($reporter){
             if ($reporter->crime) {
@@ -37,6 +38,19 @@ class TrackingController extends Controller
             $proses = ReporterHistoryTracking::where('reporter_id', $reporter->id)->where('status', 2)->first();
             $done = ReporterHistoryTracking::where('reporter_id', $reporter->id)->where('status', 3)->first();
             $reject = ReporterHistoryTracking::where('reporter_id', $reporter->id)->where('status', 4)->first();
+
+           
+            $histories =  ReporterHistoryTracking::where('reporter_id', $reporter->id)->get();
+            $histories->reverse()->each(function ($history, $key) use (&$previousStatus, &$rejectFound) {
+                if ($history->description == 'Reject') {
+                    $rejectFound = true;
+                } elseif ($rejectFound) {
+                    if (in_array($history['description'], ['Terkirim','Approve','Proses'])) {
+                        $previousStatus = $history;
+                        return false;
+                    }
+                }
+            });
         }
 
         $victimNames = $reporter?->reporterDetail?->victims->map(function ($victim) {
@@ -61,6 +75,6 @@ class TrackingController extends Controller
             return redirect()->route('track')->withErrors(['code_not_found' => 'Kode laporan tidak ditemukan.']);
         }
 
-        return view('track_laporan.track', compact('reporter', 'categories','sendReporter','students','terkirim','verifikasi','proses','done','reject','victimNames','perpetratorsNames','witnesNames'));
+        return view('track_laporan.track', compact('reporter', 'categories','sendReporter','students','terkirim','verifikasi','proses','done','reject','victimNames','perpetratorsNames','witnesNames','previousStatus'));
     }
 }

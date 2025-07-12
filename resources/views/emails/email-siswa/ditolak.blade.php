@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Template Email Laporan - MTS AR-RIYADL</title>
+    <link rel="stylesheet" href="{{asset('css/emails_siswa.css')}}">
 </head>
 <body>
-<link rel="stylesheet" href="{{asset('css/emails_siswa.css')}}">
     <!-- Template 6: Laporan Ditolak -->
     <div class="email-container">
         <div class="email-header ditolak">
@@ -18,17 +18,17 @@
         <div class="email-body">
             <div class="status-badge ditolak">Status: Ditolak</div>
             
-            <h3>Assalamu'alaikum, Ananda yang Terhormat</h3>
+            <h3>Assalamu'alaikum, Ananda {{$report->student?->name}} yang Terhormat</h3>
             <p>Terima kasih atas laporan yang telah Anda kirimkan. Setelah dilakukan verifikasi, kami menyampaikan bahwa laporan ini tidak dapat diproses lebih lanjut dengan alasan tertentu.</p>
             
             <div class="ticket-code">
-                Kode Laporan: #RPT-2025-0001
+                Kode Laporan: {{$report->code}}
             </div>
             
             <div class="info-box">
-                <strong>📅 Tanggal Ditolak:</strong> 3 Juni 2025, 10:00 WIB<br>
-                <strong>📋 Jenis Laporan:</strong> [Kategori Laporan]<br>
-                <strong>👤 Reviewer:</strong> Tim Admin Verifikasi<br>
+                <strong>📅 Tanggal Ditolak:</strong> {{date('d M Y')}}, {{date('H:i')}}<br>
+                <strong>📋 Jenis Laporan:</strong> {!! $report->formatted_urgency !!}<br>
+                <strong>👤 Reviewer:</strong> {{Auth::user()->name}}<br>
                 <strong>❌ Status Akhir:</strong> Ditolak untuk Diproses
             </div>
             
@@ -53,17 +53,6 @@
                     <li><strong>Lengkapi Informasi:</strong> Jika memungkinkan, kumpulkan informasi dan bukti yang lebih lengkap</li>
                     <li><strong>Konsultasi Langsung:</strong> Hubungi guru BK atau wali kelas untuk berdiskusi mengenai masalah ini</li>
                     <li><strong>Laporan Ulang:</strong> Anda dapat mengirim laporan baru dengan informasi yang lebih lengkap</li>
-                    <li><strong>Jalur Alternatif:</strong> Pertimbangkan untuk melaporkan melalui jalur lain yang lebih sesuai</li>
-                </ul>
-            </div>
-            
-            <div class="next-steps">
-                <h4>📋 Langkah yang Dapat Dilakukan:</h4>
-                <ul>
-                    <li>Hubungi admin untuk klarifikasi lebih lanjut</li>
-                    <li>Konsultasi dengan guru BK atau wali kelas</li>
-                    <li>Siapkan informasi tambahan jika ingin melaporkan ulang</li>
-                    <li>Gunakan jalur komunikasi langsung untuk masalah mendesak</li>
                 </ul>
             </div>
             

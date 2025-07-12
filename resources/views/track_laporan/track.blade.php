@@ -86,15 +86,16 @@
                                 <div class="timeline-steps {{ $reporter->status == 4 ? 'rejected-timeline' : '' }}">
                                     @php
                                         $steps = [
-                                            ['title' => 'Terkirim', 'icon' => 'fas fa-paper-plane'],
-                                            ['title' => 'Diverifikasi', 'icon' => 'fas fa-check-circle'],
-                                            ['title' => 'Diproses', 'icon' => 'fas fa-cogs'],
-                                            ['title' => 'Selesai', 'icon' => 'fas fa-flag-checkered'],
-                                            ['title' => 'Ditolak', 'icon' => 'fas fa-times-circle'],
+                                            ['title' => 'Terkirim', 'icon' => 'fas fa-paper-plane', 'description' => 'Terkirim'],
+                                            ['title' => 'Diverifikasi', 'icon' => 'fas fa-check-circle', 'description' => 'Approve'],
+                                            ['title' => 'Diproses', 'icon' => 'fas fa-cogs', 'description' => 'Proses'],
+                                            ['title' => 'Selesai', 'icon' => 'fas fa-flag-checkered', 'description' => 'Selesai'],
+                                            ['title' => 'Ditolak', 'icon' => 'fas fa-times-circle', 'description' => 'Reject'],
                                         ];
                                     @endphp
                                     @foreach($steps as $index => $step)
-                                        <div class="timeline-step" data-step="{{ $index }}">
+                                       
+                                        <div class="timeline-step" data-reject="{{ $step['description'] == $previousStatus?->description ?  $index : 0 }}" data-step="{{$index}}">
                                             <div class="step-circle">
                                                 <i class="{{ $step['icon'] }}"></i>
                                             </div>
@@ -195,15 +196,15 @@
                                             <table class="table table-borderless">
                                                 <tr>
                                                     <td width="40%"><strong>NIS Pelapor :</strong></td>
-                                                    <td>{{$reporter->student?->nis}}</td>
+                                                    <td>{{$reporter->student?->nis ?? 'Data tidak tersedia'}}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Email :</strong></td>
-                                                    <td>{{$reporter->student?->email}}</td>
+                                                    <td>{{$reporter->student?->email ?? 'Data tidak tersedia'}}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Nama :</strong></td>
-                                                    <td>{{$reporter->student?->name}}</td>
+                                                    <td>{{$reporter->student?->name ?? 'Data tidak tersedia'}}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Tanggal Lapor : </strong></td>
@@ -228,7 +229,7 @@
                                                             @php
                                                                 $categoriesArray = isset($categories) ? explode(',', $categories) : [];
                                                             @endphp
-                                                            @foreach($categoriesArray as $category)
+                                                            @forelse($categoriesArray as $category)
                                                                 @php
                                                                     $trimmed = trim($category);
                                                                     $iconClass = 'icon-default';
@@ -236,8 +237,8 @@
                                                                         $iconClass = 'icon-verbal';
                                                                     } elseif (stripos($trimmed, 'fisik') !== false) {
                                                                         $iconClass = 'icon-fisik';
-                                                                    } elseif (stripos(str_replace('seksual', '', $trimmed), 'pelecehan') !== false) { // Menangani 'pelecehan' tanpa 'seksual'
-                                                                        $iconClass = 'icon-seksual'; // Asumsi jika hanya 'pelecehan' tetap masuk seksual
+                                                                    } elseif (stripos(str_replace('seksual', '', $trimmed), 'pelecehan') !== false) {
+                                                                        $iconClass = 'icon-seksual';
                                                                     } elseif (stripos($trimmed, 'seksual') !== false) {
                                                                         $iconClass = 'icon-seksual';
                                                                     }
@@ -246,29 +247,31 @@
                                                                     <div class="category-icon {{ $iconClass }}"></div>
                                                                     <span class="category-text">{{ $trimmed }}</span>
                                                                 </li>
-                                                            @endforeach
+                                                            @empty
+                                                                <li class="text-muted">Tidak ada kategori yang dilaporkan.</li>
+                                                            @endforelse
                                                         </ul>
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Pelaku :</strong></td>
-                                                    <td>{{ $perpetratorsNames ?? '-' }}</td>
+                                                    <td>{{ $perpetratorsNames ?? 'Pelapor belum mengisi data.' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Korban :</strong></td>
-                                                    <td>{{ $victimNames ?? '-' }}</td>
+                                                    <td>{{ $victimNames ?? 'Pelapor belum mengisi data.' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Saksi :</strong></td>
-                                                    <td>{{ $witnesNames ?? '-' }}</td>
+                                                    <td>{{ $witnesNames ?? 'Pelapor belum mengisi data.' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Lokasi Kejadian :</strong></td>
-                                                    <td>{{ $reporter?->reporterDetail?->location ?? '-' }}</td>
+                                                    <td>{{ $reporter?->reporterDetail?->location ?? 'Pelapor belum mengisi data.' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Waktu Kejadian :</strong></td>
-                                                    <td>{{ $reporter?->reporterDetail?->formatted_report_date}}</td>
+                                                    <td>{{ $reporter?->reporterDetail?->formatted_report_date ?? 'Pelapor belum mengisi data.'}}</td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -280,7 +283,7 @@
                                         <h5 class="mb-0"><i class="fas fa-align-left me-2"></i>Uraian Kejadian</h5>
                                     </div>
                                     <div class="card-body">
-                                        <p>{{$reporter->description}}</p>
+                                        <p>{{$reporter->description ?? 'Pelapor belum mengisi uraian kejadian.'}}</p>
                                     </div>
                                 </div>
 
@@ -290,10 +293,10 @@
                                             <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informasi Tambahan</h5>
                                         </div>
                                         <div class="card-body">
-                                             @if ($reporter?->reporterDetail)
+                                            @if ($reporter?->reporterDetail?->description)
                                                 <p>{{ $reporter?->reporterDetail->description }}</p>
                                             @else
-                                                <p class="text-muted">Belum ada informasi tambahan yang dilaporkan.</p>
+                                                <p class="text-muted">Pelapor belum mengisi informasi tambahan.</p>
                                             @endif
                                         </div>
                                     </div>
@@ -305,7 +308,7 @@
                                             <h5 class="mb-0"><i class="fas fa-hands-helping me-2"></i>Tindakan yang Diharapkan</h5>
                                         </div>
                                         <div class="card-body">
-                                            @if ($reporter?->reporterDetail)
+                                            @if ($reporter?->reporterDetail?->notes_by_student)
                                                 <p>{{ $reporter?->reporterDetail->notes_by_student }}</p>
                                             @else
                                                 <p class="text-muted">Pelapor belum menentukan tindakan yang diharapkan.</p>
@@ -317,14 +320,10 @@
                                 <div class="card info-card mb-4">
                                     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                                         <h5 class="mb-0"><i class="fas fa-photo-video me-2"></i>Bukti Foto & Video</h5>
-                                        {{-- Tombol Tambah Bukti Baru --}}
-                                        {{-- <button class="btn btn-sm btn-light" onclick="trackReportModule.openUploadEvidenceModal()">
-                                            <i class="fas fa-plus me-1"></i> Tambah Bukti
-                                        </button> --}}
                                     </div>
                                     <div class="card-body">
                                         <div class="masonry-container" id="masonryContainer">
-                                            @foreach($reporter->reporterFile as $key => $value)
+                                            @forelse($reporter->reporterFile as $key => $value)
                                                 @php
                                                     $fileExtension = strtolower(pathinfo($value->file, PATHINFO_EXTENSION));
                                                     $isVideo = in_array($fileExtension, ['mp4', 'avi', 'mov', 'wmv', 'webm', 'ogg']);
@@ -347,8 +346,9 @@
                                                         </div>
                                                     @endif
                                                 </div>
-                                            @endforeach
-
+                                            @empty
+                                                <p class="text-muted">Pelapor tidak melampirkan foto atau bukti.</p>
+                                            @endforelse
                                         </div>
                                     </div>
                                 </div>
@@ -540,7 +540,7 @@
                     description: "Laporan Anda masuk dalam tahap verifikasi. Silakan lengkapi dokumen lainnya agar laporan Anda dapat segera diproses lebih lanjut oleh tim kami.",
                     icon: "fas fa-clipboard-check",
                     progress: 40,
-                    hasAction: "{{ @$reporter->status == 2 || @$reporter->status == 3 ? false : true }}",
+                    hasAction: "{{ @$reporter->status == 2 || @$reporter->status == 3 ? 'false' : 'true' }}",
                     actionText: "Lengkapi Dokumen",
                     actionType: "complete_documents",
                     date: "{{ @$verifikasi?->created_at->format('d M Y') ?? '' }}"
@@ -847,6 +847,8 @@
 
                 document.querySelectorAll('.timeline-step').forEach((step, index) => {
                     const stepData = trackingStepsData[index];
+                    const reject = step.dataset.reject;
+            
                     step.classList.remove('completed', 'active', 'current', 'pending', 'rejected');
 
                     // Always display 'Terkirim' (0) and 'Ditolak' (5) when rejected
@@ -855,7 +857,7 @@
                         step.style.display = 'flex';
                         step.style.cursor = 'pointer';
                         step.setAttribute('title', `Klik untuk melihat detail: ${stepData.title}`);
-                    } else if (index === 0) {
+                    } else if (index == reject) {
                         step.classList.add('completed');
                         step.style.display = 'flex';
                         step.style.cursor = 'pointer';
@@ -910,7 +912,7 @@
                 } else if (stepData.actionType === "give_feedback" && stepData.title === "Selesai") { // Menambahkan kondisi untuk "Selesai"
                     actionButtonContainer.innerHTML = `
                         <div class="text-center mt-3">
-                            <button type="button" class="btn btn-primary btn-lg px-4" onclick="trackReportModule.openCompletionModal()">
+                            <button type="button" class="btn btn-primary btn-lg px-4" onclick="window.completionInfoModal()">
                                 <i class="fas fa-star me-2"></i>Berikan Penilaian
                             </button>
                         </div>
@@ -918,7 +920,7 @@
                 }
             }
 
-            function showSuccessMessage(message) { // Ubah agar bisa menerima pesan
+            function showSuccessMessage(message) {
                 const successMessageDiv = document.createElement('div');
                 successMessageDiv.className = 'success-notification';
                 successMessageDiv.innerHTML = `
@@ -940,12 +942,12 @@
                     setTimeout(() => {
                         successMessageDiv.remove();
                     }, 500);
-                }, 5000); // Pesan akan hilang setelah 5 detik
+                }, 5000); 
             }
 
-            function showErrorMessage(message) { // Fungsi untuk menampilkan pesan error
+            function showErrorMessage(message) { 
                 const errorMessageDiv = document.createElement('div');
-                errorMessageDiv.className = 'error-notification'; // Anda perlu menambahkan gaya CSS untuk ini
+                errorMessageDiv.className = 'error-notification'; 
                 errorMessageDiv.innerHTML = `
                     <div class="error-content">
                         <i class="fas fa-times-circle"></i>
@@ -1220,6 +1222,14 @@
                 const categoriesArray = categoriesString.split(',');
                 categoryList.innerHTML = '';
 
+                if (categoriesArray.length === 1 && categoriesArray[0].trim() === '') {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'text-muted';
+                    listItem.textContent = 'Tidak ada kategori yang dilaporkan.';
+                    categoryList.appendChild(listItem);
+                    return;
+                }
+
                 categoriesArray.forEach(category => {
                     const trimmedCategory = category.trim();
                     const iconClass = getIconClass(trimmedCategory);
@@ -1423,6 +1433,9 @@
                 const completionModal = new bootstrap.Modal(document.getElementById('completionModal'));
                 completionModal.show();
             }
+           // function completionInfoModal() { // BARU: Fungsi untuk membuka completionModal
+             //   $("#exampleModal").modal('show')
+           // }
 
             // ===== FUNGSI UNTUK UNGGAH BUKTI TAMBAHAN =====
             function openUploadEvidenceModal() {
@@ -1495,6 +1508,12 @@
             function updateEvidenceDisplay(newFiles) {
                 const masonryContainer = document.getElementById('masonryContainer');
                 if (!masonryContainer) return;
+
+                // Clear existing "Pelapor tidak melampirkan foto atau bukti." message if present
+                const noEvidenceMessage = masonryContainer.querySelector('.text-muted');
+                if (noEvidenceMessage) {
+                    noEvidenceMessage.remove();
+                }
 
                 newFiles.forEach(file => {
                     const fileExtension = file.file.split('.').pop().toLowerCase();
@@ -1580,6 +1599,7 @@
                 showErrorMessage: showErrorMessage, // Tambahkan fungsi error
                 contactAdmin: contactAdmin,
                 openCompletionModal: openCompletionModal,
+               // completionInfoModal: completionInfoModal,
                 openUploadEvidenceModal: openUploadEvidenceModal, // Fungsi baru
                 closeUploadEvidenceModal: closeUploadEvidenceModal, // Fungsi baru
             };

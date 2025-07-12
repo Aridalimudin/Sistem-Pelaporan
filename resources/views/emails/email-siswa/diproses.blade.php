@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Template Email Laporan - MTS AR-RIYADL</title>
+    <link rel="stylesheet" href="{{asset('css/emails_siswa.css')}}">
 </head>
 <body>
-<link rel="stylesheet" href="{{asset('css/emails_siswa.css')}}">
+
     <!-- Template 4: Laporan Diproses -->
     <div class="email-container">
         <div class="email-header diproses">
@@ -18,19 +19,24 @@
         <div class="email-body">
             <div class="status-badge diproses">Status: Sedang Diproses</div>
             
-            <h3>Assalamu'alaikum, Ananda yang Terhormat</h3>
+            <h3>Assalamu'alaikum, Ananda {{$report->student?->name}} yang Terhormat</h3>
             <p>Laporan Anda sedang dalam tahap penanganan aktif. Tim terkait telah memulai proses investigasi dan tindak lanjut sesuai dengan prosedur yang berlaku.</p>
             
             <div class="ticket-code">
-                Kode Laporan: #RPT-2025-0001
+                Kode Laporan: {{$report->code}}
             </div>
             
             <div class="info-box">
-                <strong>📅 Mulai Diproses:</strong> 3 Juni 2025, 08:00 WIB<br>
-                <strong>📋 Jenis Laporan:</strong> [Kategori Laporan]<br>
-                <strong>⏱️ Estimasi Selesai:</strong> 5 Juni 2025<br>
-                <strong>👤 Penanggung Jawab:</strong> Tim BK & Kesiswaan<br>
-                <strong>🎯 Status:</strong> Dalam Investigasi
+                <strong>📅 Tanggal Verifikasi:</strong> {{date('d M Y')}}, {{date('H:i')}}<br>
+                <strong>📋 Jenis Laporan:</strong> {!! $report->formatted_urgency !!}<br>
+                @if($report->urgency == 1)
+                <strong>⏱️ Estimasi Penanganan:</strong> 2-8 hari kerja<br>
+                @elseif($report->urgency == 2)
+                <strong>⏱️ Estimasi Penanganan:</strong> 2-6 hari kerja<br>
+                @elseif($report->urgency == 3)
+                <strong>⏱️ Estimasi Penanganan:</strong> 2-4 hari kerja<br>
+                @endif
+                <strong>👤 Verifikator:</strong> {{Auth::user()->name}}<br>
             </div>
             
             <div class="progress-tracker">
@@ -39,31 +45,13 @@
                     <div class="progress-line">
                         <div class="progress-line-active progress-75"></div>
                     </div>
-                    <div class="progress-step">
-                        <div class="step-circle active">1</div>
-                        <div class="step-label">Terkirim</div>
-                        <div class="step-date">02/06 14:30</div>
-                    </div>
-                    <div class="progress-step">
-                        <div class="step-circle active">2</div>
-                        <div class="step-label">Diterima</div>
-                        <div class="step-date">02/06 15:00</div>
-                    </div>
-                    <div class="progress-step">
-                        <div class="step-circle active">3</div>
-                        <div class="step-label">Verifikasi</div>
-                        <div class="step-date">02/06 18:30</div>
-                    </div>
-                    <div class="progress-step">
-                        <div class="step-circle current">4</div>
-                        <div class="step-label">Diproses</div>
-                        <div class="step-date">03/06 08:00</div>
-                    </div>
-                    <div class="progress-step">
-                        <div class="step-circle inactive">5</div>
-                        <div class="step-label">Selesai</div>
-                        <div class="step-date">-</div>
-                    </div>
+                    @foreach($report->reporterHistory as $key => $history)
+                        <div class="progress-step">
+                            <div class="step-circle active">{{$key + 1}}</div>
+                            <div class="step-label">{!! $history->formatted_status !!}</div>
+                            <div class="step-date">{{$history->created_at->format('d M Y H:i')}}</div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
             
@@ -92,8 +80,8 @@
                 </ul>
             </div>
             
-            <div style="text-align: center; margin-top: 25px;">
-                <a href="#" class="btn-track">🔍 Lacak Status Laporan</a>
+        <div style="text-align: center; margin-top: 25px;">
+                <a href="{{route('track', ['code' => $report->code])}}" class="btn-track">🔍 Lacak Status Laporan</a>
             </div>
         </div>
         

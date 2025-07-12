@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notifikasi Laporan Baru - MTS AR-RIYADL</title>
+    <title>Pengingat Laporan - MTS AR-RIYADL</title>
     <link rel="stylesheet" href="{{asset('css/email_bk.css')}}">
 </head>
 <body>
     <div class="email-container">
-        <div class="email-header new">
-            <span class="header-icon">🔔</span>
-            <h2>NOTIFIKASI LAPORAN BARU</h2>
-            <p>Sebuah laporan baru telah diterima di sistem Anda.</p>
+        <div class="email-header reminder">
+            <span class="header-icon">⏰</span>
+            <h2>PENGINGAT: LAPORAN MENUNGGU TINDAK LANJUT</h2>
+            <p>Ada laporan yang belum diproses dalam waktu yang ditentukan.</p>
         </div>
 
         <div class="email-body">
             <h3>Assalamu'alaikum, Bapak/Ibu Guru BK {{$user->name}} yang Terhormat</h3>
-            <p>Kami memberitahukan bahwa ada laporan baru yang membutuhkan perhatian Anda. Mohon segera tinjau laporan ini untuk proses selanjutnya.</p>
+            <p>Kami ingin mengingatkan Anda mengenai laporan dengan kode **{{$report->code}}** yang belum ditindaklanjuti. Laporan ini telah masuk sistem pada tanggal **{{$report->created_at->format('d M Y')}}** dan membutuhkan perhatian Anda segera.</p>
 
             <div class="info-box">
-                <strong>📅 Tanggal Laporan:</strong> {{date('d M Y')}}, {{date('H:i')}}<br>
+                <strong>📅 Tanggal Laporan Dibuat:</strong> {{$report->created_at->format('d M Y')}}, {{$report->created_at->format('H:i')}}<br>
                 <strong>📋 Jenis Laporan:</strong> {!! $report->formatted_urgency !!}<br>
                 <strong>👤 Pelapor:</strong> {{$report->student?->name}} (NIS: {{$report->student?->nis}})
             </div>
@@ -27,23 +27,23 @@
             <div class="ticket-code">
                 Kode Laporan: {{$report->code}}
             </div>
-            
-            <div class="alert-box info">
-                <strong>📝 Detail Laporan Singkat:</strong><br>
-                <p>"{{ Str::limit($report->description, 150) }}"</p>
+
+            <div class="alert-box warning">
+                <strong>⚠️ Harap Segera Tindak Lanjuti!</strong><br>
+                Untuk menjaga efektivitas sistem pelaporan dan kepuasan pelapor, mohon segera proses laporan ini.
             </div>
 
             <div class="next-steps">
-                <h4>📋 Tindakan yang Perlu Dilakukan:</h4>
+                <h4>📋 Tindakan yang Direkomendasikan:</h4>
                 <ul>
-                    <li>Segera akses sistem pelaporan untuk melihat detail lengkap laporan.</li>
-                    <li>Lakukan verifikasi awal terhadap informasi yang disampaikan.</li>
-                    <li>Tentukan langkah penanganan selanjutnya sesuai prosedur.</li>
+                    <li>Tinjau kembali detail laporan dan statusnya.</li>
+                    <li>Lakukan investigasi atau tindakan yang diperlukan.</li>
+                    <li>Update status laporan di sistem setelah tindakan diambil.</li>
                 </ul>
             </div>
 
             <div style="text-align: center; margin-top: 25px;">
-                <a href="{{route('admin.reports.show', ['code' => $report->code])}}" class="btn-action">➡️ Lihat Detail Laporan</a>
+                <a href="{{route('admin.reports.show', ['code' => $report->code])}}" class="btn-action">➡️ Periksa Laporan Ini</a>
             </div>
         </div>
 

@@ -796,45 +796,9 @@ header {
     margin-bottom: 12px;
 }
 
-.stat-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-}
 
-/* Icon colors */
-.not-accepted .stat-icon {
-    background: linear-gradient(
-        135deg,
-        rgba(255, 107, 107, 0.15),
-        rgba(238, 90, 82, 0.15)
-    );
-    color: #ff6b6b;
-}
 
-.pending .stat-icon {
-    background: linear-gradient(
-        135deg,
-        rgba(255, 214, 10, 0.15),
-        rgba(255, 133, 0, 0.15)
-    );
-    color: var(--warning-color);
-}
 
-.unprocessed .stat-icon {
-    background: linear-gradient(
-        135deg,
-        rgba(230, 57, 70, 0.15),
-        rgba(255, 107, 107, 0.15)
-    );
-    color: var(--danger-color);
-}
 
 .stat-details h4 {
     font-size: 0.95rem;

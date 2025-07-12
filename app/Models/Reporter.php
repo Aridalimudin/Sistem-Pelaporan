@@ -46,7 +46,7 @@ class Reporter extends Model
         if($this->status == 0){
             $status = '<span class="text-info">Menunggu Approval</span>';
         }elseif($this->status == 1){
-            $status = '<span class="text-warning">Menunggu</span>';
+            $status = '<span class="text-warning">Menunggu Kelengkapan Data</span>';
         }elseif($this->status == 2){
             $status = '<span class="text-primary">Proses</span>';
         }elseif($this->status == 3){
@@ -60,7 +60,7 @@ class Reporter extends Model
         return $status;
     }
 
-     public function getFormattedCreatedDateAttribute()
+    public function getFormattedCreatedDateAttribute()
     {
         return $this->created_at ? $this->created_at->format('d F Y, H:i') : '-';
     }
@@ -73,6 +73,16 @@ class Reporter extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
+    }
+    
+    /**
+     * Get the studen that owns the Reporter
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function operation(): BelongsTo
+    {
+        return $this->belongsTo(Operation::class);
     }
 
     public function crime()
