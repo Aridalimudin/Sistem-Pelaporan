@@ -26,13 +26,13 @@
                             </div>
                         </div>
                         <hr class="profile-divider">
-                        <a href="#" class="profile-item">
+                        <a href="{{ route('Profile_page.profile') }}" class="profile-item">
                             <i class="fa-solid fa-user"></i>
                             <span>Profil Saya</span>
                         </a>
                         <hr class="profile-divider">
                         <a href="{{ route('logout') }}" class="profile-item logout-item"
-                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                             <i class="fa-solid fa-sign-out-alt"></i>
                             <span>Keluar</span>
                         </a>
@@ -82,6 +82,16 @@
 
             <div class="pagination-container">
             <div class="pagination-info">
+                 <div class="entries-selector">
+                    <span>Tampilkan</span>
+                    <select id="entries" onchange="changeEntries()">
+                        <option value="10" selected>10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span>entri</span>
+                </div>
                 <span id="paginationInfo">Menampilkan 1-10 dari 42 data</span>
             </div>
             <div class="pagination-controls">
@@ -110,7 +120,7 @@
             let editingCrimeId = null;
 
             let currentPage = 1;
-            const itemsPerPage = 10;
+            let itemsPerPage = 10; // Nilai default
 
             // Fungsi untuk mengambil data dari API
             async function fetchCrimes() {
@@ -157,6 +167,12 @@
                     case 3: return 'urgency-high';
                     default: return '';
                 }
+            }
+
+             function changeEntries() {
+                itemsPerPage = parseInt(document.getElementById('entries').value, 10);
+                currentPage = 1; // Kembali ke halaman pertama setelah mengubah jumlah entri
+                renderTable();
             }
 
             function renderTable() {
@@ -279,7 +295,7 @@
             }
 
             function updatePagination(totalItems, totalPages) {
-                const startItem = (currentPage - 1) * itemsPerPage + 1;
+                const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
                 const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
                 document.getElementById('paginationInfo').textContent =
@@ -305,7 +321,7 @@
                 paginationNumbers.innerHTML = numbersHtml;
 
                 document.getElementById('prevBtn').disabled = currentPage === 1;
-                document.getElementById('nextBtn').disabled = currentPage === totalPages;
+                document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
             }
 
             function changePage(direction) {
@@ -378,7 +394,7 @@
                                     body: JSON.stringify(dataToSend)
                                 });
                             }
-                            console.log(response);
+                            
                             if (!response.ok) {
                                 const errorData = await response.json();
                                 throw new Error(errorData.message || 'Terjadi kesalahan.');
@@ -399,30 +415,26 @@
 
             function showStatus(message, type) {
                 const statusIndicator = document.getElementById('statusIndicator');
+                if (!statusIndicator) return;
                 const statusIcon = statusIndicator.querySelector('i');
                 const statusText = statusIndicator.querySelector('span');
 
-                if (statusIndicator) {
-                    statusText.textContent = message;
-                    statusIndicator.className = 'status-indicator';
+                statusText.textContent = message;
+                statusIndicator.className = 'status-indicator'; // Reset class
 
-                    if (type === 'success') {
-                        statusIndicator.style.backgroundColor = '#10b981';
-                        statusIcon.className = 'fa-solid fa-check-circle';
-                    } else if (type === 'error') {
-                        statusIndicator.style.backgroundColor = '#ef4444';
-                        statusIcon.className = 'fa-solid fa-times-circle';
-                    } else {
-                        statusIndicator.style.backgroundColor = '#10b981';
-                        statusIcon.className = 'fa-solid fa-check-circle';
-                    }
-
-                    statusIndicator.classList.add('show');
-
-                    setTimeout(() => {
-                        statusIndicator.classList.remove('show');
-                    }, 3000);
+                if (type === 'success') {
+                    statusIndicator.style.backgroundColor = '#10b981';
+                    if(statusIcon) statusIcon.className = 'fa-solid fa-check-circle';
+                } else if (type === 'error') {
+                    statusIndicator.style.backgroundColor = '#ef4444';
+                     if(statusIcon) statusIcon.className = 'fa-solid fa-times-circle';
                 }
+
+                statusIndicator.classList.add('show');
+
+                setTimeout(() => {
+                    statusIndicator.classList.remove('show');
+                }, 3000);
             }
 
             function toggleSidebar() {
@@ -439,7 +451,7 @@
                 const profileDropdown = document.querySelector('.profile-dropdown');
                 const profileMenu = document.getElementById('profileMenu');
 
-                if (!profileDropdown.contains(event.target)) {
+                if (profileDropdown && !profileDropdown.contains(event.target)) {
                     profileMenu.classList.remove('show');
                 }
 
@@ -457,8 +469,47 @@
             // Inisialisasi: Panggil fetchCrimes saat halaman dimuat
             document.addEventListener('DOMContentLoaded', function() {
                 fetchCrimes();
+                // Setel nilai dropdown entri sesuai dengan variabel itemsPerPage
+                document.getElementById('entries').value = itemsPerPage;
             });
         </script>
+        <style>
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .pagination-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+    
+        .entries-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .entries-selector select {
+            padding: 0.3rem 0.5rem;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .entries-selector select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        </style>
         @push('styles')
         <link rel="stylesheet" href="{{asset('css/ds_admin.css')}}">
         @endpush

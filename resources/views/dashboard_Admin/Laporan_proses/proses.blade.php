@@ -27,7 +27,7 @@
                         </div>
                     </div>
                     <hr class="profile-divider">
-                    <a href="#" class="profile-item">
+                    <a href="{{ route('Profile_page.profile') }}" class="profile-item">
                         <i class="fa-solid fa-user"></i>
                         <span>Profil Saya</span>
                     </a>
@@ -257,7 +257,7 @@
         $("#btnAccept").on("click", function(){
             const operationId = $('#operation_id').val();
             const description = $('#description').val();
-            const fileInput = $('#file')[0]; // Ambil elemen input file
+          
 
             if (!operationId) {
                 showAlert('Mohon pilih tindakan untuk menyelesaikan laporan.', 'error');
@@ -268,12 +268,9 @@
                 return;
             }
 
-            // Tampilkan modal konfirmasi sebelum submit form
-            $('#confirmationModal').modal('show');
-            // Atur fungsi untuk tombol konfirmasi di modal konfirmasi
-            $('#confirmActionButton').off('click').on('click', function() {
-                $('#form-proses').submit(); // Submit form jika dikonfirmasi
-            });
+           if (confirm('Apakah Anda yakin ingin memproses laporan ini?')) {
+                $('#form-proses').submit();
+            }
         });
 
         $("#operation_id").on("change", function(){
@@ -554,7 +551,7 @@
             $("#detailTanggalKejadian").text(reporter_detail.formatted_report_date);
             $("#detailLokasiKejadian").text(reporter_detail.location);
             // Ensure these are filled if they exist, otherwise use placeholders
-            $("#detailInfoTambahan").html(reporter_detail.description_additional || '<div class="info-placeholder"><p>Tidak ada informasi tambahan</p></div>');
+            $("#detailInfoTambahan").text(reporter_detail.description || 'Tidak ada informasi tambahan.');
             $("#detailTindakan").html(reporter_detail.notes_by_student || '<div class="info-placeholder"><p>Tidak ada tindakan yang diharapkan</p></div>');
 
             // Fill in Victims

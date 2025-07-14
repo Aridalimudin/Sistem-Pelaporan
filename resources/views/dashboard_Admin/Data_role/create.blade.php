@@ -25,7 +25,6 @@
                         </div>
                         
                         <div class="permissions-grid" id="permissionsGrid">
-                            <!-- Permissions akan dirender di sini -->
                         </div>
                     </div>
                     
@@ -39,9 +38,6 @@
     </div>
 </div>
 
-
-
-<!-- Enhanced Delete Confirmation Modal -->
 <div class="modal" id="deleteConfirmModal">
     <div class="modal-dialog">
         <div class="modal-content delete-modal">

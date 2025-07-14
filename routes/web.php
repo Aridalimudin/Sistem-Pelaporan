@@ -32,6 +32,7 @@ Route::resource('lapor', ReporterController::class);
 Route::post('lapor-upload', [ReporterController::class, 'uploadFile'])->name('lapor.upload');
 Route::post('lapor-detail', [ReporterController::class, 'laporDetailPost'])->name('lapor.detail.post');
 Route::post('submit-user-feedback', [TrackingController::class, 'submitFeedback'])->name('track.submitFeedback');
+Route::post('reminder-bk', [TrackingController::class, 'reminderBk'])->name('track.reminderBk');
 Route::get('/api/crimes', [LaporanController::class, 'getCrimes']);
 Route::get('/login', [LoginController::class, 'index'])->name('login.index');
 Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');
@@ -52,7 +53,7 @@ Route::prefix("admin")->middleware(['auth'])->group(function () {
     });
 
     Route::prefix('master-data')->group(function () {
-         Route::get('siswa', function () {
+        Route::get('siswa', function () {
             return view('dashboard_Admin.Data_siswa.siswa');
         })->name('dashboard.siswa');
 
@@ -75,7 +76,7 @@ Route::prefix("admin")->middleware(['auth'])->group(function () {
         Route::get('laporan-masuk', [ReporterUserController::class, 'index'])->name("laporan-masuk.index");
         Route::post('laporan-masuk-approve', [ReporterUserController::class, 'approve'])->name("laporan-masuk.approve");
         Route::post('laporan-masuk-reject', [ReporterUserController::class, 'reject'])->name("laporan-masuk.reject");
-
+        Route::post('send-reminder/{report}', [ReporterUserController::class, 'sendReminder'])->name("laporan.sendReminder");
     
         Route::get('verifikasi', [ReporterUserController::class, 'verifikasi'])->name("verifikasi.index");
         Route::post('verifikasi-approve', [ReporterUserController::class, 'approve'])->name("verifikasi.approve");
@@ -92,6 +93,3 @@ Route::prefix("admin")->middleware(['auth'])->group(function () {
     Route::post('history-approve', [ReporterUserController::class, 'history'])->name("history.approve");
     Route::post('history-reject', [ReporterUserController::class, 'reject'])->name("history.reject");
 });
-
-
-

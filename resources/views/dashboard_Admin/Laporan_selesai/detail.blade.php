@@ -16,155 +16,182 @@
                     </svg>
                 </button>
             </div>
-            <div class="modal-body">
-                <div class="laporan-detail">
-                    <div class="detail-section">
-                        <h4 class="section-title">Informasi Pelapor</h4>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 4h6m-6 4h6M6 7h12l1 12H5L6 7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    Tanggal Melapor
-                                </div>
-                                <div class="detail-value" id="detailTanggal"></div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    NIS (Nomor Induk Siswa)
-                                </div>
-                                <div class="detail-value" id="detailNIS"></div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    Email
-                                </div>
-                                <div class="detail-value" id="detailEmail"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4 class="section-title">Waktu dan Lokasi Kejadian</h4>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                                        <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
-                                        <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
-                                        <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
-                                    Tanggal Kejadian
-                                </div>
-                                <div class="detail-value" id="detailTanggalKejadian"></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="2"/>
-                                        <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
-                                    </svg>
-                                    Lokasi Kejadian
-                                </div>
-                                <div class="detail-value" id="detailLokasiKejadian"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4 class="section-title">Pihak Terlibat</h4>
-
-                        <div class="pihak-subsection">
-                            <h5 class="subsection-title korban">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
-                                    <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                                </svg>
-                                Korban
-                            </h5>
-                            <div class="detail-grid-horizontal" id="detail-korban">
-
-                            </div>
-                        </div>
-
-                        <div class="pihak-subsection">
-                            <h5 class="subsection-title pelaku">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
-                                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/>
-                                </svg>
-                                Pelaku
-                            </h5>
-                            <div class="detail-grid-horizontal" id="detail-pelaku">
+            <form action="" method="POST" enctype="multipart/form-data" id="form-proses">
+                @csrf
+                <div class="modal-body">
+                    <div class="laporan-detail">
+                        
+                        <div class="detail-section">
+                            <h4 class="section-title">Informasi Pelapor</h4>
+                            <div class="detail-grid">
                                 <div class="detail-item">
-                                    <div class="detail-label">Nama Pelaku</div>
-                                    <div class="detail-value" id="detailNamaPelaku"></div>
+                                    <div class="detail-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 4h6m-6 4h6M6 7h12l1 12H5L6 7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        Tanggal Melapor
+                                    </div>
+                                    <div class="detail-value" id="detailTanggal"></div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="pihak-subsection">
-                            <h5 class="subsection-title saksi">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/>
-                                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/>
-                                </svg>
-                                Saksi (Opsional)
-                            </h5>
-                            <div class="detail-grid-horizontal" id="detail-saksi">
                                 <div class="detail-item">
-                                    <div class="detail-label">Nama Saksi</div>
-                                    <div class="detail-value" id="detailNamaSaksi"></div>
+                                    <div class="detail-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        NIS (Nomor Induk Siswa)
+                                    </div>
+                                    <div class="detail-value" id="detailNIS"></div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        Email
+                                    </div>
+                                    <div class="detail-value" id="detailEmail"></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="detail-section">
-                        <h4 class="section-title">Deskripsi Kejadian</h4>
-                        <div class="uraian-content" id="detailUraian"></div>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4 class="section-title">Informasi Tambahan</h4>
-                        <div class="info-tambahan-content" id="detailInfoTambahan">
-                            <div class="info-placeholder">
-                                <p>Tidak ada informasi tambahan</p>
+                        <div class="detail-section">
+                            <h4 class="section-title">Waktu dan Lokasi Kejadian</h4>
+                            <div class="detail-grid-2-col">
+                                <div class="detail-item">
+                                    <div class="detail-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/></svg>
+                                        Tanggal Kejadian
+                                    </div>
+                                    <div class="detail-value" id="detailTanggalKejadian"></div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/></svg>
+                                        Lokasi Kejadian
+                                    </div>
+                                    <div class="detail-value" id="detailLokasiKejadian"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="detail-section">
-                        <h4 class="section-title">Tindakan yang Diharapkan</h4>
-                        <div class="tindakan-content" id="detailTindakan"></div>
-                    </div>
+                        <div class="detail-section">
+                            <h4 class="section-title">Pihak Terlibat</h4>
+                            <div class="pihak-grid">
+                                <div class="pihak-subsection">
+                                    <h5 class="subsection-title korban">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/></svg>
+                                        Korban
+                                    </h5>
+                                    <div class="detail-grid-horizontal" id="detail-korban"></div>
+                                </div>
 
-                    <div class="detail-section">
-                        <h4 class="section-title">Kata Kunci</h4>
-                        <div class="keywords-container" id="detailKataKunci"></div>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4 class="section-title">Bukti Pendukung</h4>
-                        <div id="detailBukti" class="bukti-container">
-                            <div class="bukti-grid"></div>
+                                <div class="pihak-subsection">
+                                    <h5 class="subsection-title pelaku">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M22 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/></svg>
+                                        Pelaku
+                                    </h5>
+                                    <div class="detail-grid-horizontal" id="detail-pelaku">
+                                        <div class="detail-item">
+                                            <div class="detail-label">Nama Pelaku</div>
+                                            <div class="detail-value" id="detailNamaPelaku"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="pihak-subsection">
+                                <h5 class="subsection-title saksi">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2"/></svg>
+                                    Saksi (Opsional)
+                                </h5>
+                                <div class="detail-grid-horizontal" id="detail-saksi">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Nama Saksi</div>
+                                        <div class="detail-value" id="detailNamaSaksi"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+
+                        <div class="detail-section">
+                            <h4 class="section-title">Deskripsi Kejadian</h4>
+                            <div class="uraian-content" id="detailUraian"></div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h4 class="section-title">Kata Kunci</h4>
+                            <div class="keywords-container" id="detailKataKunci"></div>
+                        </div>
+
+
+                        <div class="detail-grid-2-col no-margin">
+                             <div class="detail-section">
+                                <h4 class="section-title">Informasi Tambahan</h4>
+                                <div class="info-tambahan-content" id="detailInfoTambahan">
+                                    <div class="info-placeholder">
+                                        <p>Tidak ada informasi tambahan</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h4 class="section-title">Tindakan yang Diharapkan</h4>
+                                <div class="tindakan-content" id="detailTindakan"></div>
+                            </div>
+                        </div>
+
+<div class="detail-section resolution-section">
+                            <h4 class="section-title">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Penyelesaian Laporan
+                            </h4>
+                            
+                            <div class="resolution-grid">
+                                <div class="resolution-item">
+                                    <div class="resolution-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.17 8.83l-6.36-6.36a2.12 2.12 0 00-3 0L3 11.17a2.12 2.12 0 000 3l6.36 6.36a2.12 2.12 0 003 0l8.81-8.81a2.12 2.12 0 000-2.89z" stroke="currentColor" stroke-width="2"/><path d="M9.5 14.5L14.5 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                        Tindakan Penyelesaian
+                                    </div>
+                                    <div class="resolution-action-value" id="detailTindakanPenyelesaian">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        <span>Program Konseling Intensif</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="resolution-item">
+                                    <div class="resolution-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/></svg>
+                                        Tanggal Penyelesaian
+                                    </div>
+                                    <div class="resolution-value-date" id="detailTanggalPenyelesaian">14 Juli 2025</div>
+                                </div>
+                            </div>
+                            
+                            <div class="resolution-item full-width">
+                                <div class="resolution-label">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="2"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                    Catatan Penyelesaian
+                                </div>
+                                <div class="resolution-notes" id="detailCatatanPenyelesaian">
+                                    <p>Siswa yang bersangkutan telah memulai sesi pertama program konseling. Perkembangan akan dipantau selama 2 minggu ke depan.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="resolution-item full-width">
+                                <div class="resolution-label">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 14.899A7 7 0 1115.71 8h1.79a4.5 4.5 0 012.5 8.242M12 12v9" stroke="currentColor" stroke-width="2"/><path d="M8 17l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                    Bukti Penyelesaian
+                                </div>
+                                <div class="bukti-container" id="buktiPenyelesaianContainer">
+                                    <div class="bukti-grid">
+                                        <div class="bukti-item" onclick="openImageModal(this)">
+                                            <img src="https://via.placeholder.com/300x200.png/EBF5FF/868E96?text=Jadwal+Konseling.pdf" alt="Jadwal Konseling">
+                                            <div class="bukti-info">
+                                                <div class="bukti-name">jadwal_konseling_siswa.pdf</div>
+                                                <div class="bukti-size">112 KB</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
             <div class="detail-section">
                 <h4 class="section-title">Ulasan Pelapor</h4>
@@ -179,8 +206,17 @@
 
                     @if($hasFeedback)
                         <div class="feedback-content">
-                            <!-- Grid layout untuk satisfaction dan rating -->
                             <div class="feedback-grid">
+                                <div class="feedback-item satisfaction">
+                                    <div class="feedback-label">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="currentColor"/>
+                                        </svg>
+                                        Tingkat Kepuasan
+                                    </div>
+                                    <div class="feedback-value">{{ $satisfactionLevel }}</div>
+                                </div>
+                                
                                 <div class="feedback-item rating">
                                     <div class="feedback-label">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -190,13 +226,15 @@
                                     </div>
                                     <div class="feedback-value">
                                         <div class="star-display" id="star-display">
-                                           
+                                            @for ($i = 1; $i <= 5; $i++)
+                                                <i class="fa fa-star {{ $i <= $rating ? 'checked' : '' }}"></i>
+                                            @endfor
+                                            <span class="rating-text">{{ $rating }}/5</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Comment section -->
                             <div class="feedback-item comment">
                                 <div class="feedback-label">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -204,7 +242,7 @@
                                     </svg>
                                     Saran atau Komentar
                                 </div>
-                                <div class="feedback-value" id="feedback-comment"></div>
+                                <div class="feedback-value" id="feedback-comment">{{ $comment }}</div>
                             </div>
                         </div>
                     @else
@@ -254,7 +292,45 @@
     </div>
 </div>
 
+
 <style>
+.detail-grid-2-col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.pihak-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px; /* Space before Saksi section */
+}
+
+/* Modifier to remove margin from sections inside a grid wrapper */
+.detail-grid-2-col.no-margin > .detail-section {
+    margin-bottom: 0;
+}
+
+/* Responsive adjustments for the new grids */
+@media (max-width: 768px) {
+    .detail-grid-2-col, .pihak-grid {
+        grid-template-columns: 1fr; /* Stack on smaller screens */
+    }
+
+    .pihak-grid {
+      gap: 0; /* Remove gap when stacked */
+    }
+    
+    .pihak-grid > .pihak-subsection {
+        margin-bottom: 24px;
+    }
+
+    .pihak-grid > .pihak-subsection:last-child {
+        margin-bottom: 0;
+    }
+}
 /* Reset dan Base Styles */
 * {
     box-sizing: border-box;
@@ -981,6 +1057,7 @@ html, body {
     
     .rating-text {
         margin-left: 0;
+        margin-top: 4px;
     }
     
     .fa.fa-star {
@@ -1267,4 +1344,135 @@ html, body {
 .modal-body::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
+#detail-korban, 
+#detail-pelaku, 
+#detail-saksi {
+    display: flex;
+    justify-content: center; 
+    align-items: center;   
+    min-height: 60px;     
+    width: 100%;            
+    font-style: italic;     
+    color: #94a3b8;        
+}
+.pihak-subsection .detail-item {
+    align-items: center;
+    text-align: center;
+}
+
+.pihak-subsection .detail-label {
+    display: none;
+}
+
+.resolution-section .section-title svg {
+    color: #10b981; /* Warna hijau untuk ikon judul */
+}
+
+.resolution-section .section-title::before {
+    background: linear-gradient(135deg, #10b981, #059669); /* Gradient hijau */
+}
+
+.resolution-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Kolom tindakan lebih lebar */
+    gap: 20px;
+    margin-bottom: 20px;
+    align-items: stretch; /* PENTING: Membuat item di grid memiliki tinggi yang sama */
+}
+
+.resolution-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.resolution-item.full-width {
+    grid-column: 1 / -1; /* Membuat item ini memakan semua kolom grid */
+    margin-top: 10px;
+}
+
+.resolution-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.resolution-label svg {
+    color: #6366f1;
+}
+
+/* Tampilan baru untuk Tindakan Penyelesaian */
+.resolution-action-value {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    border: 1px solid #c7d2fe;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #4338ca;
+    height: 100%; /* Memastikan tinggi sama dengan item di sebelahnya */
+}
+
+.resolution-action-value svg {
+    flex-shrink: 0;
+    color: #6366f1;
+}
+
+.resolution-value-date {
+    font-size: 1rem;
+    color: #059669; /* Warna hijau untuk tanggal */
+    font-weight: 700;
+    background: #dcfce7; /* Latar belakang hijau muda */
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #a7f3d0;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.resolution-notes {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    padding: 20px 24px;
+    border-radius: 16px;
+    border-left: 5px solid #0ea5e9; /* Warna biru untuk catatan */
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #0369a1; /* Warna teks biru tua */
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.resolution-notes p {
+    margin: 0;
+    font-style: italic;
+}
+
+#buktiPenyelesaianContainer {
+    margin-top: 8px;
+}
+
+/* Penyesuaian untuk layar kecil */
+@media (max-width: 768px) {
+    .resolution-grid {
+        grid-template-columns: 1fr; /* Tumpuk di layar kecil */
+    }
+    
+    .resolution-action-value,
+    .resolution-value-date {
+        height: auto; /* Kembalikan tinggi otomatis */
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+}
 </style>
+

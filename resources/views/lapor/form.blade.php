@@ -312,7 +312,7 @@
    Dropzone.options.dropzone = {
         url: '{{ route("lapor.upload") }}',  // Ganti dengan URL untuk menangani upload
         paramName: "file", // Nama parameter untuk file
-        maxFilesize: 5,  // Ukuran file maksimal (dalam MB)
+        maxFilesize: 20,  // Ukuran file maksimal (dalam MB)
         uploadMultiple: true,
         addRemoveLinks: true,
         parallelUploads: 10,
@@ -327,6 +327,7 @@
         dictUploadCanceled: "Upload dibatalkan", // Pesan jika upload dibatalkan
         dictCancelUploadConfirmation: "Apakah Anda yakin ingin membatalkan upload?", // Konfirmasi batalkan upload
         autoProcessQueue: true,  // Aktifkan proses otomatis saat file ditambahkan
+        dictFileTooBig: "File terlalu besar. Maksimal 20 MB",
         headers: {
             'X-CSRF-TOKEN': "{{csrf_token()}}"
         },

@@ -1091,9 +1091,7 @@
                 } else {
                     alert('Laporan berhasil dikirim! Terima kasih sudah melengkapi laporan Anda.');
                 }
-                
-                // Delay closing the form slightly to allow success message to be seen or animation
-                setTimeout(() => {
+                                setTimeout(() => {
                     closeCompleteDocumentsForm(); 
                     // Reload after the modal closes completely
                     setTimeout(() => {

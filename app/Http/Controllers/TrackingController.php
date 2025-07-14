@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Mail\FeedbackReceivedMail;
+use App\Mail\ReportReminderMail;
 use App\Models\Reporter;
 use App\Models\ReporterHistoryTracking;
 use App\Models\Student;
@@ -10,6 +12,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class TrackingController extends Controller
 {
@@ -56,6 +59,7 @@ class TrackingController extends Controller
         }
 
         $rating = @$reporter->rating ? false : true;
+        $feedback= @$reporter->status == 2 || @$reporter->status == 3 ? false : true; 
 
         $victimNames = $reporter?->reporterDetail?->victims->map(function ($victim) {
                 return $victim->name . ' (' . $victim->classroom . ')';
@@ -79,7 +83,7 @@ class TrackingController extends Controller
             return redirect()->route('track')->withErrors(['code_not_found' => 'Kode laporan tidak ditemukan.']);
         }
 
-        return view('track_laporan.track', compact('reporter', 'categories','sendReporter','students','terkirim','verifikasi','proses','done','reject','victimNames','perpetratorsNames','witnesNames','previousStatus','rating'));
+        return view('track_laporan.track', compact('reporter', 'categories','sendReporter','students','terkirim','verifikasi','proses','done','reject','victimNames','perpetratorsNames','witnesNames','previousStatus','rating','feedback'));
     }
 
     public function submitFeedback(Request $request)
@@ -104,7 +108,8 @@ class TrackingController extends Controller
             ]);
 
             DB::commit(); // Commit the transaction if everything is successful
-
+            
+            Mail::to('aridalimudin@gmail.com')->send(new FeedbackReceivedMail($reporter));
             return response()->json([
                 'status' => true,
                 'message' => 'Umpan balik berhasil disimpan.' // Feedback successfully saved
@@ -122,4 +127,20 @@ class TrackingController extends Controller
             ], 500);
         }
     }
+    public function reminderBk(Request $request)
+    {
+        $id = $request->report_id;
+        $reporter = Reporter::find($id);    
+        try {
+            Mail::to('aridalimudin@gmail.com')->send(new ReportReminderMail($reporter));
+        } catch (Exception $e) {
+            Log::error('Gagal mengirim Email ' . $id . ': ' . $e->getMessage());
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Terjadi kesalahan saat menyimpan umpan balik. Mohon coba lagi.' // An error occurred while saving feedback. Please try again.
+            ], 500);
+        }
+    }
+
 }

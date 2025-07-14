@@ -33,13 +33,13 @@
                         </div>
                     </div>
                     <hr class="profile-divider">
-                    <a href="#" class="profile-item">
+                    <a href="{{ route('Profile_page.profile') }}" class="profile-item">
                         <i class="fa-solid fa-user"></i>
                         <span>Profil Saya</span>
                     </a>
                     <hr class="profile-divider">
                     <a href="{{ route('logout') }}" class="profile-item logout-item"
-                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i class="fa-solid fa-sign-out-alt"></i>
                         <span>Keluar</span>
                     </a>

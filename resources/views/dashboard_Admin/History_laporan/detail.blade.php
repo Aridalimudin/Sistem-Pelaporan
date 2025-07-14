@@ -1,664 +1,781 @@
-<div class="modal fade" id="modal-detail">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="header-content">
-                    <div class="header-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                    <h3 id="modalTitle">Detail Laporan</h3>
-                </div>
-                <button type="button" class="close-btn" data-bs-dismiss="modal" aria-label="Close">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+@extends('layouts.main_ds')
+
+@section('content')
+
+<main id="content" class="content">
+    <header>
+        <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        <h1 class="header-title">Kelola Proses Kasus</h1>
+        <div class="user-info">
+            <div class="profile-dropdown">
+                <button class="profile-btn" onclick="toggleProfile()">
+                    <i class="fa-solid fa-user-circle"></i>
+                    <span class="username">{{ Auth::user()->name ?? 'User' }}</span>
+                    <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
                 </button>
-            </div>
-
-            <div class="modal-body">
-                <div class="laporan-detail">
-                    <div class="detail-section">
-                        <h4 class="section-title">Informasi Pelapor</h4>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 4h6m-6 4h6M6 7h12l1 12H5L6 7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    Tanggal Melapor
-                                </div>
-                                <div class="detail-value" id="detailTanggal"></div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    NIS (Nomor Induk Siswa)
-                                </div>
-                                <div class="detail-value" id="detailNIS"></div>
-                            </div>
-
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    Email
-                                </div>
-                                <div class="detail-value" id="detailEmail"></div>
-                            </div>
+                <div class="profile-menu" id="profileMenu">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <i class="fa-solid fa-user-circle"></i>
+                        </div>
+                        <div class="profile-info">
+                            <h4>{{ Auth::user()->name ?? 'User' }}</h4>
+                            <p>{{ Auth::user()->email ?? 'user@example.com' }}</p>
+                            <small style="opacity: 0.8;">
+                                {{ Auth::user()->roles->first()->name ?? 'No Role' }}
+                            </small>
                         </div>
                     </div>
-
-                    <div class="detail-section">
-                        <h4 class="section-title">Deskripsi Kejadian</h4>
-                        <div class="uraian-content" id="detailUraian"></div>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4 class="section-title">Kata Kunci</h4>
-                        <div class="keywords-container" id="detailKataKunci"></div>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4 class="section-title">Bukti Pendukung</h4>
-                        <div id="detailBukti" class="bukti-container">
-                            <div class="bukti-grid">
-                                </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <div class="footer-info">
-                    <div class="status-indicator">
-                        <div class="status-dot" id="detailStatusDot"></div>
-                        <span id="detailStatusText"></span>
-                    </div>
-                </div>
-                <div class="action-buttons">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Batal
-                    </button>
-                    <button type="button" class="btn btn-danger" id="btnReject">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                            <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Tolak Laporan
-                    </button>
-                    <button type="button" class="btn btn-success" id="btnAccept">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Terima Laporan
-                    </button>
+                    <hr class="profile-divider">
+                    <a href="{{ route('Profile_page.profile') }}" class="profile-item">
+                        <i class="fa-solid fa-user"></i>
+                        <span>Profil Saya</span>
+                    </a>
+                    <hr class="profile-divider">
+                    <a href="{{ route('logout') }}" class="profile-item logout-item"
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        <i class="fa-solid fa-sign-out-alt"></i>
+                        <span>Keluar</span>
+                    </a>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
                 </div>
             </div>
         </div>
+    </header>
+
+    <input type="hidden" id="permissionData" value=''>
+    <div class="management-section">
+        <div class="section-header">
+            <h2>Data Proses Kasus</h2>
+            <div class="header-actions">
+                <div class="filter-container">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-controls">
+            <div class="table-controls-left">
+                <div class="entries-selector">
+                    <label for="entriesPerPage">Show</label>
+                    <select id="entriesPerPage" onchange="changeEntriesPerPage(this.value)">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span>entries</span>
+                </div>
+            </div>
+
+            <div class="table-controls-right">
+                <div class="search-container">
+                    <label for="searchInput">Search:</label>
+                    <input type="text" id="searchInput" placeholder="Search cases..." onkeyup="searchTable()">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table" id="data-table">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">
+                            NO
+                            <i class="fa-solid fa-sort sort-icon"></i>
+                        </th>
+                        <th onclick="sortTable(1)">
+                            Kode
+                            <i class="fa-solid fa-sort sort-icon"></i>
+                        </th>
+                        <th onclick="sortTable(2)">
+                            Nama Siswa
+                            <i class="fa-solid fa-sort sort-icon"></i>
+                        </th>
+                        <th onclick="sortTable(3)">
+                            NIS
+                            <i class="fa-solid fa-sort sort-icon"></i>
+                        </th>
+                        <th onclick="sortTable(4)">
+                            Kelas
+                            <i class="fa-solid fa-sort sort-icon"></i>
+                        </th>
+                        <th onclick="sortTable(5)">
+                            Urgensi
+                            <i class="fa-solid fa-sort sort-icon"></i>
+                        </th>
+                        <th onclick="sortTable(6)">
+                            Status
+                            <i class="fa-solid fa-sort sort-icon"></i>
+                        </th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    @forelse($reporters as $key => $value)
+                        <tr class="table-row" data-index="{{ $key }}">
+                            <td>{{ $key + 1 }}</td>
+                            <td>{{ $value->code }}</td>
+                            <td>{{ $value->student?->name }}</td>
+                            <td>{{ $value->student?->nis }}</td>
+                            <td>{{ $value->student?->classroom }}</td>
+                            <td>{!! $value->formatted_urgency !!}</td>
+                            <td>{!! $value->formatted_status !!}</td>
+                            <td>
+                                <button class="btn-action btn-detail" data-url="{{route('proses.prosesAccept', $value->id)}}" data-report='@json($value)' onclick="viewDetail(this)" title="Lihat Detail">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-4">Belum ada laporan yang tersedia.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span id="paginationInfo"></span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span>Sebelumnya</span>
+                </button>
+                <div class="pagination-numbers" id="paginationNumbers">
+                </div>
+                <button class="pagination-btn" id="nextBtn" onclick="changePage(1)">
+                    <span>Selanjutnya</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
     </div>
-</div>
+</main>
 
-<div id="imageModal" class="image-modal" onclick="closeImageModal()">
-    <span class="close-image" onclick="closeImageModal()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    </span>
-    <img id="modalImage" src="" alt="Bukti Laporan">
-</div>
+@include('dashboard_Admin.Laporan_proses.detail')
 
+@push('scripts')
+@if(Session::has('success'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert("{{ Session::get('success') }}", "success");
+        });
+    </script>
+@endif
+
+@if(Session::has('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert("{{ Session::get('error') }}", "error");
+        });
+    </script>
+@endif
+<script>
+    let currentPage = 1;
+    let entriesPerPage = 10;
+    let allRows = [];
+    let filteredRows = [];
+    let sortDirection = {};
+
+    $(document).ready(function(){
+        initializeTable();
+
+        // Menggunakan delegasi event untuk tombol "Tolak Laporan" dari modal utama
+        $("#btnReject").on("click", function(){
+            $('#modal-reject-reason').modal('show'); // Tampilkan modal alasan penolakan
+            const reportId = $(this).attr('data-id');
+            $('#confirmRejectBtn').attr('data-id', reportId); // Set ID ke tombol konfirmasi tolak
+        });
+
+        // Event listener untuk pilihan alasan penolakan
+        $('#rejectReasonSelect').on('change', function() {
+            if ($(this).val() === 'Lainnya') {
+                $('#otherReasonContainer').show();
+            } else {
+                $('#otherReasonContainer').hide();
+                $('#otherReasonText').val(''); // Kosongkan jika bukan 'Lainnya'
+            }
+            $('#rejectReasonError').hide(); // Sembunyikan error saat ada perubahan
+        });
+
+        // Event listener untuk tombol "Tolak Laporan" di modal alasan penolakan
+        $('#confirmRejectBtn').on('click', function() {
+            let rejectReason = $('#rejectReasonSelect').val();
+            let otherReason = $('#otherReasonText').val().trim();
+            const reportId = $(this).attr('data-id');
+
+            if (rejectReason === '') {
+                $('#rejectReasonError').show();
+                return;
+            }
+
+            if (rejectReason === 'Lainnya' && otherReason === '') {
+                $('#rejectReasonError').text('Mohon masukkan alasan penolakan lainnya.').show();
+                return;
+            }
+
+            let finalReason = rejectReason === 'Lainnya' ? otherReason : rejectReason;
+
+            $.ajax({
+                url: '{{route("laporan-masuk.reject")}}', // Pastikan rute ini benar
+                method: 'POST',
+                data: {
+                    "id": reportId,
+                    "reason": finalReason, // Kirim alasan penolakan
+                    "_token": "{{csrf_token()}}"
+                },
+                dataType: 'json',
+                beforeSend: function() {
+                    $("#confirmRejectBtn").prop('disabled', true).text('Processing...');
+                },
+                success: function(response) {
+                    if (response.status) {
+                        showAlert('Laporan berhasil ditolak!', 'success');
+                        $('#modal-reject-reason').modal('hide'); // Tutup modal penolakan
+                        $('#modal-detail').modal('hide'); // Tutup modal detail
+                        location.reload();
+                    } else {
+                        showAlert('Gagal menolak laporan: ' + (response.message || 'Terjadi kesalahan.'), 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error:", status, error, xhr.responseText);
+                    showAlert('Terjadi kesalahan saat menghubungi server. Mohon coba lagi.', 'error');
+                },
+                complete: function() {
+                    $("#confirmRejectBtn").prop('disabled', false).html('Tolak Laporan');
+                }
+            });
+        });
+
+        // Event listener untuk tombol "Selesaikan Laporan" dari modal utama
+        $("#btnAccept").on("click", function(){
+            const operationId = $('#operation_id').val();
+            const description = $('#description').val();
+            const fileInput = $('#file')[0]; // Ambil elemen input file
+
+            if (!operationId) {
+                showAlert('Mohon pilih tindakan untuk menyelesaikan laporan.', 'error');
+                return;
+            }
+            if (!description.trim()) {
+                showAlert('Mohon masukkan alasan/komentar untuk menyelesaikan laporan.', 'error');
+                return;
+            }
+
+            // Tampilkan modal konfirmasi sebelum submit form
+            $('#confirmationModal').modal('show');
+            // Atur fungsi untuk tombol konfirmasi di modal konfirmasi
+            $('#confirmActionButton').off('click').on('click', function() {
+                $('#form-proses').submit(); // Submit form jika dikonfirmasi
+            });
+        });
+
+        $("#operation_id").on("change", function(){
+            if($(this).val() !== ""){
+                $("#btnAccept").attr('disabled', false);
+            } else {
+                $("#btnAccept").attr('disabled', true);
+            }
+        });
+    });
+
+    function initializeTable() {
+        allRows = Array.from(document.querySelectorAll('.table-row'));
+        filteredRows = [...allRows];
+        updateTable();
+    }
+
+    function changeEntriesPerPage(value) {
+        entriesPerPage = parseInt(value);
+        currentPage = 1;
+        updateTable();
+    }
+
+    function searchTable() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+        if (searchTerm === '') {
+            filteredRows = [...allRows];
+        } else {
+            filteredRows = allRows.filter(row => {
+                const cells = row.querySelectorAll('td');
+                return Array.from(cells).some(cell =>
+                    cell.textContent.toLowerCase().includes(searchTerm)
+                );
+            });
+        }
+
+        currentPage = 1;
+        updateTable();
+    }
+
+    function sortTable(columnIndex) {
+        const isAscending = sortDirection[columnIndex] !== 'asc';
+        sortDirection[columnIndex] = isAscending ? 'asc' : 'desc';
+
+        document.querySelectorAll('.sort-icon').forEach((icon, index) => {
+            if (index === columnIndex) {
+                icon.className = `fa-solid fa-sort-${isAscending ? 'up' : 'down'} sort-icon active`;
+            } else {
+                icon.className = 'fa-solid fa-sort sort-icon';
+            }
+        });
+
+        filteredRows.sort((a, b) => {
+            const aValue = a.cells[columnIndex].textContent.trim();
+            const bValue = b.cells[columnIndex].textContent.trim();
+
+            const aNum = parseFloat(aValue);
+            const bNum = parseFloat(bValue);
+
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                return isAscending ? aNum - bNum : bNum - aNum;
+            }
+
+            return isAscending
+                ? aValue.localeCompare(bValue)
+                : bValue.localeCompare(aValue);
+        });
+
+        currentPage = 1;
+        updateTable();
+    }
+
+    function changePage(direction) {
+        const totalPages = Math.ceil(filteredRows.length / entriesPerPage);
+
+        if (direction === -1 && currentPage > 1) {
+            currentPage--;
+        } else if (direction === 1 && currentPage < totalPages) {
+            currentPage++;
+        }
+
+        updateTable();
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        updateTable();
+    }
+
+    function updateTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        const totalPages = Math.ceil(filteredRows.length / entriesPerPage);
+        const startIndex = (currentPage - 1) * entriesPerPage;
+        const endIndex = startIndex + entriesPerPage;
+
+        if (filteredRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Belum ada laporan yang tersedia.</td></tr>';
+        } else {
+            for (let i = startIndex; i < endIndex && i < filteredRows.length; i++) {
+                tbody.appendChild(filteredRows[i]);
+            }
+        }
+
+        const showing = filteredRows.length === 0 ? 0 : startIndex + 1;
+        const to = Math.min(endIndex, filteredRows.length);
+        document.getElementById('paginationInfo').textContent =
+            `Menampilkan ${showing} sampai ${to} dari ${filteredRows.length} data`;
+
+        updatePagination(totalPages);
+    }
+
+    function updatePagination(totalPages) {
+        const paginationNumbers = document.getElementById('paginationNumbers');
+        if (!paginationNumbers) return;
+
+        let numbersHtml = '';
+        const maxPageNumbersToShow = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxPageNumbersToShow / 2));
+        let endPage = Math.min(totalPages, startPage + maxPageNumbersToShow - 1);
+
+        if (endPage - startPage + 1 < maxPageNumbersToShow) {
+            startPage = Math.max(1, endPage - maxPageNumbersToShow + 1);
+        }
+
+        if (startPage > 1) {
+            numbersHtml += `<button class="page-number" onclick="goToPage(1)">1</button>`;
+            if (startPage > 2) {
+                numbersHtml += `<span class="pagination-ellipsis">...</span>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            numbersHtml += `
+                <button class="page-number ${i === currentPage ? 'active' : ''}"
+                        onclick="goToPage(${i})">${i}</button>
+            `;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                numbersHtml += `<span class="pagination-ellipsis">...</span>`;
+            }
+            numbersHtml += `<button class="page-number" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+        }
+
+        paginationNumbers.innerHTML = numbersHtml;
+
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        if (prevBtn) prevBtn.disabled = currentPage === 1;
+        if (nextBtn) nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+    }
+
+    function showAlert(message, type = 'info') {
+        const toastLiveExample = document.getElementById('liveToast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toast = new bootstrap.Toast(toastLiveExample);
+
+        toastMessage.textContent = message;
+        toastLiveExample.classList.remove('bg-success', 'bg-danger');
+        if (type === 'success') {
+            toastLiveExample.classList.add('bg-success');
+        } else if (type === 'error') {
+            toastLiveExample.classList.add('bg-danger');
+        } else {
+            toastLiveExample.classList.add('bg-primary');
+        }
+        toast.show();
+    }
+
+    function viewDetail(element) {
+        let reporter = $(element).data('report');
+        let url = $(element).data('url');
+        let reporter_detail = reporter.reporter_detail;
+
+        // Reset form input
+        $("#operation_id").val('');
+        $("#description").val('');
+        $("#file").val('');
+        $("#btnAccept").attr('disabled', true); // Disable accept button by default
+
+        // Fill in Reporter Information
+        $("#detailTanggal").text(reporter.formatted_created_date);
+        $("#detailNIS").text(reporter.student.nis);
+        $("#detailEmail").text(reporter.student.email);
+        $("#detailUraian").text(reporter.description);
+        $("#form-proses").attr('action', url);
+
+        // Fill in Keywords
+        const keywordsContainer = $("#detailKataKunci");
+        keywordsContainer.empty(); // Clear previous keywords
+        if (reporter.crime && reporter.crime.length > 0) {
+            let html = "";
+            reporter.crime.forEach(function (item) {
+                let keywordClass = '';
+                let iconSvg = '';
+
+                // Assign keyword class and icon based on content
+                if (item.name.toLowerCase().includes('bullying') || item.name.toLowerCase().includes('intimidasi')) {
+                    keywordClass = 'severity-high';
+                    iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                } else if (item.name.toLowerCase().includes('kekerasan verbal')) {
+                    keywordClass = 'severity-medium';
+                    iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                } else if (item.name.toLowerCase().includes('kantin sekolah') || item.name.toLowerCase().includes('area')) {
+                    keywordClass = 'location';
+                    iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/></svg>';
+                } else if (item.name.toLowerCase().includes('siswa')) {
+                    keywordClass = 'category';
+                    iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                } else if (item.name.toLowerCase().includes('jam')) {
+                    keywordClass = 'time';
+                    iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                } else {
+                    keywordClass = 'category'; // Default if no specific keyword matches
+                    iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                }
+
+                html += `<span class="keyword-tag ${keywordClass}">${iconSvg} ${item.name}</span>`;
+            });
+            keywordsContainer.html(html);
+        } else {
+            keywordsContainer.html('<span class="text-muted">Tidak ada kata kunci</span>');
+        }
+
+        // Fill in Supporting Evidence
+        const buktiGrid = $("#detailBukti .bukti-grid");
+        buktiGrid.empty();
+
+        if (reporter.reporter_file && reporter.reporter_file.length > 0) {
+            let htmlMedia = "";
+            reporter.reporter_file.forEach(function (file) {
+                const fileName = file.file.split('/').pop();
+                const fileSize = 'N/A'; // You might need an actual file size here
+
+                if (isImage(file.file)) {
+                    htmlMedia += `
+                        <div class="bukti-item">
+                            <img src="${file.url_file}" alt="${fileName}" onclick="openImageModal(this.src)">
+                            <div class="bukti-info">
+                                <span class="bukti-name">${fileName}</span>
+                                <span class="bukti-size">${fileSize}</span>
+                            </div>
+                        </div>`;
+                } else if (isVideo(file.file)) {
+                    htmlMedia += `
+                        <div class="bukti-item">
+                            <video controls class="evidence-video">
+                                <source src="${file.url_file}" type="video/mp4">
+                                Video tidak dapat diputar
+                            </video>
+                            <div class="bukti-info">
+                                <span class="bukti-name">${fileName}</span>
+                                <span class="bukti-size">${fileSize}</span>
+                            </div>
+                        </div>`;
+                }
+            });
+            buktiGrid.html(htmlMedia);
+        } else {
+            buktiGrid.html(`
+                <div class="bukti-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" stroke-width="2"/>
+                        <polyline points="21,15 16,10 5,21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <p>Tidak ada bukti yang dilampirkan</p>
+                </div>
+            `);
+        }
+
+        // Fill in Time and Location of Incident, Additional Information, Expected Actions
+        if(reporter_detail){
+            $("#detailTanggalKejadian").text(reporter_detail.formatted_report_date);
+            $("#detailLokasiKejadian").text(reporter_detail.location);
+            // Ensure these are filled if they exist, otherwise use placeholders
+            $("#detailInfoTambahan").text(reporter_detail.description || 'Tidak ada informasi tambahan.');
+            $("#detailTindakan").html(reporter_detail.notes_by_student || '<div class="info-placeholder"><p>Tidak ada tindakan yang diharapkan</p></div>');
+
+            // Fill in Victims
+            let victims = reporter_detail.victims;
+            let htmlVictims = "";
+            if(victims && victims.length > 0){
+                victims.forEach(row => {
+                    htmlVictims += `
+                        <div class="detail-item">
+                            <div class="detail-label">Nama Korban</div>
+                            <div class="detail-value" id="detailNamaKorban">${row.name + (row.classroom ? ' (' + row.classroom + ')' : '')}</div>
+                        </div>`;
+                });
+            } else {
+                htmlVictims = '<div class="info-placeholder"><p>Tidak ada korban yang terdaftar</p></div>';
+            }
+            $("#detail-korban").html(htmlVictims);
+
+            // Fill in Perpetrators
+            let perpetrators = reporter_detail.perpetrators;
+            let htmlPerpetrators = "";
+            if(perpetrators && perpetrators.length > 0){
+                perpetrators.forEach(row => {
+                    htmlPerpetrators += `
+                        <div class="detail-item">
+                            <div class="detail-label">Nama Pelaku</div>
+                            <div class="detail-value" id="detailNamaPelaku">${row.name + (row.classroom ? ' (' + row.classroom + ')' : '')}</div>
+                        </div>`;
+                });
+            } else {
+                htmlPerpetrators = '<div class="info-placeholder"><p>Tidak ada pelaku yang terdaftar</p></div>';
+            }
+            $("#detail-pelaku").html(htmlPerpetrators);
+
+            // Fill in Witnesses
+            let witnesses = reporter_detail.witnesses;
+            let htmlWitnesses = "";
+            if(witnesses && witnesses.length > 0){
+                witnesses.forEach(row => {
+                    htmlWitnesses += `
+                        <div class="detail-item">
+                            <div class="detail-label">Nama Saksi</div>
+                            <div class="detail-value" id="detailNamaSaksi">${row.name + (row.classroom ? ' (' + row.classroom + ')' : '')}</div>
+                        </div>`;
+                });
+            } else {
+                htmlWitnesses = '<div class="info-placeholder"><p>Tidak ada saksi yang terdaftar</p></div>';
+            }
+            $("#detail-saksi").html(htmlWitnesses);
+
+        } else {
+            // Clear or set placeholders if reporter_detail is null
+            $("#detailTanggalKejadian").text('N/A');
+            $("#detailLokasiKejadian").text('N/A');
+            $("#detailInfoTambahan").html('<div class="info-placeholder"><p>Tidak ada informasi tambahan</p></div>');
+            $("#detailTindakan").html('<div class="info-placeholder"><p>Tidak ada tindakan yang diharapkan</p></div>');
+            $("#detail-korban").html('<div class="info-placeholder"><p>Tidak ada korban yang terdaftar</p></div>');
+            $("#detail-pelaku").html('<div class="info-placeholder"><p>Tidak ada pelaku yang terdaftar</p></div>');
+            $("#detail-saksi").html('<div class="info-placeholder"><p>Tidak ada saksi yang terdaftar</p></div>');
+        }
+
+        $("#btnReject").attr('data-id', reporter.id);
+        $("#btnAccept").attr('data-id', reporter.id);
+
+        // Show the main detail modal
+        $('#modal-detail').modal('show');
+    }
+
+    function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("active");
+        document.getElementById("content").classList.toggle("active");
+    }
+
+    function toggleProfile() {
+        const profileMenu = document.getElementById('profileMenu');
+        profileMenu.classList.toggle('show');
+    }
+
+    function isImage(filePath) {
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+        const lowerCasePath = filePath.toLowerCase();
+        return imageExtensions.some(ext => lowerCasePath.endsWith(ext));
+    }
+
+    function isVideo(filePath) {
+        const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv'];
+        const lowerCasePath = filePath.toLowerCase();
+        return videoExtensions.some(ext => lowerCasePath.endsWith(ext));
+    }
+
+    function openImageModal(imageSrc) {
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        if (imageModal && modalImage) {
+            modalImage.src = imageSrc;
+            imageModal.style.display = 'flex';
+        }
+    }
+
+    function closeImageModal() {
+        const imageModal = document.getElementById('imageModal');
+        if (imageModal) {
+            imageModal.style.display = 'none';
+            document.getElementById('modalImage').src = '';
+        }
+    }
+
+    document.addEventListener('click', function(event) {
+        const profileDropdown = document.querySelector('.profile-dropdown');
+        const profileMenu = document.getElementById('profileMenu');
+
+        if (profileDropdown && profileMenu && !profileDropdown.contains(event.target)) {
+            profileMenu.classList.remove('show');
+        }
+    });
+</script>
+@endpush
 <style>
-/* Reset dan Base Styles */
-* {
-    box-sizing: border-box;
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f1f5f9;
-}
-
-/* Modal Styles */
-.modal-dialog.modal-xl {
-    max-width: 800px;
-    margin: 2rem auto;
-}
-
-.modal-content {
-    border: none;
-    border-radius: 20px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(10px);
-    overflow: hidden;
-}
-
-/* Header Styles */
-.modal-header {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-    color: white;
-    padding: 24px 32px;
-    border-bottom: none;
-    position: relative;
-}
-
-.header-content {
+/* ... (Bagian CSS Anda yang sudah ada tetap sama) ... */
+.entries-selector {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 0.5rem;
+    color: #666;
 }
 
-.header-icon {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 8px;
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
-}
-
-.modal-header h3 {
-    margin: 0;
-    font-size: 1.75rem;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-}
-
-.close-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    padding: 8px;
-    border-radius: 10px;
-    position: absolute;
-    right: 24px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-}
-
-.close-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-50%) scale(1.05);
-}
-
-/* Body Styles */
-.modal-body {
-    padding: 0;
-    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-}
-
-.laporan-detail {
-    padding: 32px;
-}
-
-.detail-section {
+.entries-selector select {
+    padding: 0.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
     background: white;
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    transition: all 0.3s ease;
+    color: #333;
+    font-size: 0.9rem;
+    transition: border-color 0.3s ease;
 }
 
-.detail-section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-.detail-section:last-child {
-    margin-bottom: 0;
-}
-
-.section-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0 0 20px 0;
-    padding-bottom: 12px;
-    border-bottom: 2px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.section-title::before {
-    content: '';
-    width: 4px;
-    height: 20px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border-radius: 2px;
-}
-
-/* Detail Grid */
-.detail-grid {
-    display: grid;
-    gap: 16px;
-}
-
-.detail-item {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.detail-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    color: #64748b;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.detail-label svg {
-    color: #6366f1;
-}
-
-.detail-value {
-    font-size: 1rem;
-    color: #1e293b;
-    font-weight: 500;
-    background: #f8fafc;
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-}
-
-/* Uraian Content */
-.uraian-content {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    padding: 20px 24px;
-    border-radius: 16px;
-    border-left: 5px solid #6366f1;
-    font-size: 1rem;
-    line-height: 1.7;
-    color: #374151;
-    text-align: justify;
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-}
-
-/* Keywords - DIPERBAIKI */
-.keywords-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-    min-height: 40px; /* Ensure space even if no keywords */
-}
-
-.keyword-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 2px solid transparent;
-    white-space: nowrap;
-}
-
-.keyword-tag:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.keyword-tag svg {
-    flex-shrink: 0;
-}
-
-/* Warna kata kunci yang diperbaiki */
-.keyword-tag.severity-high {
-    background: #ef4444;
-    color: white;
-}
-
-.keyword-tag.severity-medium {
-    background: #f59e0b;
-    color: white;
-}
-
-.keyword-tag.location {
-    background: #8b5cf6;
-    color: white;
-}
-
-.keyword-tag.category {
-    background: #06b6d4;
-    color: white;
-}
-
-.keyword-tag.time {
-    background: #10b981;
-    color: white;
-}
-
-/* Bukti Container - DIPERBAIKI */
-.bukti-container {
-    min-height: 120px;
-}
-
-.bukti-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-.bukti-item {
-    background: #f8fafc;
-    border-radius: 12px;
-    padding: 12px;
-    border: 2px solid #e2e8f0;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.bukti-item:hover {
-    border-color: #6366f1;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px -8px rgba(99, 102, 241, 0.3);
-}
-
-.bukti-item img, .bukti-item video {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    border: 1px solid #e2e8f0;
-}
-
-.bukti-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.bukti-name {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #1e293b;
-    word-break: break-word;
-}
-
-.bukti-size {
-    font-size: 0.75rem;
-    color: #64748b;
-}
-
-.bukti-placeholder {
-    text-align: center;
-    color: #94a3b8;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%; /* Ensure it fills the container */
-}
-
-.bukti-placeholder svg {
-    margin-bottom: 16px;
-    opacity: 0.5;
-}
-
-.bukti-placeholder p {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 500;
-}
-
-/* Footer */
-.modal-footer {
-    background: white;
-    padding: 24px 32px;
-    border-top: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.footer-info {
-    display: flex;
-    align-items: center;
-}
-
-.status-indicator {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.875rem;
-    color: #64748b;
-    font-weight: 500;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-}
-
-.status-dot.pending {
-    background: #f59e0b;
-}
-.status-dot.approved {
-    background: #10b981; /* Green for approved */
-}
-.status-dot.rejected {
-    background: #ef4444; /* Red for rejected */
-}
-
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-}
-
-.action-buttons {
-    display: flex;
-    gap: 12px;
-}
-
-.btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 12px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
+.entries-selector select:focus {
     outline: none;
-    position: relative;
-    overflow: hidden;
+    border-color: #667eea;
 }
 
-.btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-}
-
-.btn:hover::before {
-    left: 100%;
-}
-
-.btn-secondary {
-    background: #64748b;
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(100, 116, 139, 0.4);
-}
-
-.btn-secondary:hover {
-    background: #475569;
-    transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(100, 116, 139, 0.4);
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.4);
-}
-
-.btn-danger:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4);
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);
-}
-
-.btn-success:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
-}
-
-/* Image Modal - DIPERBAIKI */
-.image-modal {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    justify-content: center;
+.search-container {
+    display: flex;
     align-items: center;
-    backdrop-filter: blur(5px);
+    gap: 0.5rem;
 }
 
-.image-modal img {
-    max-width: 85%;
-    max-height: 85%;
-    object-fit: contain;
-    border-radius: 12px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+.search-container label {
+    color: #666;
+    font-weight: 500;
 }
 
-.close-image {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.2);
+#searchInput {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    width: 250px;
+    transition: all 0.3s ease;
+}
+
+#searchInput:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+
+.data-table thead {
+    background: linear-gradient(135deg, #667eea 0%, 100%);
     color: white;
-    padding: 12px;
-    border-radius: 12px;
+}
+
+.data-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    z-index: 10000;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.3s ease;
 }
 
-.close-image:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.05);
+.data-table th:hover {
+    background: rgba(49, 48, 51, 0.13);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .modal-dialog.modal-xl {
-        max-width: 95%;
-        margin: 1rem;
-    }
-
-    .modal-header {
-        padding: 20px;
-    }
-
-    .modal-header h3 {
-        font-size: 1.5rem;
-    }
-
-    .laporan-detail {
-        padding: 20px;
-    }
-
-    .detail-section {
-        padding: 20px;
-    }
-
-    .modal-footer {
-        padding: 20px;
-        flex-direction: column;
-        gap: 16px;
-        align-items: stretch;
-    }
-
-    .action-buttons {
-        flex-direction: column;
-    }
-
-    .btn {
-        justify-content: center;
-    }
-
-    .bukti-grid {
-        grid-template-columns: 1fr;
-    }
+.data-table th:last-child {
+    cursor: default;
 }
 
-@media (max-width: 480px) {
-    .keywords-container {
-        gap: 8px;
-    }
-
-    .keyword-tag {
-        font-size: 0.75rem;
-        padding: 6px 12px;
-    }
-
-    .bukti-item img, .bukti-item video {
-        height: 100px;
-    }
+.sort-icon {
+    margin-left: 0.5rem;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
 }
 
-/* Animation */
-.modal.fade .modal-dialog {
-    transform: scale(0.8) translateY(-50px);
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.modal.show .modal-dialog {
-    transform: scale(1) translateY(0);
+.sort-icon.active {
     opacity: 1;
+    color:rgb(255, 0, 0);
+}
+
+.data-table tbody tr {
+    border-bottom: 1px solid #f1f3f4;
+    transition: background-color 0.3s ease;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.data-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.data-table td {
+    padding: 1rem;
+    vertical-align: middle;
 }
 </style>
+@push('styles')
+<link rel="stylesheet" href="{{asset('css/ds_admin.css')}}">
+@endpush
+@endsection

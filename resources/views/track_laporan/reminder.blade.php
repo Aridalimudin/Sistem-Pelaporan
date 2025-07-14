@@ -1,802 +1,1062 @@
-<div class="modal-overlay" id="completeDocumentsModal">
+<div class="modal-overlay" id="completionInfoModal">
     <div class="modal">
-        <button class="close-btn" onclick="closeCompleteDocumentsForm()">&times;</button>
-        <input type="hidden" id="data-siswa" value='{{$students}}'>
-        <input type="hidden" id="reporter_id" value="{{ $reporter->id ?? '' }}">
+        <button class="close-btn" onclick="closeCompletionInfoModal()">&times;</button>
         <div class="modal-header">
-            <div class="header-icon">📋</div>
-            <h2 class="modal-title">Lengkapi Laporan Kejadian</h2>
-        </div>
-
-        <div class="progress-stepper">
-            <div class="progress-line">
-                <div class="progress-line-fill" id="progressFill"></div>
-            </div>
-
-            <div class="step active" id="step1">
-                <div class="step-indicator">1</div>
-                <div class="step-label">Waktu Kejadian</div>
-            </div>
-
-            <div class="step" id="step2">
-                <div class="step-indicator">2</div>
-                <div class="step-label">Pihak Terlibat</div>
-            </div>
-
-            <div class="step" id="step3">
-                <div class="step-indicator">3</div>
-                <div class="step-label">Tindakan</div>
-            </div>
+            <div class="header-icon">✅</div>
+            <h2 class="modal-title">Laporan Selesai Ditangani!</h2>
         </div>
 
         <div class="step-content active">
-            <div class="step-content-title" id="contentTitle">Waktu Kejadian</div>
-            <div id="contentForm">
+            <div id="completionInfoContent">
+                <div class="completion-info-section">
+                    <p class="intro-text">
+                        Kami senang menginformasikan bahwa laporan Anda dengan kode unik
+                        <strong class="text-primary">{{ $reporter->code ?? 'N/A' }}</strong> telah berhasil ditindaklanjuti dan diselesaikan.
+                    </p>
+
+                    <p class="intro-text">
+                        Kasus terkait
+                        <strong class="text-danger">{{ $categories ?? 'belum ada kategori' }}</strong>
+                        telah ditangani oleh tim disipliner sekolah. Kami telah melakukan penyelidikan mendalam
+                        dan mengambil langkah-langkah yang diperlukan sesuai prosedur sekolah.
+                    </p>
                 </div>
+
+                <div class="completion-details">
+                    <div class="detail-card">
+                        <div class="detail-card-header">
+                            <i class="fas fa-gavel"></i>
+                            <h4>Penindakan yang Diambil</h4>
+                        </div>
+                        <div class="detail-card-content">
+                            <p id="display_action_taken_info">
+                                @if ($reporter->operation)
+                                    {{ $reporter->operation->name}}
+                                @else
+                                    Belum ada informasi penindakan yang tersedia.
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="detail-card">
+                        <div class="detail-card-header">
+                            <i class="fas fa-sticky-note"></i>
+                            <h4>Catatan Tambahan</h4>
+                        </div>
+                        <div class="detail-card-content">
+                            <p id="display_feedback_notes_info">
+                                @if ($reporter->reason)
+                                    {{ $reporter->reason ?? 'Tidak ada catatan tambahan dari pihak sekolah.' }}
+                                @else
+                                    Tidak ada catatan tambahan dari pihak sekolah.
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="detail-card">
+                        <div class="detail-card-header">
+                            <i class="fas fa-file-image"></i>
+                            <h4>Bukti Penyelesaian</h4>
+                        </div>
+                        <div class="detail-card-content">
+                            <div id="display_evidence_files_info" class="file-display-container">
+                                @if ($reporter->file)
+                                    @php
+                                        $fileExtension = strtolower(pathinfo($reporter->file, PATHINFO_EXTENSION));
+                                        $isVideo = in_array($fileExtension, ['mp4', 'avi', 'mov', 'wmv', 'webm', 'ogg']);
+                                    @endphp
+                                    <div class="file-display-item" data-src="{{ asset('storage/' . $reporter->file) }}" data-type="{{ $isVideo ? 'video' : 'image' }}">
+                                        @if($isVideo)
+                                            <div class="evidence-thumbnail" onclick="openMediaModal('{{ asset('storage/' . $reporter->file) }}', 'video')">
+                                                <video src="{{ asset('storage/' . $reporter->file) }}" preload="metadata" class="evidence-media"></video>
+                                                <div class="play-overlay">
+                                                    <i class="fas fa-play"></i>
+                                                </div>
+                                                <div class="view-hint">Klik untuk melihat</div>
+                                            </div>
+                                        @else
+                                            <div class="evidence-thumbnail" onclick="openMediaModal('{{ asset('storage/' . $reporter->file) }}', 'image')">
+                                                <img src="{{ asset('storage/' . $reporter->file) }}" alt="Bukti Tindakan" class="evidence-media">
+                                                <div class="view-overlay">
+                                                    <i class="fas fa-search-plus"></i>
+                                                </div>
+                                                <div class="view-hint">Klik untuk melihat</div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @else
+                                    <p class="text-muted">Tidak ada bukti penyelesaian yang dilampirkan.</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feedback-section">
+                    <div class="feedback-header">
+                        <i class="fas fa-star"></i>
+                        <h3>Bagikan Kepuasan Anda</h3>
+                    </div>
+
+                    {{-- === Start: Kondisi untuk menampilkan form input atau hasil review === --}}
+                    @if ($reporter->rating)
+                        {{-- Tampilan hasil review jika sudah ada rating --}}
+                        <div id="feedbackDisplayContent">
+                            <div class="form-group">
+                                <label>Tingkat Kepuasan Anda:</label>
+                                <div class="rating-container">
+                                    <div class="rating-stars display-only" id="display-rating-stars">
+                                        {{-- Bintang akan diisi oleh JS --}}
+                                    </div>
+                                    <div class="rating-text">
+                                        <span id="display-rating-text"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Komentar & Saran:</label>
+                                <p id="display-comments-text" class="text-dark">
+                                    {{ $reporter->feedback_notes ?? 'Tidak ada saran atau komentar.' }}
+                                </p>
+                            </div>
+                        </div>
+                    @else
+                        {{-- Form input feedback jika belum ada rating --}}
+                        <div id="feedbackRatingContent">
+                            <div class="form-group">
+                                <label for="rating_input">Tingkat Kepuasan Anda:</label>
+                                <div class="rating-container">
+                                    <div class="rating-stars" id="rating-stars">
+                                        <i class="far fa-star" data-rating="1"></i>
+                                        <i class="far fa-star" data-rating="2"></i>
+                                        <i class="far fa-star" data-rating="3"></i>
+                                        <i class="far fa-star" data-rating="4"></i>
+                                        <i class="far fa-star" data-rating="5"></i>
+                                    </div>
+                                    <div class="rating-text">
+                                        <span id="rating-text">Pilih rating</span>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="selected_rating_input" name="selected_rating" value="" required>
+                                <div class="error-message" id="error-selected_rating_input"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="comments_input">Komentar & Saran (Opsional):</label>
+                                <textarea id="comments_input" name="comments" placeholder="Bagikan pemikiran atau saran Anda untuk perbaikan di masa mendatang" rows="4"></textarea>
+                            </div>
+                        </div>
+                    @endif
+                    {{-- === End: Kondisi untuk menampilkan form input atau hasil review === --}}
+                </div>
+
+                <div class="info-footer">
+                    <p class="info-text">
+                        <i class="fas fa-info-circle"></i>
+                        Informasi lebih lanjut dapat Anda dapatkan dengan menghubungi pihak sekolah.
+                    </p>
+                </div>
+            </div>
         </div>
 
-        <div class="modal-actions">
-            <button class="btn btn-secondary" onclick="previousStep()" id="prevBtn">Kembali</button>
-            <button class="btn btn-primary" onclick="nextStep()" id="nextBtn">Lanjutkan</button>
+        {{-- === Start: Kondisi untuk tombol aksi di footer modal === --}}
+        <div class="modal-actions" id="modal-actions-container">
+            @if ($reporter->rating)
+                {{-- Jika sudah ada rating, hanya tampilkan tombol "Tutup" --}}
+                <button class="btn btn-primary btn-lg" onclick="closeCompletionInfoModal()">
+                    <i class="fas fa-times"></i> Tutup
+                </button>
+            @else
+                {{-- Jika belum ada rating, tampilkan pertanyaan dan tombol Kirim Penilaian --}}
+                <p class="action-question">Apakah Anda puas dengan penyelesaian ini?</p>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="closeCompletionInfoModal()">
+                        <i class="fas fa-times"></i> Tutup
+                    </button>
+                    <button class="btn btn-primary" onclick="submitUserFeedback()" id="submitUserFeedbackBtn">
+                        <i class="fas fa-paper-plane"></i> Kirim Penilaian
+                    </button>
+                </div>
+            @endif
+        </div>
+        {{-- === End: Kondisi untuk tombol aksi di footer modal === --}}
+    </div>
+</div>
+
+<div class="media-modal-overlay" id="mediaModal">
+    <div class="media-modal">
+        <button class="media-close-btn" onclick="closeMediaModal()">&times;</button>
+        <div class="media-content">
+            <div id="mediaContainer"></div>
         </div>
     </div>
-    {{-- OLD: Removed the separate modal-loading-overlay --}}
 </div>
 
 <style>
-    /* Variabel CSS Dasar */
-    :root {
-        --primary-color: #4361EE;
-        --secondary-color: #f3f4f6;
-        --success-color: #22c55e;
-        --text-dark: #1f2937;
-        --text-gray: #6b7280;
-        --border-light: #e5e7eb;
-        --bg-light: #f9fafb;
-        --bg-active: #eff6ff;
-        --bg-checkbox-success: #f0fdf4;
-        --border-checkbox-success: #bbf7d0;
-        --error-color: #ef4444; /* Warna merah untuk error */
-        --border-error: #f87171; /* Warna border merah untuk error */
+    /* Tambahan gaya untuk modal informasi penyelesaian */
+    .intro-text, .info-text {
+        font-size: 16px;
+        color: #34495e;
+        line-height: 1.6;
+        text-align: center;
+    }
+    .intro-text strong {
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+    .text-danger { /* Pastikan warna merah untuk kategori kasus */
+        color: #dc3545 !important;
     }
 
-    /* Modal Overlay (Outer wrapper) */
+    /* Gaya khusus untuk modal form penilaian */
+    .rating-stars {
+        font-size: 28px;
+        color: #ddd;
+        cursor: pointer;
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+        margin-top: 10px;
+    }
+    .rating-stars i.fas {
+        color: #ffc107; /* Warna bintang terisi */
+    }
+    /* Menggunakan kembali modal-display-text untuk textarea komentar */
+    #comments_input {
+        background-color: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        padding: 12px 15px;
+        font-size: 15px;
+        color: var(--text-dark);
+        min-height: 80px; /* Sesuaikan tinggi */
+        line-height: 1.6;
+        width: 100%; /* Pastikan lebar 100% */
+        box-sizing: border-box; /* Penting untuk padding */
+        resize: vertical;
+    }
+    #comments_input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+    /* Tambahkan style untuk mode display-only bintang agar tidak ada hover/klik */
+    .rating-stars.display-only i {
+        cursor: default;
+        color: var(--warning-color); /* Pastikan bintang display selalu kuning */
+    }
+    .rating-stars.display-only i:hover {
+        transform: none; /* Hilangkan efek hover */
+    }
+
+    /* Style untuk teks komentar yang sudah ada */
+    #display-comments-text {
+        background-color: #f0f0f0; /* Warna latar belakang ringan */
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        min-height: 80px; /* Pastikan tinggi minimum */
+        line-height: 1.6;
+        color: var(--text-dark);
+        word-wrap: break-word; /* Memastikan teks panjang tidak keluar wadah */
+        white-space: pre-wrap; /* Mempertahankan spasi dan baris baru */
+    }
+    /* Variabel CSS Dasar */
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #6c757d;
+        --success-color: #28a745;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --info-color: #17a2b8;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+        --bg-light: #ffffff;
+        --border-light: #e9ecef;
+        --text-dark: #495057;
+        --text-muted: #6c757d;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+        --border-radius: 12px;
+        --border-radius-sm: 8px;
+    }
+
     .modal-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.6);
         display: flex;
-        align-items: center;
         justify-content: center;
-        backdrop-filter: blur(4px);
-        opacity: 0; 
+        align-items: center;
+        z-index: 1050;
+        opacity: 0;
         transition: opacity 0.3s ease;
-        z-index: 1000;
+        backdrop-filter: blur(4px);
     }
-    .modal-overlay.show { 
+
+    .modal-overlay.show {
         opacity: 1;
     }
 
-
-    /* Animasi Modal */
-    @keyframes modalSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-20px) scale(0.95);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
-
-    @keyframes modalSlideOut {
-        from {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-        to {
-            opacity: 0;
-            transform: translateY(-20px) scale(0.95);
-        }
-    }
-
     .modal {
-        background: white;
-        border-radius: 20px;
-        padding: 0 40px 40px 40px;
-        width: 100%;
-        max-width: 700px;
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-        position: relative; 
-        display: flex;
-        flex-direction: column;
-        gap: 35px;
-        z-index: 1001; 
+        background: var(--bg-light);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        width: 95%;
+        max-width: 900px;
+        max-height: 95vh;
+        overflow-y: auto;
+        position: relative;
+        transform: scale(0.9) translateY(-20px);
+        transition: transform 0.3s ease;
     }
 
-    /* Close Button */
+    .modal-overlay.show .modal {
+        transform: scale(1) translateY(0);
+    }
+
     .close-btn {
         position: absolute;
-        top: 20px;
-        right: 25px;
-        background: rgba(255, 255, 255, 0.2);
+        top: 15px;
+        right: 20px;
+        background: none;
         border: none;
-        font-size: 20px;
-        color: white;
+        font-size: 28px;
+        color: var(--text-muted);
         cursor: pointer;
-        padding: 8px;
-        border-radius: 50%;
-        transition: all 0.2s ease;
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(10px);
         z-index: 10;
+        transition: color 0.2s ease;
     }
 
     .close-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: scale(1.1);
+        color: var(--danger-color);
     }
 
-    /* Modal Header */
     .modal-header {
-        text-align: left;
-        padding: 30px 40px 25px 40px;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-        border-radius: 20px 20px 0 0;
-        margin: 0 -40px 0 -40px;
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
+        text-align: center;
+        padding: 25px 30px 20px;
+        background: linear-gradient(135deg, var(--success-color), #20c997);
         color: white;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
 
     .header-icon {
-        font-size: 24px;
-        background: rgba(255, 255, 255, 0.2);
-        padding: 8px;
-        border-radius: 8px;
-        backdrop-filter: blur(10px);
+        font-size: 36px;
+        margin-bottom: 8px;
     }
 
     .modal-title {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 700;
-        color: white;
         margin: 0;
-        letter-spacing: -0.5px;
-        line-height: 1.2;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .step-content {
+        padding: 30px 40px;
+    }
+
+    .completion-info-section {
+        margin-bottom: 30px;
+    }
+
+    .intro-text {
+        font-size: 16px;
+        color: var(--text-dark);
+        line-height: 1.6;
+        text-align: center;
+        margin-bottom: 20px;
+        padding: 0 10px;
+    }
+
+    .intro-text strong.text-primary {
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+
+    .intro-text strong.text-danger {
+        color: var(--danger-color);
+        font-weight: 700;
+    }
+
+    .completion-details {
+        margin-bottom: 30px;
+    }
+
+    .detail-card {
+        background: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 20px;
+        box-shadow: var(--shadow);
+        transition: box-shadow 0.2s ease;
+    }
+
+    .detail-card:hover {
+        box-shadow: var(--shadow-lg);
+    }
+
+    .detail-card-header {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
+        background: linear-gradient(135deg, var(--light-color), #e9ecef);
+        border-bottom: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+    }
+
+    .detail-card-header i {
+        font-size: 20px;
+        color: var(--primary-color);
+        margin-right: 10px;
+    }
+
+    .detail-card-header h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .detail-card-content {
+        padding: 20px;
+    }
+
+    .detail-card-content p {
+        margin: 0;
+        color: var(--text-dark);
+        line-height: 1.6;
+        font-size: 15px;
+    }
+
+    .file-display-container {
         text-align: center;
     }
 
-    .modal-subtitle {
-        display: none;
+    .file-display-item {
+        display: inline-block;
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+        box-shadow: var(--shadow);
     }
 
-    /* Progress Stepper */
-    .progress-stepper {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        margin: 0 20px;
+    .evidence-thumbnail {
         position: relative;
-        padding: 20px 0;
+        cursor: pointer;
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .progress-line {
+    .evidence-thumbnail:hover {
+        transform: scale(1.05);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .evidence-media {
+        max-width: 100%;
+        height: auto;
+        max-height: 200px;
+        border-radius: var(--border-radius-sm);
+        object-fit: cover;
+        display: block;
+    }
+
+    .play-overlay, .view-overlay {
         position: absolute;
-        top: 45px;
-        left: 50px;
-        right: 50px;
-        height: 4px;
-        background: var(--border-light);
-        z-index: 1;
-        border-radius: 2px;
-    }
-
-    .progress-line-fill {
-        height: 100%;
-        background: linear-gradient(90deg, var(--primary-color), var(--success-color));
-        transition: width 0.5s ease;
-        width: 0%;
-        border-radius: 2px;
-    }
-
-    .step {
-        position: relative;
-        z-index: 2;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        flex: 1;
-        min-width: 100px;
-        max-width: 140px;
-    }
-
-    .step-indicator {
-        width: 55px;
-        height: 55px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
         border-radius: 50%;
+        width: 60px;
+        height: 60px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 600;
-        font-size: 18px;
-        margin-bottom: 15px;
-        transition: all 0.3s ease;
-        background: white;
-        border: 3px solid var(--border-light);
-        color: var(--text-gray);
+        font-size: 24px;
+        transition: background 0.2s ease;
     }
 
-    /* State untuk Step */
-    .step.pending .step-indicator {
-        background: white;
-        color: var(--text-gray);
-        border-color: var(--border-light);
+    .evidence-thumbnail:hover .play-overlay,
+    .evidence-thumbnail:hover .view-overlay {
+        background: rgba(0, 0, 0, 0.9);
     }
 
-    .step.active .step-indicator {
-        background: var(--primary-color);
+    .view-hint {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
         color: white;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.2);
-        transform: scale(1.05);
+        padding: 15px 10px 10px;
+        font-size: 12px;
+        font-weight: 500;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
     }
 
-    .step.completed .step-indicator {
-        background: var(--success-color);
-        color: white;
-        border-color: var(--success-color);
+    .evidence-thumbnail:hover .view-hint {
+        opacity: 1;
     }
 
-    /* Icon centang untuk langkah yang selesai */
-    .step.completed .step-indicator::before {
-        content: "✓";
-        font-size: 20px;
-        font-weight: bold;
-        line-height: 1;
+    .text-muted {
+        color: var(--text-muted);
+        font-style: italic;
     }
 
-    .step.completed .step-indicator {
-        font-size: 0;
+    .feedback-section {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: var(--border-radius-sm);
+        padding: 25px;
+        margin-bottom: 25px;
     }
 
-    /* Step Content Area */
-    .step-content {
-        background: var(--bg-light);
-        border-radius: 16px;
-        padding: 30px;
-        border: 2px solid transparent;
-        transition: all 0.3s ease;
-        display: none;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .step-content.active {
-        background: var(--bg-active);
-        border-color: var(--primary-color);
-        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.15);
+    .feedback-header {
         display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 25px;
     }
 
-    .step-content-title {
-        font-size: 22px;
+    .feedback-header i {
+        font-size: 24px;
+        color: var(--warning-color);
+        margin-right: 10px;
+    }
+
+    .feedback-header h3 {
+        margin: 0;
+        font-size: 20px;
         font-weight: 600;
         color: var(--text-dark);
-        margin-bottom: 20px;
-        text-align: center;
-    }
-
-    /* Form Elements */
-    .form-row {
-        display: flex;
-        gap: 20px;
-        margin-bottom: 20px;
     }
 
     .form-group {
-        flex: 1;
-        margin-bottom: 0;
-        position: relative; 
-    }
-
-    .location-group {
-        margin-top: 10px;
+        margin-bottom: 20px;
     }
 
     .form-group label {
         display: block;
-        font-weight: 500;
-        color: var(--text-dark);
         margin-bottom: 8px;
-        font-size: 14px;
-    }
-
-    .form-group input,
-    .form-group textarea {
-        width: 100%;
-        padding: 12px 16px;
-        border: 2px solid var(--border-light);
-        border-radius: 8px;
-        font-size: 14px;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        font-family: inherit;
+        font-weight: 600;
         color: var(--text-dark);
-        box-sizing: border-box;
+        font-size: 14px;
     }
 
-    .form-group input::placeholder,
-    .form-group textarea::placeholder {
-        color: #9ca3af;
+    .rating-container {
+        text-align: center;
     }
 
-    .form-group input:focus,
-    .form-group textarea:focus {
+    .rating-stars {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .rating-stars i {
+        font-size: 32px;
+        color: #ddd;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .rating-stars i:hover {
+        transform: scale(1.1);
+    }
+
+    .rating-stars i.fas {
+        color: var(--warning-color);
+    }
+
+    .rating-text {
+        font-size: 14px;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    #comments_input {
+        width: 100%;
+        background-color: var(--bg-light);
+        border: 1px solid var(--border-light);
+        border-radius: var(--border-radius-sm);
+        padding: 15px;
+        font-size: 15px;
+        color: var(--text-dark);
+        min-height: 100px;
+        line-height: 1.6;
+        resize: vertical;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #comments_input:focus {
         outline: none;
         border-color: var(--primary-color);
         box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
     }
 
-    .form-group textarea {
-        resize: vertical;
-        min-height: 80px;
+    .error-message {
+        display: none;
+        color: var(--danger-color);
+        font-size: 13px;
+        margin-top: 5px;
+        font-weight: 500;
     }
 
-    .form-group input[type="file"] {
-        padding: 8px;
-        background: white;
-    }
-
-    .file-info {
-        color: var(--text-gray);
-        font-size: 12px;
-        margin-top: 4px;
+    .form-group.error .error-message {
         display: block;
     }
 
-    /* Checkbox Group */
-    .checkbox-group {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        margin-top: 24px;
+    .form-group.error .rating-stars {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    .info-footer {
+        text-align: center;
         padding: 20px;
-        background: var(--bg-checkbox-success);
-        border-radius: 8px;
-        border: 1px solid var(--border-checkbox-success);
-    }
-
-    .checkbox-group input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
-        margin: 0;
-        flex-shrink: 0;
-        margin-top: 2px;
-        accent-color: var(--primary-color);
-    }
-
-    .checkbox-label {
-        font-size: 14px;
-        color: var(--text-dark);
-        line-height: 1.5;
-        margin: 0 !important;
-    }
-
-    /* Modal Actions */
-    .modal-actions {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        padding-top: 10px;
-    }
-
-    .btn {
-        padding: 14px 28px;
-        border-radius: 10px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: none;
-        font-size: 16px;
-        min-width: 120px;
-    }
-
-    .btn-primary {
-        background: var(--primary-color);
+        background: linear-gradient(135deg, var(--info-color), #20c997);
         color: white;
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 20px;
     }
 
-    .btn-primary:hover {
-        background: #3751db;
-        transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-        background: var(--secondary-color);
-        color: var(--text-gray);
-    }
-
-    .btn-secondary:hover {
-        background: #e5e7eb;
-    }
-
-    .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        /* Tambahkan style untuk spinner di dalam tombol */
+    .info-text {
+        margin: 0;
+        font-size: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    .btn:disabled .spinner-border {
-        width: 1rem;
-        height: 1rem;
-        border-width: 0.15em;
-        margin-right: 0.5rem;
-    }
-    
-    .btn:disabled .spinner-grow { /* If using spinner-grow */
-        width: 1rem;
-        height: 1rem;
-        margin-right: 0.5rem;
+    .info-text i {
+        margin-right: 8px;
+        font-size: 16px;
     }
 
-    /* --- New Error Styling --- */
-    .form-group.error input,
-    .form-group.error textarea,
-    .checkbox-group.error {
-        border-color: var(--border-error) !important;
-        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+    .modal-actions {
+        padding: 25px 40px 30px;
+        text-align: center;
+        background: var(--light-color);
+        border-radius: 0 0 var(--border-radius) var(--border-radius);
     }
 
-    .error-message {
-        color: var(--error-color);
-        font-size: 12px;
-        margin-top: 6px;
-        display: none; /* Hidden by default */
+    .action-question {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 20px;
     }
 
-    .form-group.error .error-message {
-        display: block; /* Show when error is active */
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
     }
 
-    /* Specific adjustment for checkbox error message to align better */
-    .checkbox-group.error .error-message {
-        margin-left: 30px; /* Adjust as needed to align with text */
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        min-width: 120px;
+        justify-content: center;
     }
 
-    /* REMOVED: modal-loading-overlay CSS as it's no longer a separate overlay */
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), #3f37c9);
+        color: white;
+        box-shadow: var(--shadow);
+    }
 
-    /* Responsive Adjustments */
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #3f37c9, var(--primary-color));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, var(--secondary-color), #5a6268);
+        color: white;
+        box-shadow: var(--shadow);
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, #5a6268, var(--secondary-color));
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* Responsive Design */
     @media (max-width: 768px) {
         .modal {
-            padding: 0 20px 20px 20px;
-            gap: 25px;
+            width: 95%;
+            max-width: none;
+            margin: 10px;
         }
 
         .modal-header {
-            margin: 0 -20px 0 -20px;
-            padding: 25px 25px 20px 25px;
-            gap: 12px;
+            padding: 20px 20px 15px;
         }
 
         .header-icon {
-            font-size: 20px;
-            padding: 6px;
+            font-size: 32px;
         }
 
         .modal-title {
-            font-size: 20px;
-        }
-
-        .close-btn {
-            top: 18px;
-            right: 20px;
-            width: 32px;
-            height: 32px;
             font-size: 18px;
         }
 
-        .progress-stepper {
-            margin: 0 10px;
-            padding: 15px 0;
-        }
-
-        .step {
-            min-width: 70px;
-            max-width: 90px;
-        }
-
-        .step-indicator {
-            width: 45px;
-            height: 45px;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-
-        .step-label {
-            font-size: 12px;
-            padding: 0 2px;
-        }
-
-        .progress-line {
-            top: 37px;
-            left: 35px;
-            right: 35px;
-        }
-
         .step-content {
+            padding: 25px;
+        }
+
+        .detail-card-header {
+            padding: 12px 15px;
+        }
+
+        .detail-card-content {
+            padding: 15px;
+        }
+
+        .feedback-section {
             padding: 20px;
-            gap: 15px;
         }
 
-        .step-content-title {
-            font-size: 20px;
-            margin-bottom: 15px;
+        .rating-stars i {
+            font-size: 28px;
         }
 
-        .form-row {
+        .action-buttons {
             flex-direction: column;
-            gap: 0;
-            margin-bottom: 15px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
-
-        .location-group {
-            margin-top: 0;
-        }
-
-        .modal-actions {
-            flex-direction: column;
-            gap: 10px;
-            padding-top: 0;
+            align-items: center;
         }
 
         .btn {
             width: 100%;
-            padding: 12px 20px;
-            font-size: 15px;
+            max-width: 200px;
+        }
+
+        .modal-actions {
+            padding: 20px 25px 25px;
         }
     }
 
-    @media (max-width: 480px) {
-        .modal {
-            padding: 0 15px 15px 15px;
-            gap: 20px;
+    /* Animation for modal entrance */
+    @keyframes modalSlideIn {
+        from {
+            transform: scale(0.7) translateY(-50px);
+            opacity: 0;
         }
-
-        .modal-header {
-            margin: 0 -15px 0 -15px;
-            padding: 20px 20px 18px 20px;
-            gap: 10px;
+        to {
+            transform: scale(1) translateY(0);
+            opacity: 1;
         }
+    }
 
-        .header-icon {
-            font-size: 18px;
-            padding: 5px;
+    /* Media Modal Styles */
+    .media-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1100;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .media-modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .media-modal {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        transform: scale(0.8);
+        transition: transform 0.3s ease;
+    }
+
+    .media-modal-overlay.show .media-modal {
+        transform: scale(1);
+    }
+
+    .media-close-btn {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 32px;
+        cursor: pointer;
+        z-index: 10;
+        transition: color 0.2s ease;
+    }
+
+    .media-close-btn:hover {
+        color: var(--danger-color);
+    }
+
+    .media-content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .media-content img {
+        max-width: 100%;
+        max-height: 80vh;
+        border-radius: var(--border-radius-sm);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .media-content video {
+        max-width: 100%;
+        max-height: 80vh;
+        border-radius: var(--border-radius-sm);
+        box-shadow: var(--shadow-lg);
+    }
+
+    @media (max-width: 768px) {
+        .media-close-btn {
+            top: -35px;
+            right: -10px;
+            font-size: 28px;
         }
-
-        .modal-title {
-            font-size: 18px;
+        
+        .media-modal {
+            max-width: 95%;
+            max-height: 95%;
         }
-
-        .close-btn {
-            top: 15px;
-            right: 18px;
-            width: 30px;
-            height: 30px;
-            font-size: 16px;
-        }
-
-        .step {
-            min-width: 60px;
-            max-width: 80px;
-        }
-
-        .step-indicator {
-            width: 40px;
-            height: 40px;
-            font-size: 14px;
-        }
-
-        .step-label {
-            font-size: 11px;
-        }
-
-        .progress-line {
-            top: 32px;
-            left: 30px;
-            right: 30px;
+        
+        .media-content img,
+        .media-content video {
+            max-height: 70vh;
         }
     }
 </style>
 
 @push('scripts')
     <script>
-        let currentStepWizard = 1;
-        const totalStepsWizard = 3;
-
-        const formDataWizard = {};
-
-        let studentDatabase = JSON.parse($("#data-siswa").val());
-
-        const stepData = {
-            1: {
-                title: "Waktu Kejadian",
-                content: `
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="tanggal">Tanggal & Jam Kejadian</label>
-                            <input type="datetime-local" id="tanggal" name="tanggal" required>
-                            <div class="error-message" id="error-tanggal"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="lokasi">Lokasi Kejadian</label>
-                            <input type="text" id="lokasi" name="lokasi" placeholder="Masukkan lokasi kejadian" required>
-                            <div class="error-message" id="error-lokasi"></div>
-                        </div>
-                    </div>
-                `
-            },
-            2: {
-                title: "Pihak Terlibat",
-                content: `
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="id_korban">Nama Korban</label>
-                            <select id="id_korban" name="id_korban[]" class="form-control select2-multiple" multiple="multiple" required style="width: 100%;">
-                            </select>
-                            <div class="error-message" id="error-id_korban"></div>
-                        </div>
-                        <div class="form-group">
-                            <label for="id_pelaku">Nama Pelaku</label>
-                            <select id="id_pelaku" name="id_pelaku[]" class="form-control select2-multiple" multiple="multiple" required style="width: 100%;">
-                            </select>
-                            <div class="error-message" id="error-id_pelaku"></div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="id_saksi">Saksi (Jika Ada)</label>
-                        <select id="id_saksi" name="id_saksi[]" class="form-control select2-multiple" multiple="multiple" style="width: 100%;">
-                        </select>
-                        <div class="error-message" id="error-id_saksi"></div>
-                    </div>
-                `
-            },
-            3: {
-                title: "Tindakan",
-                content: `
-                    <div class="form-group">
-                        <label for="tindakan">Tindakan yang Diharapkan</label>
-                        <textarea id="tindakan" name="tindakan" placeholder="Deskripsikan tindakan yang diharapkan untuk menyelesaikan masalah ini" rows="5" required></textarea>
-                        <div class="error-message" id="error-tindakan"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="info_tambahan">Informasi Tambahan</label>
-                        <textarea id="info_tambahan" name="info_tambahan" placeholder="Masukkan informasi tambahan yang relevan" rows="4"></textarea>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="pernyataan" name="pernyataan" required>
-                        <label for="pernyataan" class="checkbox-label">
-                            Saya menyatakan bahwa semua informasi yang diberikan adalah benar dan dapat dipertanggungjawabkan
-                        </label>
-                        <div class="error-message" id="error-pernyataan"></div>
-                    </div>
-                `
-            },
+        let selectedRatingInput = 0;
+        const ratingTexts = {
+            0: 'Pilih rating',
+            1: 'Sangat Tidak Puas',
+            2: 'Tidak Puas',
+            3: 'Cukup Puas',
+            4: 'Puas',
+            5: 'Sangat Puas'
         };
 
-        function updateWizardSteps() {
-            $('.select2-multiple').select2('destroy');
+        function completionInfoModal() {
+            const modalOverlay = document.getElementById('completionInfoModal');
+            if (modalOverlay) {
+                const actualModal = modalOverlay.querySelector('.modal');
 
-            for (let i = 1; i <= totalStepsWizard; i++) {
-                const step = document.getElementById(`step${i}`);
-                step.classList.remove('pending', 'active', 'completed');
+                // Jika feedback sudah ada, inisialisasi tampilan display
+                @if ($reporter->rating)
+                    selectedRatingInput = {{ $reporter->rating }};
+                    updateStarRatingDisplay();
+                    updateRatingTextDisplay();
+                @endif
 
-                if (i < currentStepWizard) {
-                    step.classList.add('completed');
-                } else if (i === currentStepWizard) {
-                    step.classList.add('active');
+                modalOverlay.style.display = 'flex';
+                requestAnimationFrame(() => {
+                    modalOverlay.classList.add('show');
+                    if (actualModal) {
+                        actualModal.style.animation = 'modalSlideIn 0.3s ease-out forwards';
+                    }
+                });
+            }
+        }
+
+        function closeCompletionInfoModal() {
+            const modalOverlay = document.getElementById('completionInfoModal');
+            const actualModal = modalOverlay.querySelector('.modal');
+
+            console.log("closeCompletionInfoModal called.");
+            modalOverlay.classList.remove('show'); // Hapus kelas 'show' dulu untuk transisi opacity
+
+            setTimeout(() => {
+                modalOverlay.style.display = 'none'; // Baru sembunyikan setelah transisi
+                if (actualModal) {
+                    actualModal.style.animation = ''; // Reset animasi
+                }
+
+                // Reset form hanya jika belum ada rating (mode input)
+                @if (!$reporter->rating)
+                    selectedRatingInput = 0;
+                    document.getElementById('selected_rating_input').value = '';
+                    document.getElementById('comments_input').value = '';
+                    updateStarRatingForm();
+                    updateRatingText();
+                    hideValidationErrorFeedback(document.getElementById('selected_rating_input'));
+                @endif
+            }, 300); // Sesuaikan dengan durasi transisi CSS .modal-overlay
+        }
+
+        window.completionInfoModal = completionInfoModal;
+        window.closeCompletionInfoModal = closeCompletionInfoModal; // Pastikan ini diekspos dengan benar
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('completionInfoModal');
+            if (modal) {
+                modal.style.display = 'none'; // Initially hidden
+                modal.classList.remove('show'); // Ensure no initial opacity
+            }
+
+            const mediaModal = document.getElementById('mediaModal');
+            if (mediaModal) {
+                mediaModal.style.display = 'none';
+                mediaModal.classList.remove('show');
+            }
+
+            // Inisialisasi fungsi rating HANYA JIKA feedback belum diberikan
+            @if (!$reporter->rating)
+                initializeRatingStarsForm(); // Panggil fungsi untuk interaksi form
+            @else
+                // Jika feedback sudah ada, panggil fungsi untuk tampilan display
+                selectedRatingInput = {{ $reporter->rating }};
+                updateStarRatingDisplay();
+                updateRatingTextDisplay();
+            @endif
+        });
+
+        // FUNGSI UNTUK FORM INPUT (JIKA BELUM ADA RATING)
+        function initializeRatingStarsForm() {
+            const ratingStarsForm = document.getElementById('rating-stars');
+            if (ratingStarsForm) {
+                ratingStarsForm.addEventListener('click', (e) => {
+                    const star = e.target.closest('i');
+                    if (star && star.dataset.rating) {
+                        selectedRatingInput = parseInt(star.dataset.rating);
+                        document.getElementById('selected_rating_input').value = selectedRatingInput;
+                        updateStarRatingForm();
+                        updateRatingText();
+                        hideValidationErrorFeedback(document.getElementById('selected_rating_input'));
+                    }
+                });
+
+                ratingStarsForm.addEventListener('mouseover', (e) => {
+                    const star = e.target.closest('i');
+                    if (star && star.dataset.rating) {
+                        const hoverRating = parseInt(star.dataset.rating);
+                        highlightStars(hoverRating, 'rating-stars'); // Gunakan ID spesifik
+                    }
+                });
+
+                ratingStarsForm.addEventListener('mouseleave', () => {
+                    updateStarRatingForm();
+                });
+            }
+        }
+
+        // FUNGSI UNTUK MENGISI BINTANG PADA TAMPILAN (JIKA SUDAH ADA RATING)
+        function updateStarRatingDisplay() {
+            const displayStarsContainer = document.getElementById('display-rating-stars');
+            if (displayStarsContainer) {
+                let starsHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    if (i <= selectedRatingInput) {
+                        starsHtml += '<i class="fas fa-star" data-rating="' + i + '"></i>';
+                    } else {
+                        starsHtml += '<i class="far fa-star" data-rating="' + i + '"></i>';
+                    }
+                }
+                displayStarsContainer.innerHTML = starsHtml;
+            }
+        }
+
+        // FUNGSI UNTUK UPDATE TEKS RATING PADA TAMPILAN
+        function updateRatingTextDisplay() {
+            const ratingTextElement = document.getElementById('display-rating-text');
+            if (ratingTextElement) {
+                ratingTextElement.textContent = ratingTexts[selectedRatingInput] || 'Pilih rating';
+            }
+        }
+
+        // FUNGSI UMUM UNTUK HIGHLIGHT BINTANG (digunakan oleh form input dan hover)
+        function highlightStars(rating, containerId) {
+            document.querySelectorAll('#' + containerId + ' i').forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.remove('far');
+                    star.classList.add('fas');
                 } else {
-                    step.classList.add('pending');
-                }
-            }
-
-            let progressPercentage = 0;
-            if (totalStepsWizard > 1) {
-                progressPercentage = ((currentStepWizard - 1) / (totalStepsWizard - 1)) * 100;
-            }
-            document.getElementById('progressFill').style.width = progressPercentage + '%';
-
-            const contentData = stepData[currentStepWizard];
-            document.getElementById('contentTitle').textContent = contentData.title;
-            document.getElementById('contentForm').innerHTML = contentData.content;
-
-            loadFormDataForCurrentStep();
-
-            if (currentStepWizard === 2) {
-                initializeSelect2();
-            }
-            attachValidationListeners();
-
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-
-            prevBtn.disabled = currentStepWizard === 1;
-
-            // Reset nextBtn text to default "Lanjutkan" when navigating steps
-            if (currentStepWizard < totalStepsWizard) {
-                nextBtn.innerHTML = 'Lanjutkan'; // Revert to plain text
-                nextBtn.disabled = false; // Ensure it's enabled on normal navigation
-            } else {
-                nextBtn.innerHTML = 'Kirim Laporan'; // Final step text
-                nextBtn.disabled = false; // Ensure it's enabled initially on final step
-            }
-        }
-
-        function saveFormDataFromCurrentStep() {
-            const currentContentForm = document.getElementById('contentForm');
-            const inputs = currentContentForm.querySelectorAll('input, textarea, select');
-
-            inputs.forEach(input => {
-                const name = input.name;
-                if (name) { 
-                    if (input.type === 'checkbox') {
-                        formDataWizard[name] = input.checked;
-                    } else if (input.hasAttribute('multiple') && input.tagName === 'SELECT') {
-                        formDataWizard[name] = Array.from(input.options)
-                                                .filter(option => option.selected)
-                                                .map(option => option.value);
-                    } else {
-                        formDataWizard[name] = input.value;
-                    }
-                }
-            });
-            console.log("Saved formDataWizard:", formDataWizard);
-        }
-
-        function loadFormDataForCurrentStep() {
-            const currentContentForm = document.getElementById('contentForm');
-            const inputs = currentContentForm.querySelectorAll('input, textarea, select');
-
-            inputs.forEach(input => {
-                const name = input.name;
-                if (name && formDataWizard.hasOwnProperty(name)) {
-                    const savedValue = formDataWizard[name];
-
-                    if (input.type === 'checkbox') {
-                        input.checked = savedValue;
-                    } else if (input.hasAttribute('multiple') && input.tagName === 'SELECT') {
-                        // Select2 will handle setting values after initialization, so just ensure data is here
-                    } else {
-                        input.value = savedValue;
-                    }
+                    star.classList.remove('fas');
+                    star.classList.add('far');
                 }
             });
         }
 
-        function showValidationError(field, message) {
-            const formGroup = field.closest('.form-group') || field.closest('.checkbox-group');
+        // FUNGSI UMUM UNTUK UPDATE BINTANG BERDASARKAN selectedRatingInput (digunakan oleh form input)
+        function updateStarRatingForm() {
+            highlightStars(selectedRatingInput, 'rating-stars'); // Gunakan ID spesifik
+        }
+
+        // FUNGSI UMUM UNTUK UPDATE TEKS RATING (digunakan oleh form input)
+        function updateRatingText() {
+            const ratingTextElement = document.getElementById('rating-text');
+            if (ratingTextElement) {
+                ratingTextElement.textContent = ratingTexts[selectedRatingInput] || 'Pilih rating';
+            }
+        }
+
+        function validateFeedbackFormSubmit() {
+            let isValid = true;
+            let firstInvalidField = null;
+
+            const ratingInput = document.getElementById('selected_rating_input');
+            hideValidationErrorFeedback(ratingInput);
+
+            if (selectedRatingInput === 0) {
+                showValidationErrorFeedback(ratingInput, 'Mohon berikan penilaian bintang.');
+                isValid = false;
+                if (!firstInvalidField) firstInvalidField = ratingInput;
+            }
+
+            if (!isValid && firstInvalidField) {
+                const ratingStarsElement = document.getElementById('rating-stars');
+                if (ratingStarsElement) {
+                    ratingStarsElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    firstInvalidField.focus();
+                }
+            }
+            return isValid;
+        }
+
+        function showValidationErrorFeedback(field, message) {
+            const formGroup = field.closest('.form-group');
             if (formGroup) {
                 formGroup.classList.add('error');
                 const errorMessageDiv = formGroup.querySelector('.error-message');
@@ -807,8 +1067,8 @@
             }
         }
 
-        function hideValidationError(field) {
-            const formGroup = field.closest('.form-group') || field.closest('.checkbox-group');
+        function hideValidationErrorFeedback(field) {
+            const formGroup = field.closest('.form-group');
             if (formGroup) {
                 formGroup.classList.remove('error');
                 const errorMessageDiv = formGroup.querySelector('.error-message');
@@ -819,328 +1079,141 @@
             }
         }
 
-        function validateField(field) {
-            if (field.hasAttribute('required')) {
-                if (field.type === 'checkbox') {
-                    if (!field.checked) {
-                        showValidationError(field, `Mohon centang pernyataan ini.`);
-                        return false;
-                    }
-                } else if (field.tagName === 'SELECT' && field.hasAttribute('multiple')) {
-                    if ($(field).val() === null || $(field).val().length === 0) { 
-                        const labelText = field.previousElementSibling && field.previousElementSibling.tagName === 'LABEL' ? field.previousElementSibling.textContent : '';
-                        showValidationError(field, `${labelText ? labelText + ' ' : ''}harus dipilih setidaknya satu.`);
-                        return false;
-                    }
-                } else if (!field.value.trim()) {
-                    const labelText = field.previousElementSibling && field.previousElementSibling.tagName === 'LABEL' ? field.previousElementSibling.textContent : field.placeholder;
-                    showValidationError(field, `${labelText ? labelText + ' ' : ''}harus diisi.`);
-                    return false;
-                }
+        async function submitUserFeedback() {
+            if (!validateFeedbackFormSubmit()) {
+                return;
             }
-            hideValidationError(field);
-            return true;
-        }
 
-        function attachValidationListeners() {
-            const currentContentForm = document.getElementById('contentForm');
-            const fields = currentContentForm.querySelectorAll('input[required], textarea[required], input[type="checkbox"][required], select[required]');
+            const submitBtn = document.getElementById('submitUserFeedbackBtn');
+            const originalText = submitBtn.innerHTML;
 
-            fields.forEach(field => {
-                if (field.classList.contains('select2-multiple')) {
-                    $(field).on('change', function() {
-                        validateField(this);
-                        saveFormDataFromCurrentStep();
-                    });
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+
+            const formData = new FormData();
+            const reportId = '{{ $reporter->id ?? null }}';
+            if (!reportId) {
+                // Gunakan trackReportModule.showErrorMessage jika tersedia
+                if (typeof trackReportModule !== 'undefined' && typeof trackReportModule.showErrorMessage === 'function') {
+                    trackReportModule.showErrorMessage('ID laporan tidak ditemukan. Tidak dapat mengirim ulasan.');
                 } else {
-                    field.addEventListener('input', () => {
-                        validateField(field);
-                    });
-                    field.addEventListener('change', () => {
-                        validateField(field);
-                    });
-                    field.addEventListener('blur', () => { 
-                        saveFormDataFromCurrentStep();
-                    });
+                    alert('ID laporan tidak ditemukan. Tidak dapat mengirim ulasan.');
                 }
-            });
-        }
-
-        function validateCurrentStep() {
-            const currentContentForm = document.getElementById('contentForm');
-            const requiredFields = currentContentForm.querySelectorAll('input[required], textarea[required], input[type="checkbox"][required], select[required]');
-            let isValid = true;
-            let firstInvalidField = null;
-
-            requiredFields.forEach(field => hideValidationError(field));
-
-            for (let field of requiredFields) {
-                if (field.classList.contains('select2-multiple')) {
-                    if (field.hasAttribute('required') && ($(field).val() === null || $(field).val().length === 0)) {
-                        isValid = false;
-                        showValidationError(field, `Mohon pilih setidaknya satu ${field.previousElementSibling.textContent.toLowerCase().replace(':', '')}.`);
-                        if (!firstInvalidField) {
-                            firstInvalidField = field;
-                        }
-                    }
-                } else if (!validateField(field)) {
-                    isValid = false;
-                    if (!firstInvalidField) {
-                        firstInvalidField = field;
-                    }
-                }
+                submitBtn.disabled = false; // Pastikan tombol diaktifkan kembali
+                submitBtn.innerHTML = originalText;
+                return;
             }
 
-            if (!isValid && firstInvalidField) {
-                if (firstInvalidField.classList.contains('select2-multiple')) {
-                    $(firstInvalidField).select2('open');
-                } else if (firstInvalidField.type !== 'checkbox') {
-                    firstInvalidField.focus();
-                }
-            }
-            return isValid;
-        }
+            formData.append('report_id', reportId);
+            formData.append('rating', selectedRatingInput);
+            formData.append('comments', document.getElementById('comments_input').value);
 
-        function nextStep() {
-            if (validateCurrentStep()) {
-                saveFormDataFromCurrentStep();
-                if (currentStepWizard < totalStepsWizard) {
-                    currentStepWizard++;
-                    updateWizardSteps();
-                } else {
-                    // Only submit if it's the final step
-                    submitReportToLaravel();
-                }
-            }
-        }
-
-        function previousStep() {
-            saveFormDataFromCurrentStep();
-            const currentContentForm = document.getElementById('contentForm');
-            const fields = currentContentForm.querySelectorAll('input[required], textarea[required], input[type="checkbox"][required], select[required]');
-            fields.forEach(field => hideValidationError(field));
-
-            if (currentStepWizard > 1) {
-                currentStepWizard--;
-                updateWizardSteps();
-            }
-        }
-
-        function openCompleteDocumentsForm(initialStep = 1) {
-            const modalOverlay = document.getElementById('completeDocumentsModal');
-            if (modalOverlay) {
-                const actualModal = modalOverlay.querySelector('.modal');
-
-                for (const key in formDataWizard) {
-                    delete formDataWizard[key];
-                }
-                currentStepWizard = initialStep;
-                updateWizardSteps();
-
-                // Ensure it's displayed first, then fade in
-                modalOverlay.style.display = 'flex';
-                // Wait for display change to render, then apply opacity and animation
-                requestAnimationFrame(() => {
-                    modalOverlay.classList.add('show');
-                    if (actualModal) {
-                        actualModal.style.animation = 'modalSlideIn 0.3s ease-out forwards';
-                    }
-                });
-            }
-        }
-
-        function closeCompleteDocumentsForm() {
-            const modalOverlay = document.getElementById('completeDocumentsModal');
-            const actualModal = modalOverlay.querySelector('.modal');
-            if (modalOverlay && actualModal) {
-                // Ensure buttons are re-enabled if modal is closed prematurely
-                hideProcessingOnSubmitButton(); 
-
-                actualModal.style.animation = 'modalSlideOut 0.3s ease-in forwards';
-                modalOverlay.classList.remove('show'); // Use class for opacity transition
-
-                setTimeout(() => {
-                    modalOverlay.style.display = 'none'; // Finally hide with display:none
-                    actualModal.style.animation = '';
-                    const allErrorMessages = document.querySelectorAll('.error-message');
-                    allErrorMessages.forEach(msg => {
-                        msg.style.display = 'none';
-                        const parentGroup = msg.closest('.form-group') || msg.closest('.checkbox-group');
-                        if (parentGroup) {
-                            parentGroup.classList.remove('error');
-                        }
-                    });
-                    $('.select2-multiple').select2('destroy');
-                    for (const key in formDataWizard) {
-                        delete formDataWizard[key];
-                    }
-                }, 300); // Match CSS transition duration
-            }
-        }
-
-        window.openCompleteDocumentsForm = openCompleteDocumentsForm;
-        window.closeCompleteDocumentsForm = closeCompleteDocumentsForm;
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('completeDocumentsModal');
-            if (modal) {
-                modal.style.display = 'none'; // Initially hidden
-                modal.classList.remove('show'); // Ensure no initial opacity
-            }
-        });
-
-        // --- Select2 Specific Functions ---
-
-        function initializeSelect2() {
-            const initialKorban = formDataWizard['id_korban[]'] || [];
-            const initialPelaku = formDataWizard['id_pelaku[]'] || [];
-            const initialSaksi = formDataWizard['id_saksi[]'] || [];
-
-            $('#id_korban, #id_pelaku, #id_saksi').select2({
-                placeholder: 'Pilih Student',
-                theme: 'bootstrap-5',
-                width: '100%',
-                dropdownParent: $('#completeDocumentsModal')
-            });
-
-            $('#id_korban, #id_pelaku, #id_saksi').on('change', function() {
-                updateSelect2Options();
-                validateField(this); 
-                saveFormDataFromCurrentStep(); 
-            });
-
-            updateSelect2Options(initialKorban, initialPelaku, initialSaksi);
-        }
-
-        function updateSelect2Options(initialKorban = [], initialPelaku = [], initialSaksi = []) {
-            const selectedKorban = initialKorban.length > 0 ? initialKorban : ($('#id_korban').val() || []);
-            const selectedPelaku = initialPelaku.length > 0 ? initialPelaku : ($('#id_pelaku').val() || []);
-            const selectedSaksi = initialSaksi.length > 0 ? initialSaksi : ($('#id_saksi').val() || []);
-
-            const allSelectedIds = new Set();
-            selectedKorban.forEach(id => allSelectedIds.add(parseInt(id)));
-            selectedPelaku.forEach(id => allSelectedIds.add(parseInt(id)));
-            selectedSaksi.forEach(id => allSelectedIds.add(parseInt(id)));
-
-            const updateSelect2Field = (fieldId, currentSelectedValues) => {
-                const availableOptions = studentDatabase.filter(student => {
-                    return !allSelectedIds.has(student.id) || currentSelectedValues.includes(student.id.toString());
-                });
-
-                $(fieldId).select2('destroy');
-                $(fieldId).empty().select2({
-                    data: availableOptions,
-                    placeholder: 'Pilih Student',
-                    theme: 'bootstrap-5',
-                    width: '100%',
-                    dropdownParent: $('#completeDocumentsModal')
-                });
-                $(fieldId).val(currentSelectedValues).trigger('change.select2');
-            };
-
-            updateSelect2Field('#id_korban', selectedKorban);
-            updateSelect2Field('#id_pelaku', selectedPelaku);
-            updateSelect2Field('#id_saksi', selectedSaksi);
-        }
-
-
-        async function submitReportToLaravel() {
-            const reporterId = $("#reporter_id").val(); 
-
-            showProcessingOnSubmitButton(); // Show loading directly on the submit button
-
-            const formData = {
-                reporter_id: reporterId,
-                report_date: formDataWizard['tanggal'],
-                location: formDataWizard['lokasi'],
-                description: formDataWizard['info_tambahan'],
-                notes_by_student: formDataWizard['tindakan'], 
-                victims: formDataWizard['id_korban[]'],
-                perpetrators: formDataWizard['id_pelaku[]'],
-                witnesses: formDataWizard['id_saksi[]']
-            };
-
-            console.log("Submitting form data:", formData);
+            console.log("Submitting user feedback data:", Object.fromEntries(formData.entries()));
 
             try {
-                const response = await fetch('/lapor-detail', {
+                const response = await fetch('/submit-user-feedback', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
-                    body: JSON.stringify(formData)
+                    body: formData
                 });
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    console.error('Error submitting report:', errorData);
+                    console.error('Error submitting user feedback:', errorData);
+                    // Gunakan trackReportModule.showErrorMessage jika tersedia
                     if (typeof trackReportModule !== 'undefined' && typeof trackReportModule.showErrorMessage === 'function') {
-                        trackReportModule.showErrorMessage('Gagal mengirim laporan: ' + (errorData.message || 'Terjadi kesalahan.'));
+                        trackReportModule.showErrorMessage('Gagal mengirim penilaian: ' + (errorData.message || 'Terjadi kesalahan.'));
                     } else {
-                        alert('Gagal mengirim laporan: ' + (errorData.message || 'Terjadi kesalahan.'));
+                        alert('Gagal mengirim penilaian: ' + (errorData.message || 'Terjadi kesalahan.'));
                     }
-                    return; 
+                    return;
                 }
 
                 const result = await response.json();
-                console.log('Report submitted successfully:', result);
+                console.log('User feedback submitted successfully:', result);
 
+                closeCompletionInfoModal();
+                // Gunakan trackReportModule.showSuccessMessage dengan pesan spesifik
                 if (typeof trackReportModule !== 'undefined' && typeof trackReportModule.showSuccessMessage === 'function') {
-                    trackReportModule.showSuccessMessage('Laporan berhasil dikirim! Terima kasih sudah melengkapi laporan Anda.'); 
-                } else {
-                    alert('Laporan berhasil dikirim! Terima kasih sudah melengkapi laporan Anda.');
-                }
-                
-                // Delay closing the form slightly to allow success message to be seen or animation
-                setTimeout(() => {
-                    closeCompleteDocumentsForm(); 
-                    // Reload after the modal closes completely
+                    trackReportModule.showSuccessMessage('Penilaian Anda berhasil dikirim! Terima kasih atas masukan Anda.');
+                    // Reload halaman setelah sukses dan modal tertutup untuk update UI
                     setTimeout(() => {
                         location.reload();
-                    }, 350); // Small delay after modal close animation
-                }, 500); 
+                    }, 400); // Beri sedikit waktu untuk notifikasi muncul
+                } else {
+                    alert('Penilaian berhasil dikirim! Terima kasih.');
+                    location.reload(); // Refresh juga jika fallback ke alert()
+                }
 
             } catch (error) {
-                console.error('Network or unexpected error:', error);
+                console.error('Network or unexpected error during user feedback submission:', error);
+                // Gunakan trackReportModule.showErrorMessage jika tersedia
                 if (typeof trackReportModule !== 'undefined' && typeof trackReportModule.showErrorMessage === 'function') {
-                    trackReportModule.showErrorMessage('Terjadi kesalahan jaringan atau tak terduga. Mohon coba lagi.');
+                    trackReportModule.showErrorMessage('Terjadi kesalahan jaringan atau tak terduga saat mengirim penilaian. Mohon coba lagi.');
                 } else {
-                    alert('Terjadi kesalahan jaringan atau tak terduga. Mohon coba lagi.');
+                    alert('Terjadi kesalahan jaringan atau tak terduga saat mengirim penilaian. Mohon coba lagi.');
                 }
             } finally {
-                hideProcessingOnSubmitButton(); // Ensure button state is reverted on success/failure
+                // Pastikan tombol diaktifkan kembali di sini
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             }
         }
 
-        // NEW: Function to show loading directly on the submit button
-        function showProcessingOnSubmitButton() {
-            const nextBtn = document.getElementById('nextBtn');
-            const prevBtn = document.getElementById('prevBtn');
-            const closeBtn = document.querySelector('.close-btn');
-
-            // Save original text and disable button
-            nextBtn.dataset.originalText = nextBtn.textContent; // Store original text
-            nextBtn.disabled = true;
-            nextBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...`; // Add spinner and text
-
-            prevBtn.disabled = true;
-            closeBtn.disabled = true; // Disable close button
+        // Media Modal Functions (tetap sama)
+        function openMediaModal(src, type) {
+            const mediaModal = document.getElementById('mediaModal');
+            const mediaContainer = document.getElementById('mediaContainer');
+            
+            mediaContainer.innerHTML = ''; // Clear previous content
+            
+            if (type === 'video') {
+                const video = document.createElement('video');
+                video.src = src;
+                video.controls = true;
+                video.autoplay = true;
+                mediaContainer.appendChild(video);
+            } else {
+                const img = document.createElement('img');
+                img.src = src;
+                img.alt = 'Bukti Penyelesaian';
+                mediaContainer.appendChild(img);
+            }
+            
+            mediaModal.style.display = 'flex';
+            requestAnimationFrame(() => {
+                mediaModal.classList.add('show');
+            });
         }
 
-        // NEW: Function to hide loading directly on the submit button
-        function hideProcessingOnSubmitButton() {
-            const nextBtn = document.getElementById('nextBtn');
-            const prevBtn = document.getElementById('prevBtn');
-            const closeBtn = document.querySelector('.close-btn');
-
-            // Restore original text and enable button
-            nextBtn.disabled = false;
-            nextBtn.innerHTML = nextBtn.dataset.originalText; // Restore original text
-
-            prevBtn.disabled = false;
-            closeBtn.disabled = false; // Enable close button
+        function closeMediaModal() {
+            const mediaModal = document.getElementById('mediaModal');
+            const mediaContainer = document.getElementById('mediaContainer');
+            
+            mediaModal.classList.remove('show');
+            setTimeout(() => {
+                mediaModal.style.display = 'none';
+                mediaContainer.innerHTML = ''; // Clear content
+            }, 300);
         }
 
+        document.addEventListener('click', (e) => {
+            const mediaModal = document.getElementById('mediaModal');
+            if (e.target === mediaModal) {
+                closeMediaModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const mediaModal = document.getElementById('mediaModal');
+                if (mediaModal && mediaModal.classList.contains('show')) {
+                    closeMediaModal();
+                }
+            }
+        });
     </script>
 @endpush

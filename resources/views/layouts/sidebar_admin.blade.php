@@ -97,13 +97,13 @@
                 </li>
                 <li data-tooltip="Verifikasi Laporan">
                     <a href="{{ route('verifikasi.index') }}" class="{{ Request::is('admin/laporan/verifikasi') ? 'active' : '' }}">
-                        <i class="fas fa-check-square"></i> 
-                        <span>Verifikasi Laporan</span>
+                        <i class="fas fa-hourglass-half"></i> 
+                        <span>Menunggu Data</span>
                     </a>
                 </li>
                 <li data-tooltip="Proses Laporan">
                     <a href="{{ route('proses.index') }}" class="{{ Request::is('admin/laporan/proses') ? 'active' : '' }}">
-                        <i class="fas fa-hourglass-half"></i> 
+                        <i class="fas fa-cogs"></i> 
                         <span>Proses Laporan</span>
                     </a>
                 </li>

@@ -45,7 +45,7 @@ class NotificationMail extends Mailable
     public function content()
     {
         return new Content(
-            view: 'emails.email-bk',
+            view: 'emails.email-bk.laporan_baru',
             with: [
                 'reporter' => $this->report,
             ]

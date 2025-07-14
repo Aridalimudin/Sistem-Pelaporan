@@ -27,13 +27,13 @@
                         </div>
                     </div>
                     <hr class="profile-divider">
-                    <a href="#" class="profile-item">
+                    <a href="{{ route('Profile_page.profile') }}" class="profile-item">
                         <i class="fa-solid fa-user"></i>
                         <span>Profil Saya</span>
                     </a>
                     <hr class="profile-divider">
                     <a href="{{ route('logout') }}" class="profile-item logout-item"
-                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i class="fa-solid fa-sign-out-alt"></i>
                         <span>Keluar</span>
                     </a>
@@ -447,7 +447,7 @@
             let htmlMedia = "";
             reporter.reporter_file.forEach(function (file) {
                 const fileName = file.file.split('/').pop();
-                const fileSize = 'N/A';
+                const fileSize = 'N/A'; // Anda bisa mendapatkan ukuran file dari backend jika diperlukan
 
                 if (isImage(file.file)) {
                     htmlMedia += `
@@ -489,8 +489,10 @@
         if(reporter_detail){
             $("#detailTanggalKejadian").text(reporter_detail.formatted_report_date);
             $("#detailLokasiKejadian").text(reporter_detail.location);
-            $("#detailInfoTambahan").text(reporter_detail.description);
-            $("#detailTindakan").text(reporter_detail.notes_by_student);
+            // Ini mungkin perlu diubah jika ingin menampilkan placeholder jika null
+            $("#detailInfoTambahan").text(reporter_detail.description || 'Tidak ada informasi tambahan.');
+            $("#detailTindakan").text(reporter_detail.notes_by_student || 'Tidak ada tindakan yang diharapkan.');
+
 
             let victims = reporter_detail.victims;
             let htmlVictims = "";
@@ -501,6 +503,8 @@
                         <div class="detail-value" id="detailNamaKorban">${row.name+' '+row.classroom}</div>
                     </div>`;
                 });
+            } else {
+                 htmlVictims = `<div class="info-placeholder"><p>Tidak ada korban terdaftar.</p></div>`;
             }
 
             let perpetrators = reporter_detail.perpetrators;
@@ -512,6 +516,8 @@
                         <div class="detail-value" id="detailNamaPelaku">${row.name+' '+row.classroom}</div>
                     </div>`;
                 });
+            } else {
+                htmlPerpetrators = `<div class="info-placeholder"><p>Tidak ada pelaku terdaftar.</p></div>`;
             }
 
             let witnesses = reporter_detail.witnesses;
@@ -519,28 +525,100 @@
             if(witnesses.length > 0){
                 witnesses.forEach(row => {
                 htmlWitnesses += ` <div class="detail-item">
-                        <div class="detail-label">Nama Sanksi</div>
+                        <div class="detail-label">Nama Saksi</div>
                         <div class="detail-value" id="detailNamaSaksi">${row.name+' '+row.classroom}</div>
                     </div>`;
                 });
+            } else {
+                htmlWitnesses = `<div class="info-placeholder"><p>Tidak ada saksi terdaftar.</p></div>`;
             }
 
             $("#detail-korban").html(htmlVictims);
             $("#detail-pelaku").html(htmlPerpetrators);
             $("#detail-saksi").html(htmlWitnesses);
+        } else {
+             // Jika tidak ada reporter_detail (belum dilengkapi)
+            $("#detailTanggalKejadian").text('N/A');
+            $("#detailLokasiKejadian").text('N/A');
+            $("#detailInfoTambahan").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
+            $("#detailTindakan").text('Belum dilengkapi.');
+            $("#detail-korban").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
+            $("#detail-pelaku").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
+            $("#detail-saksi").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
         }
 
 
-        let starsHtml = '';
+        // --- Mengisi Ulasan Pelapor ---
+        const feedbackContentDiv = document.getElementById('feedbackContent');
+        const adminRating = reporter.rating;
+        const adminComment = reporter.comment; // Pastikan ini sesuai dengan nama kolom di DB Anda
 
-        for (let i = 1; i <= 5; i++) {
-            starsHtml += `<span class="fa fa-star ${i <= parseInt(reporter.rating) ? 'checked' : ''}"></span>`;
+        // PERBAIKI MAPPING INI agar sesuai dengan yang Anda inginkan
+        const ratingTextsMap = {
+            1: 'Sangat Tidak Puas',
+            2: 'Tidak Puas',
+            3: 'Cukup Puas',
+            4: 'Puas',
+            5: 'Sangat Puas'
+        };
+        const adminSatisfactionLevel = (adminRating !== null) ? (ratingTextsMap[adminRating] || 'Rating tidak valid') : null;
+        const adminHasFeedback = (adminRating !== null);
+
+        let feedbackHtml = '';
+        if (adminHasFeedback) {
+            let starsHtml = '';
+            for (let i = 1; i <= 5; i++) {
+                starsHtml += `<span class="fa fa-star ${i <= adminRating ? 'checked' : ''}"></span>`;
+            }
+
+            feedbackHtml = `
+                <div class="feedback-content">
+                    <div class="feedback-grid">
+                        <div class="feedback-item satisfaction">
+                            <div class="feedback-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="currentColor"/>
+                                </svg>
+                                Tingkat Kepuasan
+                            </div>
+                            <div class="feedback-value">${adminSatisfactionLevel}</div>
+                        </div>
+
+                        <div class="feedback-item rating">
+                            <div class="feedback-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="currentColor"/>
+                                </svg>
+                                Rating Kepuasan
+                            </div>
+                            <div class="feedback-value">
+                                <div class="star-display" id="star-display-js">
+                                    ${starsHtml}
+                                    <span class="rating-text">${adminRating}/5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feedback-item comment">
+                        <div class="feedback-label">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V2zm-4 9H8V9h8v2zm0-4H8V5h8v2z" fill="currentColor"/>
+                            </svg>
+                            Saran atau Komentar
+                        </div>
+                        <div class="feedback-value">${adminComment || 'Tidak ada komentar tambahan.'}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            feedbackHtml = `
+                <div class="feedback-placeholder">
+                    <p>Pelapor belum mengisi ulasan.</p>
+                </div>
+            `;
         }
-
-        starsHtml += `<span class="rating-text">(${reporter.rating}/5)</span>`;
-
-        $("#star-display").html(starsHtml);
-        $("#feedback-comment").text(reporter.comment)
+        feedbackContentDiv.innerHTML = feedbackHtml;
 
         $("#btnReject").attr('data-id', reporter.id);
         $("#btnAccept").attr('data-id', reporter.id);

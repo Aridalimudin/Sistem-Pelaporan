@@ -33,7 +33,7 @@
                         </div>
                     </div>
                     <hr class="profile-divider">
-                    <a href="#" class="profile-item">
+                    <a href="{{ route('Profile_page.profile') }}" class="profile-item">
                         <i class="fa-solid fa-user"></i>
                         <span>Profil Saya</span>
                     </a>

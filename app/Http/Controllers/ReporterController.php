@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Http\Controllers\Controller;
-use App\Mail\NotificationMail;
+use App\Mail\NewReportReceivedMail;
+use App\Mail\ProcessingNotificationMail;
 use App\Models\Crime;
 use App\Models\Reporter;
 use App\Models\ReporterDetail;
@@ -18,6 +19,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+
+// Impor semua Mailable yang akan digunakan untuk notifikasi ke siswa
+use App\Mail\ReportSentMail;
+use App\Mail\ReportAcceptedMail;
+use App\Mail\ReportCompletedMail;
+use App\Mail\ReportInProgressMail;
+use App\Mail\ReportRejectedMail;
+use App\Models\User;
 
 class ReporterController extends Controller
 {
@@ -51,7 +60,7 @@ class ReporterController extends Controller
     {
         DB::beginTransaction();
         try {
-            if(!$request->tags){
+            if (!$request->tags) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Data tags wajib diisi'
@@ -59,24 +68,24 @@ class ReporterController extends Controller
             }
 
             $student = Student::where('nis', $request->nis)->where('email', $request->email)->first();
-            if(!$student){
+            if (!$student) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Data Siswa Tidak Ada, Periksa Kembali NISN dan Email Anda'
                 ]);
             }
-            
+
             $exsistReporter = Reporter::where('student_id', $student->id)->where('status', 0)->first();
 
-            if((bool)$exsistReporter){
+            if ((bool)$exsistReporter) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Terdapat Laporan yang belum selesai, dengan Data Siswa yang sama'
                 ]);
             }
 
-            $crimes = Crime::whereIn('name', json_decode($request->tags, true))->get(['id','name','urgency']);
-            if($crimes->isEmpty()){
+            $crimes = Crime::whereIn('name', json_decode($request->tags, true))->get(['id', 'name', 'urgency']);
+            if ($crimes->isEmpty()) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Data tags wajib diisi'
@@ -84,41 +93,39 @@ class ReporterController extends Controller
             }
             $urgency = null;
             foreach ($crimes as $key => $crime) {
-                if($crime->urgency == 3){
+                if ($crime->urgency == 3) {
                     $urgency = 3;
                     break;
-                }elseif($crime->urgency == 2){
+                } elseif ($crime->urgency == 2) {
                     $urgency = 2;
-                }elseif($crime->urgency == 1){
+                } elseif ($crime->urgency == 1) {
                     $urgency = 1;
                 }
-                
             }
 
-            if(!$urgency){
+            if (!$urgency) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Data Perhitungan Gagal'
                 ]);
             }
-            
+
 
             $report = Reporter::create([
                 'student_id' => $student->id,
-                'code' => 'HTC-'.date('mY').'-'.Str::random(9),
+                'code' => 'HTC-' . date('mY') . '-' . Str::random(9),
                 'description' => $request->uraian,
                 'urgency' => $urgency
             ]);
 
-            if($report->id){
-                if(!empty($request->image)){
+            if ($report->id) {
+                if (!empty($request->image)) {
                     foreach ($request->image as $value) {
                         ReporterFile::create([
                             'reporter_id' => $report->id,
                             'file' => $value,
                         ]);
                     }
-
                 }
                 $report->crime()->attach(Crime::whereIn('name', json_decode($request->tags, true))->pluck('id')->toArray());
                 ReporterHistoryTracking::create([
@@ -129,7 +136,16 @@ class ReporterController extends Controller
                 ]);
 
                 DB::commit();
-               $this->sendNotificationEmail($report);
+
+                // Mengirim email konfirmasi ke siswa bahwa laporan telah terkirim
+                Mail::to($student->email)->send(new ReportSentMail($report));
+
+                $guruBkEmail = User::whereHas('roles', function($q) {
+                    $q->where('name', 'GuruBK');
+                })->whereNotNull('email')->pluck('email')->toArray();
+                
+                Mail::bcc($guruBkEmail)->send(new NewReportReceivedMail($report));
+
                 return response()->json([
                     'status' => true,
                     'message' => 'Laporan Berhasil Dikirim',
@@ -142,8 +158,6 @@ class ReporterController extends Controller
                 'status' => false,
                 'message' => 'Terjadi kesalahan saat menyimpan laporan. Silakan coba lagi.',
             ], 500);
-
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error storing report: ' . $e->getMessage());
@@ -154,26 +168,22 @@ class ReporterController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
-        
     }
 
-    public function uploadFile(Request $request){
+    public function uploadFile(Request $request)
+    {
         $uploadedFiles = [];
         foreach ($request->file('file') as $file) {
             // Menyimpan file di folder 'uploads' di storage
             $path = $file->store('uploads', 'public');
-            $uploadedFiles[] = $path;  // Menyimpan path file untuk referensi
+            $uploadedFiles[] = $path;   // Menyimpan path file untuk referensi
         }
 
-         
         return response()->json([
             'status' => true,
             'data' => $uploadedFiles
         ]);
-        
     }
-
-
 
     /**
      * Display the specified resource.
@@ -220,9 +230,64 @@ class ReporterController extends Controller
         //
     }
 
+    /**
+     * Menandai laporan sebagai "Diterima" dan mengirim email notifikasi.
+     */
+    public function accept(Reporter $report)
+    {
+        $report->update(['status' => 1]); // Misal: 1 = Diterima
+        if ($report->student) {
+            Mail::to('aridalimudin@gmail.com')->send(new ReportAcceptedMail($report));
+        }
+        return redirect()->back()->with('success', 'Laporan berhasil diterima dan notifikasi telah dikirim ke siswa.');
+    }
+
+    /**
+     * Menandai laporan sebagai "Diproses" dan mengirim email notifikasi.
+     */
+    public function process(Reporter $report)
+    {
+        $report->update(['status' => 2]); // Misal: 2 = Diproses
+        if ($report->student) {
+            Mail::to('aridalimudin@gmail.com')->send(new ReportInProgressMail($report));
+        }
+        return redirect()->back()->with('success', 'Laporan sedang diproses dan notifikasi telah dikirim ke siswa.');
+    }
+
+    /**
+     * Menandai laporan sebagai "Selesai" dan mengirim email notifikasi.
+     */
+    public function complete(Reporter $report)
+    {
+        $report->update(['status' => 3]); // Misal: 3 = Selesai
+        if ($report->student) {
+            Mail::to('aridalimudin@gmail.com')->send(new ReportCompletedMail($report));
+        }
+        return redirect()->back()->with('success', 'Laporan telah selesai dan notifikasi telah dikirim ke siswa.');
+    }
+
+    /**
+     * Menandai laporan sebagai "Ditolak" dan mengirim email notifikasi.
+     */
+    public function reject(Request $request, Reporter $report)
+    {
+        $request->validate(['rejection_reason' => 'required|string|min:10']);
+
+        $report->update([
+            'status' => 4, // Misal: 4 = Ditolak
+            'notes_by_bk' => $request->rejection_reason,
+        ]);
+
+        if ($report->student) {
+            Mail::to('aridalimudin@gmail.com')->send(new ReportRejectedMail($report));
+        }
+        return redirect()->back()->with('success', 'Laporan telah ditolak dan notifikasi telah dikirim ke siswa.');
+    }
+
+
     public function laporDetailPost(Request $request)
     {
-         // 1. Validate the incoming request data
+        // 1. Validate the incoming request data
         try {
             $validatedData = $request->validate([
                 'reporter_id' => 'required', // Assuming reporter_id links to your users table
@@ -299,27 +364,18 @@ class ReporterController extends Controller
             ]);
             DB::commit(); // Commit the transaction
 
+            Mail::to('aridalimudin@gmail.com')->send(new ProcessingNotificationMail($reporter));
+            Mail::to('aridalimudin@gmail.com')->send(new ReportInProgressMail($reporter));
+
             return response()->json([
                 'message' => 'Laporan berhasil disimpan!',
             ], 201); // 201 Created
-
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback on error
             return response()->json([
                 'message' => 'Gagal menyimpan laporan.',
                 'error' => $e->getMessage()
             ], 500); // Internal Server Error
-        }
-    }
-
-    private function sendNotificationEmail($data): bool
-    {
-        try {
-            Mail::to('aridalimudin@gmail.com')->send(new NotificationMail($data));
-            return true;
-        } catch (\Exception $e) {
-            Log::error($e->getMessage());
-            return false; // Failed to send email
         }
     }
 }

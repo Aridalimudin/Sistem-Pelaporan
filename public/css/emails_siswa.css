@@ -1,60 +1,49 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 body {
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f7fa;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background-color: #f4f4f7;
+    margin: 0;
     padding: 20px;
-    line-height: 1.6;
+    color: #333;
 }
-
 .email-container {
-    max-width: 600px;
-    margin: 0 auto 40px;
-    background: white;
+    max-width: 680px;
+    margin: 0 auto;
+    background-color: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
-
 .email-header {
     padding: 30px;
     text-align: center;
     color: white;
-    position: relative;
 }
-
-.email-header.terkirim {
-    background: linear-gradient(135deg, #17a2b8, #138496);
-}
-
-.email-header.diterima {
-    background: linear-gradient(135deg, #4caf50, #45a049);
-}
-
-.email-header.diverifikasi {
-    background: linear-gradient(135deg, #2196f3, #1976d2);
-}
-
-.email-header.diproses {
-    background: linear-gradient(135deg, #ff9800, #f57c00);
-}
-
-.email-header.selesai {
-    background: linear-gradient(135deg, #28a745, #20754a);
-}
-
-.email-header.ditolak {
-    background: linear-gradient(135deg, #dc3545, #c82333);
-}
-
-.header-icon {
+.email-header .header-icon {
     font-size: 48px;
-    margin-bottom: 15px;
-    display: block;
+}
+.email-header h2 {
+    margin: 10px 0 5px;
+    font-size: 26px;
+    font-weight: bold;
+}
+.email-header p {
+    margin: 0;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+/* Header Colors */
+.email-header.terkirim {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+}
+.email-header.verifikasi {
+    background: linear-gradient(135deg, #ffc107, #d39e00);
+}
+.email-header.diproses {
+    background: linear-gradient(135deg, #6f42c1, #5a32a3);
+}
+.email-header.selesai {
+    background: linear-gradient(135deg, #28a745, #218838);
 }
 
 .email-body {
@@ -63,259 +52,230 @@ body {
 
 .status-badge {
     display: inline-block;
-    padding: 10px 20px;
-    border-radius: 25px;
+    padding: 8px 15px;
+    border-radius: 20px;
     font-size: 14px;
     font-weight: bold;
-    margin-bottom: 20px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: white;
+    margin-bottom: 25px;
 }
-
+/* Badge Colors */
 .status-badge.terkirim {
-    background-color: #d1ecf1;
-    color: #0c5460;
-    border: 2px solid #17a2b8;
+    background-color: #007bff;
 }
-
-.status-badge.diterima {
-    background-color: #e8f5e8;
-    color: #2e7d32;
-    border: 2px solid #4caf50;
+.status-badge.verifikasi {
+    background-color: #ffc107;
+    color: #212529;
 }
-
-.status-badge.diverifikasi {
-    background-color: #e3f2fd;
-    color: #1565c0;
-    border: 2px solid #2196f3;
-}
-
 .status-badge.diproses {
-    background-color: #fff3e0;
-    color: #ef6c00;
-    border: 2px solid #ff9800;
+    background-color: #6f42c1;
 }
-
 .status-badge.selesai {
-    background-color: #d4edda;
-    color: #155724;
-    border: 2px solid #28a745;
+    background-color: #28a745;
 }
 
-.status-badge.ditolak {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 2px solid #dc3545;
+h3,
+h4 {
+    color: #333;
+    margin-top: 0;
 }
-
-.info-box {
-    background: #f8f9fa;
-    border-left: 4px solid #007bff;
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 8px;
+h3 {
+    font-size: 22px;
 }
-
-.alert-box {
-    padding: 15px;
-    border-radius: 8px;
-    margin: 20px 0;
-}
-
-.alert-box.success {
-    background-color: #d4edda;
-    border: 1px solid #c3e6cb;
-    color: #155724;
-}
-
-.alert-box.info {
-    background-color: #d1ecf1;
-    border: 1px solid #bee5eb;
-    color: #0c5460;
-}
-
-.alert-box.warning {
-    background-color: #fff3cd;
-    border: 1px solid #ffeaa7;
-    color: #856404;
-}
-
-.alert-box.danger {
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
-    color: #721c24;
+h4 {
+    font-size: 18px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .ticket-code {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background-color: #f0f0f0;
     padding: 15px;
     text-align: center;
     border-radius: 8px;
-    margin: 20px 0;
     font-size: 18px;
     font-weight: bold;
     letter-spacing: 2px;
+    margin: 20px 0;
+}
+.info-box,
+.alert-box,
+.highlight-box,
+.next-steps,
+.solution-box,
+.rating-prompt-box {
+    padding: 20px;
+    margin-top: 25px;
+    border-radius: 8px;
+    line-height: 1.7;
+}
+.info-box {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+/* Alert Box Colors */
+.alert-box.info {
+    background-color: #e2f0d9;
+    border-left: 5px solid #28a745;
+    color: #1a5e2a;
+}
+.alert-box.warning {
+    background-color: #fff3cd;
+    border-left: 5px solid #ffc107;
+    color: #856404;
+}
+.alert-box.process {
+    background-color: #e7e0f8;
+    border-left: 5px solid #6f42c1;
+    color: #3b1e70;
+}
+.alert-box.success {
+    background-color: #e9f7ef;
+    border-left: 5px solid #28a745;
+    color: #155724;
 }
 
 .progress-tracker {
-    margin: 25px 0;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
+    margin: 30px 0;
 }
-
 .progress-steps {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     position: relative;
-    margin: 20px 0;
+    margin-top: 15px;
 }
-
 .progress-line {
     position: absolute;
-    top: 50%;
+    top: 15px;
     left: 0;
     right: 0;
-    height: 3px;
-    background: #e0e0e0;
+    height: 4px;
+    background-color: #e9ecef;
     z-index: 1;
-    border-radius: 2px;
 }
-
 .progress-line-active {
     height: 100%;
-    background: linear-gradient(90deg, #4caf50, #2196f3);
-    border-radius: 2px;
+    background-color: #007bff;
+    transition: width 0.5s ease;
 }
 
 .progress-step {
     position: relative;
     z-index: 2;
     text-align: center;
-    background: white;
-    padding: 5px;
+    flex: 1;
 }
-
 .step-circle {
-    width: 45px;
-    height: 45px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
+    background-color: #ced4da;
+    border: 4px solid #ffffff;
+    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 8px;
-    font-size: 16px;
     font-weight: bold;
-    border: 3px solid;
-}
-
-.step-circle.active {
-    background: #4caf50;
     color: white;
-    border-color: #4caf50;
 }
-
-.step-circle.current {
-    background: #ff9800;
-    color: white;
-    border-color: #ff9800;
+.progress-step .step-circle.active {
+    background-color: #007bff;
 }
-
-.step-circle.inactive {
-    background: white;
-    color: #999;
-    border-color: #e0e0e0;
+.progress-step .step-circle.current.terkirim {
+    background-color: #007bff;
+}
+.progress-step .step-circle.current.verifikasi {
+    background-color: #ffc107;
+    color: #333;
+}
+.progress-step .step-circle.current.diproses {
+    background-color: #6f42c1;
+}
+.progress-step .step-circle.current.selesai {
+    background-color: #28a745;
 }
 
 .step-label {
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    color: #333;
-}
-
-.step-date {
-    font-size: 10px;
-    color: #666;
-}
-
-.email-footer {
-    background: #2c3e50;
-    color: white;
-    padding: 25px 30px;
-    text-align: center;
-}
-
-.footer-logo {
-    font-size: 24px;
+    font-size: 13px;
+    margin-top: 10px;
     font-weight: bold;
-    margin-bottom: 10px;
-    color: #3498db;
 }
-
-.contact-info {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 15px;
+.step-date {
+    font-size: 12px;
+    color: #6c757d;
 }
 
 .btn-track {
-    display: inline-block;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-color: #007bff;
     color: white;
-    padding: 12px 30px;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
     text-decoration: none;
-    border-radius: 25px;
-    font-weight: bold;
+    display: inline-block;
     margin-top: 15px;
 }
 
+.info-box,
+.next-steps,
+.security-note,
 .highlight-box {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
     padding: 20px;
-    border-radius: 12px;
-    margin: 20px 0;
+    margin-top: 25px;
+    line-height: 1.8;
+}
+
+.alert-box {
+    padding: 20px;
+    border-radius: 8px;
+    margin: 30px 0;
+    border-left: 5px solid;
+    background-color: #e2f0d9;
+    border-color: #28a745;
+    color: #1a5e2a;
+}
+.email-footer {
+    background-color: #343a40;
+    color: #adb5bd;
+    padding: 30px;
     text-align: center;
 }
-
-.next-steps {
-    background: #e8f4fd;
-    border: 1px solid #b8daff;
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
+.footer-logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 10px;
 }
 
-.next-steps h4 {
-    color: #004085;
-    margin-bottom: 15px;
-}
+/* Header Color */
+.email-header.ditolak { background: linear-gradient(135deg, #dc3545, #b02a37); }
 
-.next-steps ul {
-    margin-left: 20px;
-}
+/* Badge Color */
+.status-badge.ditolak { background-color: #dc3545; }
 
-.next-steps li {
-    margin-bottom: 8px;
-    color: #004085;
-}
+/* Alert Box Color */
+.alert-box.danger { background-color: #f8d7da; border-left: 5px solid #dc3545; color: #721c24; }
 
+/* Progress Circle Color */
+.progress-step .step-circle.current.ditolak { background-color: #dc3545; }
+
+/* Box untuk Alasan Penolakan */
 .rejection-reason {
-    background: #f8d7da;
-    border: 1px solid #f5c6cb;
-    border-radius: 8px;
     padding: 20px;
-    margin: 20px 0;
+    margin-top: 25px;
+    border-radius: 8px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
 }
-
-.rejection-reason h4 {
-    color: #721c24;
-    margin-bottom: 15px;
-}
+.rejection-reason h4 { color: #721c24; }
+.rejection-reason ul { margin-top: 10px; margin-left: 20px; color: #721c24; }
 
 .solution-box {
     background: #fff3cd;
@@ -328,48 +288,4 @@ body {
 .solution-box h4 {
     color: #856404;
     margin-bottom: 15px;
-}
-
-/* Template Specific Progress Widths */
-.progress-25 {
-    width: 25%;
-}
-.progress-50 {
-    width: 50%;
-}
-.progress-75 {
-    width: 75%;
-}
-.progress-100 {
-    width: 100%;
-}
-
-@media (max-width: 600px) {
-    body {
-        padding: 10px;
-    }
-
-    .email-body {
-        padding: 20px;
-    }
-
-    .progress-steps {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .progress-step {
-        margin: 10px 5px;
-        flex: 0 1 auto;
-    }
-
-    .progress-line {
-        display: none;
-    }
-
-    .step-circle {
-        width: 35px;
-        height: 35px;
-        font-size: 14px;
-    }
 }
