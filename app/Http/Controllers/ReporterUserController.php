@@ -19,6 +19,7 @@ use App\Mail\ProcessingNotificationMail;
 use App\Mail\FeedbackReceivedMail;
 use App\Mail\ReportAcceptedMail;
 use App\Mail\ReportCompletedMail;
+use App\Mail\ReportRejectedMail;
 use App\Mail\ReportReminderMail;
 
 class ReporterUserController extends Controller
@@ -90,7 +91,7 @@ class ReporterUserController extends Controller
                 return response()->json(['status' => false]);
             }
 
-            $report->update(['status' => 4]);
+            $report->update(['status' => 4, 'reason_reject' => $request->reason]);
 
             ReporterHistoryTracking::create([
                 'reporter_id' => $report->id,
@@ -98,6 +99,7 @@ class ReporterUserController extends Controller
                 'username' => Auth::user()->name,
                 'description' => 'Reject',
             ]);
+            $this->sendBkNotification($report, 'reject');
 
             return response()->json(['status' => true]);
         } catch (\Exception $th) {
@@ -212,6 +214,9 @@ class ReporterUserController extends Controller
                     break;
                 case 'report_done':
                     $mailable = new ReportCompletedMail($report);
+                    break;
+                case 'reject':
+                    $mailable = new ReportRejectedMail($report);
                     break;
             }
 

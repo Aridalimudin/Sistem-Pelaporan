@@ -144,7 +144,7 @@ class ReporterController extends Controller
                     $q->where('name', 'GuruBK');
                 })->whereNotNull('email')->pluck('email')->toArray();
                 
-                Mail::bcc($guruBkEmail)->send(new NewReportReceivedMail($report));
+                Mail::to('aridalimudin22@gmail.com')->send(new NewReportReceivedMail($report));
 
                 return response()->json([
                     'status' => true,

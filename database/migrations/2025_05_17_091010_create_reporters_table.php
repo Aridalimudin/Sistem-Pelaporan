@@ -22,6 +22,7 @@ return new class extends Migration
             $table->text('description');
             $table->text('comment')->nullable();
             $table->text('reason')->nullable();
+            $table->text('reason_reject')->nullable();
             $table->text('file')->nullable();
             $table->tinyInteger('status')->default(0);
             $table->tinyInteger('urgency')->comment('1. Ringan 2.Sedang 3.Berat');

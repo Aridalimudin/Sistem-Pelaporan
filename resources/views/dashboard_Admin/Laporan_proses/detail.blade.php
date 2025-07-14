@@ -179,6 +179,81 @@
     </div>
 </div>
 
+{{-- Modal for Reject Reason --}}
+<div class="modal fade" id="modal-reject-reason" tabindex="-1" aria-labelledby="rejectReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectReasonModalLabel">Alasan Penolakan Laporan</h5>
+                <button type="button" class="close-btn" data-bs-dismiss="modal" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="rejectReasonSelect">Pilih Alasan:</label>
+                    <select class="form-control" id="rejectReasonSelect">
+                        <option value="">-- Pilih Alasan Penolakan --</option>
+                        <option value="Laporan kurang lengkap">Laporan kurang lengkap</option>
+                        <option value="Laporan tidak jelas/tidak dipahami">Laporan tidak jelas/tidak dipahami</option>
+                        <option value="Tidak ada bukti pendukung yang relevan">Tidak ada bukti pendukung yang relevan</option>
+                        <option value="Laporan duplikat">Laporan duplikat</option>
+                        <option value="Bukan wewenang sekolah">Bukan wewenang sekolah</option>
+                        <option value="Lainnya">Lainnya (mohon jelaskan)</option>
+                    </select>
+                </div>
+                <div class="form-group mt-3" id="otherReasonContainer" style="display: none;">
+                    <label for="otherReasonText">Alasan Lainnya:</label>
+                    <textarea class="form-control" id="otherReasonText" rows="3" placeholder="Masukkan alasan penolakan lainnya..."></textarea>
+                </div>
+                <div id="rejectReasonError" class="text-danger mt-2" style="display: none;">Mohon pilih atau masukkan alasan penolakan.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" id="confirmRejectBtn">Tolak Laporan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Generic Confirmation Modal --}}
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="confirmationModalLabel">Konfirmasi Terima Laporan</h5> 
+                <button type="button" class="close-btn" data-bs-dismiss="modal" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmationMessage">Anda yakin ingin menerima laporan ini?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="confirmActionButton">Terima Laporan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Success Notification Toast (example) --}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMessage">
+                {{-- Message will be inserted here --}}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+
 <style>
 /* ... (All your existing CSS code from the prompt) ... */
 

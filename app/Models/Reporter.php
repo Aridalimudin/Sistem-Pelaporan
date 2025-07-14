@@ -19,6 +19,7 @@ class Reporter extends Model
         'description',
         'reason',
         'rating',
+        'reason_reject',
         'comment',
         'file',
         'urgency',

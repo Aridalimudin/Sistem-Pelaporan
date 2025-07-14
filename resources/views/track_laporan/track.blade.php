@@ -148,7 +148,7 @@
                                         <p id="status-description">
                                             @if($reporter->status == 4)
                                                 Laporan Anda tidak dapat diproses lebih lanjut karena tidak memenuhi kriteria yang ditetapkan. Tim kami telah meninjau dokumen yang Anda berikan.
-                                                <br><br>Silakan hubungi admin untuk informasi lebih lanjut atau ajukan laporan baru dengan informasi yang lebih lengkap.
+                                                <br><br>Silakan hubungi Guru BK untuk informasi lebih lanjut atau ajukan laporan baru dengan informasi yang lebih lengkap.
                                             @else
                                                 Laporan Anda telah berhasil masuk ke dalam sistem dan mendapatkan kode unik untuk tracking. Tim kami akan segera meninjau laporan yang Anda berikan.
                                             @endif
@@ -528,7 +528,7 @@
             const trackReportModule = (function() {
                 // Fungsi contactAdmin sudah ada, tidak perlu diubah
                 function contactAdmin() {
-                    alert('Fitur hubungi admin akan segera tersedia. Silakan hubungi admin melalui email atau telepon yang tertera di website.');
+                    alert('Fitur hubungi admin akan segera tersedia. Silakan hubungi Guru BK melalui email atau telepon yang tertera di website.');
                 }
 
                 let originalCurrentStep = 0;
@@ -583,10 +583,10 @@
                         status: "Laporan Ditolak",
                         description: `Laporan Anda tidak dapat diproses lebih lanjut karena tidak memenuhi kriteria yang ditetapkan. Tim kami telah meninjau dokumen yang Anda berikan.
                         <br><br>Silakan hubungi admin untuk informasi lebih lanjut atau ajukan laporan baru dengan informasi yang lebih lengkap.`,
-                        rejection_reason: `{{ @$reporter->rejection_reason ?? 'Dokumen yang dilampirkan tidak lengkap dan informasi yang diberikan kurang detail. Silakan melengkapi dokumen pendukung dan berikan informasi yang lebih spesifik.' }}`,
+                        rejection_reason: `{{ @$reporter->reason_reject ?? 'Dokumen yang dilampirkan tidak lengkap dan informasi yang diberikan kurang detail. Silakan melengkapi dokumen pendukung dan berikan informasi yang lebih spesifik.' }}`,
                         icon: "fas fa-times-circle",
                         progress: 100, 
-                        hasAction: true,
+                        hasAction: false,
                         actionText: "Hubungi Admin",
                         actionType: "contact_admin",
                         date: "{{ @$reject?->created_at->format('d M Y') ?? '' }}",

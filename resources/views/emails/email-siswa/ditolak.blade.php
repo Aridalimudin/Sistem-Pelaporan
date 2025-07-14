@@ -351,7 +351,7 @@
             
             <div class="rejection-reason">
                 <h4>📋 Alasan Penolakan:</h4>
-                <p><strong>Informasi Kurang Memadai:</strong> Setelah ditinjau, laporan yang disampaikan tidak memiliki cukup detail dan bukti pendukung yang kuat untuk dapat diinvestigasi lebih lanjut sebagai kasus pelanggaran.</p>
+                <p><strong>{{$report->reason_reject}}</strong></p>
             </div>
             
             <div class="solution-box">
