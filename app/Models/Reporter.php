@@ -37,6 +37,7 @@ class Reporter extends Model
         'formatted_status',
         'formatted_updated_date', 
         'url_file',
+        'categories',               
         'categories_type'                
     ];
 

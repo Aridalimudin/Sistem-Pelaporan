@@ -461,6 +461,7 @@
         $("#detailEmail").text(reporter.student.email);
         $("#detailUraian").text(reporter.description);
         $("#form-proses").attr('action', url);
+        $("#detailKategoriKasus").text(reporter.categories_type);
 
         // Fill in Keywords
         const keywordsContainer = $("#detailKataKunci");

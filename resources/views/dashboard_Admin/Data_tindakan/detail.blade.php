@@ -60,10 +60,7 @@
                         <div class="category-container">
                             <div class="category-item">
                                 <div class="category-value" id="detailKategoriKasus">
-                                    <span class="badge badge-danger">Bullying Verbal</span>
-                                    <span class="badge badge-danger">Bullying Fisik</span> 
-                                    <span class="badge badge-warning">Pelecehan Seksual Verbal</span> 
-                                    <span class="badge badge-warning">Pelecehan Seksual Fisik</span>
+                                
                                 </div>
                             </div>
                         </div>

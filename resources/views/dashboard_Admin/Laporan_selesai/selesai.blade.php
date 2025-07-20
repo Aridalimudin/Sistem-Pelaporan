@@ -404,6 +404,7 @@
         $("#detailNIS").text(reporter.student.nis);
         $("#detailEmail").text(reporter.student.email);
         $("#detailUraian").text(reporter.description);
+        $("#detailKategoriKasus").text(reporter.categories_type);
         $("#form-proses").attr('action', url);
         
 

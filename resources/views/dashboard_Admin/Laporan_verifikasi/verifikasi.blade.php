@@ -393,6 +393,7 @@
         $("#detailNIS").text(reporter.student.nis);
         $("#detailEmail").text(reporter.student.email);
         $("#detailUraian").text(reporter.description);
+        $("#detailKategoriKasus").text(reporter.categories_type);
 
         const keywordsContainer = $("#detailKataKunci");
         if (reporter.crime && reporter.crime.length > 0) {
