@@ -75,12 +75,13 @@ class ReporterController extends Controller
                 ]);
             }
 
-            $exsistReporter = Reporter::where('student_id', $student->id)->where('status', 0)->first();
-
-            if ((bool)$exsistReporter) {
+            $hasOngoingReport = Reporter::where('student_id', $student->id)
+                            ->whereIn('status', [0, 1, 2]) 
+                            ->exists();
+            if ($hasOngoingReport) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Terdapat Laporan yang belum selesai, dengan Data Siswa yang sama'
+                    'message' => 'Anda masih memiliki laporan yang sedang dalam proses. Anda baru bisa melapor lagi jika laporan sebelumnya telah Selesai atau Ditolak.'
                 ]);
             }
 

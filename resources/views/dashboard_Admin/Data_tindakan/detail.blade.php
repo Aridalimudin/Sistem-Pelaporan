@@ -56,6 +56,20 @@
                     </div>
 
                     <div class="detail-section">
+                        <h4 class="section-title">Kategori Kasus</h4>
+                        <div class="category-container">
+                            <div class="category-item">
+                                <div class="category-value" id="detailKategoriKasus">
+                                    <span class="badge badge-danger">Bullying Verbal</span>
+                                    <span class="badge badge-danger">Bullying Fisik</span> 
+                                    <span class="badge badge-warning">Pelecehan Seksual Verbal</span> 
+                                    <span class="badge badge-warning">Pelecehan Seksual Fisik</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
                         <h4 class="section-title">Deskripsi Kejadian</h4>
                         <div class="uraian-content" id="detailUraian"></div>
                     </div>
@@ -959,5 +973,53 @@ html, body {
         transform: translateX(0);
         opacity: 0.95;
     }
+}
+
+.category-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.category-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.category-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.category-value {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.badge-danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #f59e0b;
+    color: white;
 }
 </style>

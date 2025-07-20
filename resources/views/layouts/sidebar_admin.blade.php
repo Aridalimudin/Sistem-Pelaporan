@@ -1,5 +1,5 @@
 <div class="col-auto p-0">
-    <nav id="sidebar" class="sidebar">
+    <nav id="sidebar" class="sidebar {{ Request::is('admin/dashboard') ? 'active' : '' }}">
         <div class="sidebar-header">
             <div class="logo-container">
             <img src="{{asset('images/logoMts.png')}}" alt="Logo" class="sidebar-logo">
@@ -81,7 +81,7 @@
             </li>
         @endcan
 
-    @can('user-list')
+    @can('laporan-list')
         <li class="has-submenu {{ Request::is('admin/laporan*') ? 'submenu-active' : '' }}" data-tooltip="Manajemen Laporan">
             <a href="#" class="submenu-toggle">
                 <i class="fas fa-clipboard-list"></i> 
@@ -116,13 +116,14 @@
             </ul>
         </li>
     @endcan
-
-<li data-tooltip="History laporan">
-    <a href="{{ route('history.index') }}" class="{{ Request::is('admin/history*') ? 'active' : '' }}">
-        <i class="fas fa-history"></i> 
-        <span>History laporan</span>
-    </a>
-</li>
+     @can('laporan-list')
+        <li data-tooltip="History laporan">
+            <a href="{{ route('history.index') }}" class="{{ Request::is('admin/history*') ? 'active' : '' }}">
+                <i class="fas fa-history"></i> 
+                <span>History laporan</span>
+            </a>
+        </li>
+    @endcan
     <div class="sidebar-footer">
         <form action="{{ route('logout') }}" method="POST">
             @csrf

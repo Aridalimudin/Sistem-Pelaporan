@@ -320,7 +320,6 @@
                 <strong>⏱️ Estimasi Penanganan:</strong> 2-8 hari kerja<br>
                 <strong>⏱️ Estimasi Penanganan:</strong> 2-6 hari kerja<br>
                 <strong>⏱️ Estimasi Penanganan:</strong> 2-4 hari kerja<br>
-                <strong>👤 Verifikator:</strong> {{Auth::user()->name}}<br>
             </div>
             
             <div class="progress-tracker">

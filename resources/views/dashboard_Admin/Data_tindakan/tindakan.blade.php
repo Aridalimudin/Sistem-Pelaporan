@@ -54,7 +54,6 @@
                 </div>
             </div>
         </div>
-
         <div class="table-controls">
             <div class="table-controls-left">
                 <div class="entries-selector">
@@ -601,8 +600,6 @@
             let htmlMedia = "";
             reporter.reporter_file.forEach(function (file) {
                 const fileName = file.file.split('/').pop(); // Get file name from URL
-                // In a real application, you might want to fetch file size dynamically or store it in the database
-                // For now, a placeholder size is used.
                 const fileSize = 'N/A'; // Or a default like 'Unknown size'
 
                 if (isImage(file.file)) {

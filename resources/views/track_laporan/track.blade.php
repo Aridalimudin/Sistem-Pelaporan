@@ -82,7 +82,7 @@
                                 </div>
 
                                 <div class="header-right">
-                                    <a href="#" class="btn-print" title="Cetak Laporan">
+                                    <a href="{{route('track.pdf', ['code' => $reporter->code])}}" target="_blank" class="btn-print" title="Cetak Laporan">
                                         <i class="fas fa-print"></i>
                                         <span class="btn-print-text">Cetak</span>
                                     </a>
@@ -475,7 +475,7 @@
                     </div>
                     <div class="reminder-modal-footer">
                         <button class="btn-cancel" onclick="closeReminderModal()">Batal</button>
-                        <button class="btn-confirm" onclick="sendReminder()">Kirim Reminder</button>
+                        <button class="btn-confirm" onclick="sendReminder(this)">Kirim Reminder</button>
                     </div>
                 </div>
             </div>
@@ -1699,71 +1699,59 @@
                 document.body.style.overflow = 'auto'; // Mengizinkan scroll kembali
             }
 
-            // Fungsi untuk simulasi kirim reminder (hanya tampilan)
-            async function sendReminder() {
-                const formData = new FormData();
-                const reportId = '{{ $reporter->id ?? null }}';
-                if (!reportId) {
-                    alert('ID laporan tidak ditemukan. Tidak dapat mengirim ulasan.');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
-                    return;
-                }
+            async function sendReminder(button) { // Menerima tombol sebagai parameter
+    // 1. Simpan teks asli dan nonaktifkan tombol
+    const originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Memproses...
+    `;
 
-                formData.append('report_id', reportId);
+    const reportId = '{{ $reporter->id ?? null }}';
+    if (!reportId) {
+        alert('ID laporan tidak ditemukan. Tidak dapat mengirim reminder.');
+        // Kembalikan tombol jika ada error di awal
+        button.disabled = false;
+        button.innerHTML = originalText;
+        return;
+    }
 
-                 try {
-                    const response = await fetch('/reminder-bk', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: formData
-                    });
+    const formData = new FormData();
+    formData.append('report_id', reportId);
 
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        alert('Gagal mengirim penilaian: ' + (errorData.message || 'Terjadi kesalahan.'));
-                        return;
-                    }
+    try {
+        const response = await fetch('/reminder-bk', { // Pastikan URL ini benar
+            method: 'POST',
+            headers: {
+                // Gunakan meta tag csrf-token jika ada, jika tidak, pastikan token terkirim
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: formData
+        });
 
-                   // Tutup modal
-                    closeReminderModal();
-                    
-                    // Tampilkan pesan sukses setelah delay singkat
-                    setTimeout(() => {
-                        const successMessage = document.createElement('div'); // Mendeklarasikan ulang agar tidak error
-                        successMessage.className = 'success-notification';
-                        successMessage.innerHTML = `
-                            <div class="success-content">
-                                <i class="fas fa-check-circle"></i>
-                                <h4>Reminder Terkirim!</h4>
-                                <p>Reminder laporan Anda telah berhasil dikirim.</p>
-                            </div>
-                        `;
-                        document.body.appendChild(successMessage);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Terjadi kesalahan pada server.');
+        }
+        
+        // Tutup modal
+        closeReminderModal();
+        
+        // Tampilkan pesan sukses menggunakan fungsi yang sudah ada
+        trackReportModule.showSuccessMessage('Reminder laporan Anda telah berhasil dikirim.');
 
-                        setTimeout(() => {
-                            successMessage.classList.add('show');
-                        }, 100);
-
-                        setTimeout(() => {
-                            successMessage.classList.remove('show');
-                            setTimeout(() => {
-                                successMessage.remove();
-                            }, 500);
-                        }, 3000); // Hilang setelah 3 detik
-                    }, 500);
-                } catch (error) {
-                    console.error('Network or unexpected error during user feedback submission:', error);
-                    alert('Terjadi kesalahan jaringan atau tak terduga saat mengirim penilaian. Mohon coba lagi.');
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
-                }
-
-               
-            }
+    } catch (error) {
+        console.error('Error sending reminder:', error);
+        // Tampilkan pesan error menggunakan fungsi yang sudah ada
+        trackReportModule.showErrorMessage(error.message || 'Terjadi kesalahan jaringan. Coba lagi.');
+    } finally {
+        // 2. Apapun hasilnya (sukses/gagal), kembalikan tombol ke keadaan semula
+        button.disabled = false;
+        button.innerHTML = originalText;
+    }
+}
 
             // Menutup modal ketika klik di luar area modal
             document.addEventListener('click', function(event) {
@@ -1795,9 +1783,10 @@
                     }
                 }
             });
+    
         </script>
 
-        <style>
+<style>
         /* Mengatur layout flex untuk card-header */
         .card-header .header-left, .card-header .header-right {
             flex: 1; /* Memberi ruang fleksibel di kiri dan kanan */

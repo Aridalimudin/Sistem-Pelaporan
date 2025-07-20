@@ -9,10 +9,13 @@ use App\Models\Reporter;
 use App\Models\ReporterHistoryTracking;
 use App\Models\Student;
 use Exception;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\View;
 
 class TrackingController extends Controller
 {
@@ -141,6 +144,41 @@ class TrackingController extends Controller
                 'message' => 'Terjadi kesalahan saat menyimpan umpan balik. Mohon coba lagi.' // An error occurred while saving feedback. Please try again.
             ], 500);
         }
+    }
+
+    public function trackPDF(Request $request)
+    {
+        $reporter = Reporter::with(['reporterFile','crime','student','reporterDetail.victims','reporterDetail.perpetrators','reporterDetail.witnesses','operation'])->where('code', $request->code)->first();
+        if (!$reporter) {
+            abort(404, 'Reporter not found.');
+        }
+        $done = ReporterHistoryTracking::where('reporter_id', $reporter->id)->where('status', 3)->first();
+        $perpetratorsNames = $reporter?->reporterDetail?->perpetrators->map(function ($perpetrator) {
+                return $perpetrator->name . ' (' . $perpetrator->classroom . ')';
+        })->implode(', ');
+        $victimNames = $reporter?->reporterDetail?->victims->map(function ($victim) {
+                return $victim->name . ' (' . $victim->classroom . ')';
+        })->implode(', ');
+
+        // Configure Dompdf
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+
+        $dompdf = new Dompdf($options);
+
+        // Load HTML from a Blade view
+        $html = View::make('document.pdf_pelapor', compact('reporter','done','perpetratorsNames','victimNames'))->render();
+
+        $dompdf->loadHtml($html);
+
+        $dompdf->setPaper('A4', 'portrait');
+
+        // Render the HTML as PDF
+        $dompdf->render();
+
+        // Output the generated PDF (inline or download)
+        return $dompdf->stream('laporan_' . $reporter->code . '.pdf', ['Attachment' => 0]);
     }
 
 }

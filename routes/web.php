@@ -11,6 +11,7 @@ use App\Http\Controllers\ReporterUserController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentWebController;
+use App\Models\ClassRoom;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +29,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/track', [TrackingController::class, 'index'])->name('track');
+Route::get('/track-pdf', [TrackingController::class, 'trackPdf'])->name('track.pdf');
 Route::resource('lapor', ReporterController::class);
 Route::post('lapor-upload', [ReporterController::class, 'uploadFile'])->name('lapor.upload');
 Route::post('lapor-detail', [ReporterController::class, 'laporDetailPost'])->name('lapor.detail.post');
@@ -54,7 +56,8 @@ Route::prefix("admin")->middleware(['auth'])->group(function () {
 
     Route::prefix('master-data')->group(function () {
         Route::get('siswa', function () {
-            return view('dashboard_Admin.Data_siswa.siswa');
+            $classRooms = ClassRoom::get(['name']);
+            return view('dashboard_Admin.Data_siswa.siswa', compact('classRooms'));
         })->name('dashboard.siswa');
 
         Route::get('kategori', function () {
@@ -74,6 +77,7 @@ Route::prefix("admin")->middleware(['auth'])->group(function () {
     });
     Route::prefix('laporan')->group(function () {
         Route::get('laporan-masuk', [ReporterUserController::class, 'index'])->name("laporan-masuk.index");
+        Route::get('laporan-masuk-excel', [ReporterUserController::class, 'exportExcel'])->name("laporan-masuk.exportExcel");
         Route::post('laporan-masuk-approve', [ReporterUserController::class, 'approve'])->name("laporan-masuk.approve");
         Route::post('laporan-masuk-reject', [ReporterUserController::class, 'reject'])->name("laporan-masuk.reject");
         Route::post('send-reminder/{report}', [ReporterUserController::class, 'sendReminder'])->name("laporan.sendReminder");

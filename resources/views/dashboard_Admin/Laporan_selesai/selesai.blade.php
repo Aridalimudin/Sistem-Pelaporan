@@ -405,6 +405,7 @@
         $("#detailEmail").text(reporter.student.email);
         $("#detailUraian").text(reporter.description);
         $("#form-proses").attr('action', url);
+        
 
         const keywordsContainer = $("#detailKataKunci");
         if (reporter.crime && reporter.crime.length > 0) {
@@ -489,7 +490,6 @@
         if(reporter_detail){
             $("#detailTanggalKejadian").text(reporter_detail.formatted_report_date);
             $("#detailLokasiKejadian").text(reporter_detail.location);
-            // Ini mungkin perlu diubah jika ingin menampilkan placeholder jika null
             $("#detailInfoTambahan").text(reporter_detail.description || 'Tidak ada informasi tambahan.');
             $("#detailTindakan").text(reporter_detail.notes_by_student || 'Tidak ada tindakan yang diharapkan.');
 
@@ -504,8 +504,42 @@
                     </div>`;
                 });
             } else {
-                 htmlVictims = `<div class="info-placeholder"><p>Tidak ada korban terdaftar.</p></div>`;
+                htmlVictims = `<div class="info-placeholder"><p>Tidak ada korban terdaftar.</p></div>`;
             }
+
+        const actionTaken = reporter.operation ? reporter.operation.name : 'Belum ada informasi penindakan.';
+        const completionNotes = reporter.reason ? `<p>${reporter.reason}</p>` : '<p>Tidak ada catatan tambahan dari pihak sekolah.</p>';
+        const completionDate = reporter.formatted_updated_date || 'Tanggal tidak tersedia';
+        const evidenceFile = reporter.file;
+        const evidenceUrl = reporter.url_file;
+
+        $("#detailTindakanPenyelesaian").text(actionTaken);
+        $("#detailTanggalPenyelesaian").text(completionDate);
+        $("#detailCatatanPenyelesaian").html(completionNotes);
+
+        const buktiPenyelesaianContainer = $("#buktiPenyelesaianContainer");
+    buktiPenyelesaianContainer.empty();
+    if (evidenceFile && evidenceUrl) {
+        const fileName = evidenceFile.split('/').pop();
+        const buktiHtml = `
+            <div class="bukti-grid">
+                <a href="${evidenceUrl}" target="_blank" class="bukti-item" title="Lihat/Unduh Bukti">
+                    <div class="bukti-info">
+                        <span class="bukti-name">${fileName}</span>
+                        <span class="bukti-size">Klik untuk melihat</span>
+                    </div>
+                </a>
+            </div>`;
+        buktiPenyelesaianContainer.html(buktiHtml);
+    } else {
+        const placeholderHtml = `
+            <div class="bukti-placeholder">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 14.899A7 7 0 1115.71 8h1.79a4.5 4.5 0 012.5 8.242M12 12v9" stroke="currentColor" stroke-width="2"/><path d="M8 17l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <p>Tidak ada bukti penyelesaian yang dilampirkan</p>
+            </div>`;
+        buktiPenyelesaianContainer.html(placeholderHtml);
+    }
+        
 
             let perpetrators = reporter_detail.perpetrators;
             let htmlPerpetrators = "";
@@ -541,7 +575,7 @@
             $("#detailTanggalKejadian").text('N/A');
             $("#detailLokasiKejadian").text('N/A');
             $("#detailInfoTambahan").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
-            $("#detailTindakan").text('Belum dilengkapi.');
+            $("#detailTindakan").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
             $("#detail-korban").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
             $("#detail-pelaku").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
             $("#detail-saksi").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');

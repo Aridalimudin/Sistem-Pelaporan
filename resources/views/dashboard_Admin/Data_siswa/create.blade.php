@@ -25,7 +25,12 @@
                         </div>
                         <div class="form-group">
                             <label for="classroom">Kelas *</label>
-                            <input type="text" id="classroom" name="classroom" placeholder="Contoh: 7-A, 8-B" required>
+                            <select id="classroom" name="classroom" required>
+                                <option value="">-- Pilih Kelas --</option>
+                                  @foreach($classRooms as $class)
+                                    <option value="{{$class->name}}">{{$class->name}}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                     <div class="form-actions">

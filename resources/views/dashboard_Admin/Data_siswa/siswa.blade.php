@@ -621,9 +621,6 @@
                         }
                     });
 
-                    // Tambahan validasi final untuk NIS saat submit (hanya angka)
-                    // Ini tetap diperlukan karena event 'input' hanya memfilter,
-                    // tapi tidak langsung mencegah submit jika user hanya menginput non-angka dan tidak mengetik ulang.
                     const nisInputSubmit = document.getElementById('nis');
                     if (nisInputSubmit && nisInputSubmit.value.trim()) {
                         if (!/^\d+$/.test(nisInputSubmit.value.trim())) {
@@ -643,7 +640,7 @@
                             firstInvalidField.focus();
                         }
                         if (!document.querySelector('.status-indicator.show')) {
-                             showStatus('Mohon lengkapi semua field yang diperlukan!', 'error');
+                            showStatus('Mohon lengkapi semua field yang diperlukan!', 'error');
                         }
                         return;
                     }

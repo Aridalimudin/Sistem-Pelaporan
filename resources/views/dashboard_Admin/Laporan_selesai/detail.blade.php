@@ -49,6 +49,20 @@
                         </div>
 
                         <div class="detail-section">
+                        <h4 class="section-title">Kategori Kasus</h4>
+                        <div class="category-container">
+                            <div class="category-item">
+                                <div class="category-value" id="detailKategoriKasus">
+                                    <span class="badge badge-danger">Bullying Verbal</span>
+                                    <span class="badge badge-danger">Bullying Fisik</span> 
+                                    <span class="badge badge-warning">Pelecehan Seksual Verbal</span> 
+                                    <span class="badge badge-warning">Pelecehan Seksual Fisik</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                        <div class="detail-section">
                             <h4 class="section-title">Waktu dan Lokasi Kejadian</h4>
                             <div class="detail-grid-2-col">
                                 <div class="detail-item">
@@ -119,7 +133,7 @@
 
 
                         <div class="detail-grid-2-col no-margin">
-                             <div class="detail-section">
+                            <div class="detail-section">
                                 <h4 class="section-title">Informasi Tambahan</h4>
                                 <div class="info-tambahan-content" id="detailInfoTambahan">
                                     <div class="info-placeholder">
@@ -134,7 +148,15 @@
                             </div>
                         </div>
 
-<div class="detail-section resolution-section">
+                        <div class="detail-section">
+                        <h4 class="section-title">Bukti Pendukung</h4>
+                        <div id="detailBukti" class="bukti-container">
+                            <div class="bukti-grid">
+                                </div>
+                        </div>
+                    </div>
+
+                        <div class="detail-section resolution-section">
                             <h4 class="section-title">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1473,6 +1495,53 @@ html, body {
         padding-top: 16px;
         padding-bottom: 16px;
     }
+}
+.category-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.category-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.category-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.category-value {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.badge-danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #f59e0b;
+    color: white;
 }
 </style>
 

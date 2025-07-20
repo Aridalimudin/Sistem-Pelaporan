@@ -21,6 +21,13 @@ use App\Mail\ReportAcceptedMail;
 use App\Mail\ReportCompletedMail;
 use App\Mail\ReportRejectedMail;
 use App\Mail\ReportReminderMail;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Settings;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ReporterUserController extends Controller
 {
@@ -38,7 +45,14 @@ class ReporterUserController extends Controller
 
     public function history()
     {
-        $reporters = Reporter::with(['student', 'crime', 'reporterFile'])->where("status", 4)->orderByDesc('urgency')->get();
+        $reporters = Reporter::with([
+            'student',
+            'crime',
+            'reporterFile',
+            'reporterDetail.victims', 
+            'reporterDetail.perpetrators',
+            'reporterDetail.witnesses' 
+        ])->where("status", 4)->orderByDesc('urgency')->get();
         return view('dashboard_Admin.History_laporan.history', compact('reporters'));
     }
 
@@ -51,7 +65,19 @@ class ReporterUserController extends Controller
 
     public function selesai()
     {
-        $reporters = Reporter::with(['student', 'crime', 'reporterFile', 'reporterDetail.victims', 'reporterDetail.perpetrators', 'reporterDetail.witnesses'])->where("status", 3)->orderByDesc('urgency')->get();
+        $reporters = Reporter::with([
+                                'student', 
+                                'crime', 
+                                'reporterFile', 
+                                'reporterDetail.victims', 
+                                'reporterDetail.perpetrators', 
+                                'reporterDetail.witnesses',
+                                'operation'
+                            ])
+                            ->where("status", 3)
+                            ->orderByDesc('urgency')
+                            ->get();
+
         return view('dashboard_Admin.Laporan_selesai.selesai', compact('reporters'));
     }
 
@@ -181,6 +207,105 @@ class ReporterUserController extends Controller
         // Cukup panggil fungsi notifikasi dengan tipe 'reminder'
         $this->sendBkNotification($report, 'reminder');
         return redirect()->back()->with('success', 'Email pengingat berhasil dikirim.');
+    }
+
+    public function exportExcel()
+    {
+        $reporters = Reporter::with(['student', 'crime', 'reporterFile'])->orderByDesc('urgency')->get();
+
+        
+        if ($reporters->isEmpty()) {
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Data Laporan Tidak Ada');
+        }
+
+        $page = "Laporan Data Sistem Monitoring dan Pelaporan Kasus Sekolah";
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet()->setTitle("DATA LAPORAN KASUS SEKOLAH");
+
+        // Set column dimensions
+        $columnLetters = range('A', 'Z');
+        foreach ($columnLetters as $letter) {
+            $sheet->getColumnDimension($letter)->setAutoSize(true);
+        }
+
+        // Set page title
+        $sheet->setCellValue('A1', $page);
+        $sheet->getStyle("A1")->getFont()->setSize(14)->setBold(true);
+        $sheet->mergeCells("A1:D1");
+
+        // Set header row
+        $headerRow = ['No.', 'Kode', 'Nama Siswa', 'NIS', 'Kelas', 'Email', 'Tanggal Melapor', 'Urgensi', 'Status', 'Deskripsi'];
+        $sheet->fromArray([$headerRow], null, 'A3');
+        $sheet->getStyle("A3:J3")->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()
+            ->setARGB('b4c6e7');
+
+        // Populate data rows
+        $startRow = 4;
+        foreach ($reporters as $key => $report) {
+            if($report->urgency == 1){
+                $urgency = 'Rendah';
+            }elseif($report->urgency == 2){
+                $urgency = 'Sedang';
+            }elseif($report->urgency == 3){
+                $urgency = 'Tinggi';
+            }else{
+                $urgency = '-';
+            }
+
+             if($report->status == 0){
+                $status = 'Menunggu Approval';
+            }elseif($report->status == 1){
+                $status = 'Menunggu Kelengkapan Data';
+            }elseif($report->status == 2){
+                $status = 'Proses';
+            }elseif($report->status == 3){
+                $status = 'Selesai';
+            }elseif($report->status == 4){
+                $status = 'Reject';
+            }else{
+                $status = '-';
+            }
+
+            $rowData = [
+                $key + 1,
+                $report->code ?? '-',
+                $report->student?->name ?? '-',
+                $report->student?->nis ?? '-',
+                $report->student?->classroom ?? '-',
+                $report->student?->email ?? '-',
+                $report->formatted_created_date ?? '-',
+                strtoupper($urgency) ?? '-',
+                strtoupper($status) ?? '-',
+                $report->description ?? '-',
+            ];
+            $sheet->fromArray([$rowData], null, 'A' . $startRow);
+            $startRow++;
+        }
+
+        // Apply styles
+        $endRow = $startRow - 1;
+        $styleArray = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => '00000000'],
+                ],
+            ],
+        ];
+        $sheet->getStyle('A3:J' . $endRow)->applyFromArray($styleArray);
+
+        // Output the spreadsheet
+        $writer = new Xlsx($spreadsheet);
+        ob_end_clean();
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $page . '.xlsx"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+
     }
 
 

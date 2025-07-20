@@ -56,6 +56,27 @@
                     </div>
 
                     <div class="detail-section">
+                        <h4 class="section-title">Kategori Kasus</h4>
+                        <div class="category-container">
+                            <div class="category-item">
+                                <div class="category-label">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2L2 7V17C2 18.1 2.9 19 4 19H20C21.1 19 22 18.1 22 17V7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M12 22V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Jenis Kasus
+                                </div>
+                                <div class="category-value" id="detailKategoriKasus">
+                                    <span class="badge badge-danger">Bullying Verbal</span>
+                                    <span class="badge badge-danger">Bullying Fisik</span> 
+                                    <span class="badge badge-warning">Pelecehan Seksual Verbal</span> 
+                                    <span class="badge badge-warning">Pelecehan Seksual Fisik</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
                         <h4 class="section-title">Deskripsi Kejadian</h4>
                         <div class="uraian-content" id="detailUraian"></div>
                     </div>
@@ -947,5 +968,52 @@ html, body {
         transform: translateX(0);
         opacity: 0.95;
     }
+}
+.category-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.category-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.category-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.category-value {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.badge-danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #f59e0b;
+    color: white;
 }
 </style>

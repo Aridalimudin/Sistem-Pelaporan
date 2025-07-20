@@ -2,7 +2,7 @@
 
 @section('content')
 
-<main id="content" class="content">
+<main id="content" class="content {{ Request::is('admin/dashboard') ? 'active' : '' }}">
     <header class="dashboard-header">
         <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
         <div class="header-content">
@@ -27,11 +27,11 @@
                             <small>{{ Auth::user()->roles->first()->name ?? 'No Role' }}</small>
                         </div>
                     </div>
-                    <hr class="profile-divider">
+                    {{-- <hr class="profile-divider">
                     <a href="{{ route('Profile_page.profile') }}" class="profile-item">
                         <i class="fa-solid fa-user"></i>
                         <span>Profil Saya</span>
-                    </a>
+                    </a> --}}
                     <hr class="profile-divider">
                     <a href="{{ route('logout') }}" class="profile-item logout-item"
                         onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -56,25 +56,11 @@
                     </div>
                     <div class="metric-content">
                         <h3>Total Laporan</h3>
-                        <div class="metric-number">202</div>
-                        <div class="metric-change positive">
-                            <i class="fa-solid fa-arrow-up"></i>
-                            <span>+12 dari bulan lalu</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="metric-card active-cases">
-                    <div class="metric-icon">
-                        <i class="fa-solid fa-clock"></i>
-                    </div>
-                    <div class="metric-content">
-                        <h3>Kasus Aktif</h3>
-                        <div class="metric-number">46</div>
-                        <div class="metric-change neutral">
-                            <i class="fa-solid fa-spinner fa-spin"></i>
-                            <span>Sedang ditangani</span>
-                        </div>
+                        <div class="metric-number">{{$totalReporter}}</div>
+                          <a href="{{route('laporan-masuk.exportExcel')}}" target="_blank" class="text-muted" style="text-decoration: none;" title="Cetak Laporan">
+                                <i class="fas fa-file-excel"></i>
+                                <span class="btn-print-text">Export Excel</span>
+                            </a>
                     </div>
                 </div>
 
@@ -84,13 +70,20 @@
                     </div>
                     <div class="metric-content">
                         <h3>Kasus Selesai</h3>
-                        <div class="metric-number">156</div>
-                        <div class="metric-change positive">
-                            <i class="fa-solid fa-percentage"></i>
-                            <span>77% tingkat penyelesaian</span>
-                        </div>
+                        <div class="metric-number">{{$totalDoneReporter}}</div>
                     </div>
                 </div>
+
+                <div class="metric-card active-cases">
+                    <div class="metric-icon">
+                        <i class="fa-solid fa-times"></i>
+                    </div>
+                    <div class="metric-content">
+                        <h3>Kasus Ditolak</h3>
+                        <div class="metric-number">{{$totalRejectedReporter}}</div>
+                    </div>
+                </div>
+
 
                 <div class="metric-card students-protected">
                     <div class="metric-icon">
@@ -98,11 +91,7 @@
                     </div>
                     <div class="metric-content">
                         <h3>Siswa Terlindungi</h3>
-                        <div class="metric-number">1,247</div>
-                        <div class="metric-change neutral">
-                            <i class="fa-solid fa-users"></i>
-                            <span>Total siswa dalam sistem</span>
-                        </div>
+                        <div class="metric-number">{{$totalStudent}}</div>
                     </div>
                 </div>
             </div>
@@ -122,7 +111,7 @@
                         </div>
                         <div class="stat-details">
                             <h4>Belum di Accept</h4>
-                            <span class="stat-number">15</span>
+                            <span class="stat-number">{{$totalNotAccepted}}</span>
                             <span class="stat-trend warning">Menunggu persetujuan</span>
                         </div>
                     </div>
@@ -139,7 +128,7 @@
                         </div> 
                         <div class="stat-details">
                             <h4>Belum Melengkapi Data</h4>
-                            <span class="stat-number">23</span>
+                            <span class="stat-number">{{$totalWaiting}}</span>
                             <span class="stat-trend warning">Perlu verifikasi</span>
                         </div>
                     </div>
@@ -155,8 +144,8 @@
                             <i class="fa-solid fa-pause-circle"></i>
                         </div>
                         <div class="stat-details">
-                            <h4>Belum Diproses</h4>
-                            <span class="stat-number">8</span>
+                            <h4>Belum Selesai</h4>
+                            <span class="stat-number">{{$totalNotDone}}</span>
                             <span class="stat-trend warning">Segera tangani</span>
                         </div>
                     </div>
@@ -167,7 +156,91 @@
             </div>
         </div>
 
-        {{-- Laporan per Kelas di bawah card statistik status laporan --}}
+        <div class="analytics-row">
+            <div class="analytics-left">
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3>Distribusi Tingkat Keparahan</h3>
+                    </div>
+                
+                        <div class="category-list"> 
+                    @foreach ($urgenciesData as $urgency)
+                        <div class="category-item">
+                            <div class="category-info">
+                                {{-- Dynamic color class based on urgency level --}}
+                                <div class="category-color {{ $urgency['color_class'] }}"></div>
+                                <span class="category-name">{{ $urgency['name'] }}</span>
+                            </div>
+                            <div class="category-stats">
+                                <span class="category-count">{{ $urgency['count'] }}</span>
+                                <span class="category-percentage">{{ $urgency['percentage'] }}%</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                </div>
+            </div>
+
+            <div class="analytics-right">
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3>Kategori Kasus</h3>
+                    </div>
+                    <div class="category-list">
+                    @foreach ($categoriesData as $category)
+                        <div class="category-item">
+                            <div class="category-info">
+                                {{-- Dynamic color class based on category type --}}
+                                <div class="category-color {{ $category['color_class'] }}"></div>
+                                <span class="category-name">{{ $category['name'] }}</span>
+                            </div>
+                            <div class="category-stats">
+                                <span class="category-count">{{ $category['count'] }}</span>
+                                <span class="category-percentage">{{ $category['percentage'] }}%</span>
+                            </div>
+                        </div>
+                    @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recent-reports-section">
+            <div class="section-header">
+                <h3 class="section-title">Laporan Terbaru Membutuhkan Perhatian</h3>
+                <a href="{{ route('laporan-masuk.index') }}" class="view-all-btn">Lihat Semua</a>
+            </div>
+            <div class="reports-container">
+                @foreach($reporterLatest as $key => $report)
+                    <div class="report-item urgent">
+                        <div class="report-status">
+                            @if($report->urgency == 1)
+                            <span class="status-badge low">Rendah</span>
+                            @elseif($report->urgency == 2)
+                            <span class="status-badge medium">Sedang</span>
+                            @elseif($report->urgency == 3)
+                            <span class="status-badge high">Berat</span>
+                            @endif
+                            <span class="time-ago">{{$report->created_at->diffForHumans()}}</span>
+                        </div>
+                        <div class="report-content">
+                            <h4>{{$report->student?->name}} - {{$report->student?->classroom}}</h4>
+                            <p>{{$report->description}}</p>
+                            
+                            <div class="report-meta">
+                                <span class="category">{{$report->categories}}</span>
+                            </div>
+                        </div>
+                        <div class="report-actions">
+                            <button class="action-btn primary">Accept</button>
+                            <button class="action-btn secondary">Detail</button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
         <div class="class-reports-section"> 
             <div class="chart-card">
                 <div class="card-header">
@@ -183,172 +256,38 @@
                 </div>
             </div>
         </div>
-
-        <div class="analytics-row">
-            <div class="analytics-left">
-                <div class="chart-card">
-                    <div class="card-header">
-                        <h3>Distribusi Tingkat Keparahan</h3>
-                        <div class="card-actions">
-                            <button class="btn-refresh" onclick="refreshChart('severityChart')">
-                                <i class="fa-solid fa-refresh"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="severityChart"></canvas>
-                    </div>
-                </div>
-
-                {{-- The "Status Pemrosesan Laporan" chart was here and has been removed --}}
-            </div>
-
-            <div class="analytics-right">
-                <div class="chart-card">
-                    <div class="card-header">
-                        <h3>Kategori Kasus</h3>
-                    </div>
-                    <div class="category-list">
-                        <div class="category-item">
-                            <div class="category-info">
-                                <div class="category-color bullying-verbal"></div>
-                                <span class="category-name">Bullying Verbal</span>
-                            </div>
-                            <div class="category-stats">
-                                <span class="category-count">91</span>
-                                <span class="category-percentage">45%</span>
-                            </div>
-                        </div>
-                        <div class="category-item">
-                            <div class="category-info">
-                                <div class="category-color bullying-physical"></div>
-                                <span class="category-name">Bullying Fisik</span>
-                            </div>
-                            <div class="category-stats">
-                                <span class="category-count">65</span>
-                                <span class="category-percentage">32%</span>
-                            </div>
-                        </div>
-                        <div class="category-item">
-                            <div class="category-info">
-                                <div class="category-color harassment-verbal"></div>
-                                <span class="category-name">Pelecehan Verbal</span>
-                            </div>
-                            <div class="category-stats">
-                                <span class="category-count">30</span>
-                                <span class="category-percentage">15%</span>
-                            </div>
-                        </div>
-                        <div class="category-item">
-                            <div class="category-info">
-                                <div class="category-color harassment-physical"></div>
-                                <span class="category-name">Pelecehan Fisik</span>
-                            </div>
-                            <div class="category-stats">
-                                <span class="category-count">16</span>
-                                <span class="category-percentage">8%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="recent-reports-section">
-            <div class="section-header">
-                <h3 class="section-title">Laporan Terbaru Membutuhkan Perhatian</h3>
-                <a href="{{ route('laporan-masuk.index') }}" class="view-all-btn">Lihat Semua</a>
-            </div>
-            <div class="reports-container">
-                <div class="report-item urgent">
-                    <div class="report-status">
-                        <span class="status-badge high">Berat</span>
-                        <span class="time-ago">2 jam yang lalu</span>
-                    </div>
-                    <div class="report-content">
-                        <h4>Kasus Pelecehan Seksual - Kelas XI IPA 2</h4>
-                        <p>Laporan dari siswa perempuan tentang tindakan tidak pantas oleh teman sekelas</p>
-                        <div class="report-meta">
-                            <span class="reporter">Anonim</span>
-                            <span class="category">Pelecehan Seksual</span>
-                        </div>
-                    </div>
-                    <div class="report-actions">
-                        <button class="action-btn primary">Accept</button>
-                        <button class="action-btn secondary">Detail</button>
-                    </div>
-                </div>
-                
-                <div class="report-item moderate">
-                    <div class="report-status">
-                        <span class="status-badge medium">Sedang</span>
-                        <span class="time-ago">5 jam yang lalu</span>
-                    </div>
-                    <div class="report-content">
-                        <h4>Bullying Verbal - Kelas X IPS 1</h4>
-                        <p>Siswa dilaporkan sering mengalami intimidasi dan ejekan dari sekelompok teman</p>
-                        <div class="report-meta">
-                            <span class="reporter">Ahmad Fauzi</span>
-                            <span class="category">Bullying</span>
-                        </div>
-                    </div>
-                    <div class="report-actions">
-                        <button class="action-btn primary">Accept</button>
-                        <button class="action-btn secondary">Detail</button>
-                    </div>
-                </div>
-                
-                <div class="report-item low">
-                    <div class="report-status">
-                        <span class="status-badge low">Ringan</span>
-                        <span class="time-ago">1 hari yang lalu</span>
-                    </div>
-                    <div class="report-content">
-                        <h4>Konflik Antar Siswa - Kelas IX A</h4>
-                        <p>Pertengkaran kecil yang perlu mediasi untuk mencegah eskalasi</p>
-                        <div class="report-meta">
-                            <span class="reporter">Siti Nurhaliza</span>
-                            <span class="category">Konflik</span>
-                        </div>
-                    </div>
-                    <div class="report-actions">
-                        <button class="action-btn primary">Accept</button>
-                        <button class="action-btn secondary">Detail</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="quick-actions-section">
-            <div class="section-header">
-                <h3 class="section-title">Aksi Cepat</h3>
-            </div>
-            <div class="quick-actions-grid">
-
-                <a href="{{ route('dashboard.siswa') }}" class="quick-action-card">
-                    <div class="action-icon">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                    <div class="action-content">
-                        <h4>Kelola Siswa</h4>
-                        <p>Tambah atau edit data siswa</p>
-                    </div>
-                </a>
-                <a href="#" class="quick-action-card">
-                    <div class="action-icon">
-                        <i class="fa-solid fa-download"></i>
-                    </div>
-                    <div class="action-content">
-                        <h4>Export Data</h4>
-                        <p>Unduh laporan dalam format Excel</p>
-                    </div>
-                </a>
-            </div>
-        </div>
     </main>
 </div>
 
 <script>
+
+
+ const totalOverallItems = 100; // **Replace with your actual maximum total**
+
+    // --- Data for each card (assuming these come from your backend) ---
+    const totalNotAccepted = {{ $totalNotAccepted ?? 0 }};
+    const totalWaiting = {{ $totalWaiting ?? 0 }};
+    const totalNotDone = {{ $totalNotDone ?? 0 }};
+
+    // --- Function to calculate and set progress bar width ---
+    function setProgressBarWidth(currentValue, maxTotal, progressBarClass) {
+        let percentage = (currentValue / maxTotal) * 100;
+
+        // Ensure percentage doesn't go below 0 or above 100
+        if (percentage < 0) percentage = 0;
+        if (percentage > 100) percentage = 100;
+
+        const progressBar = document.querySelector(progressBarClass);
+        if (progressBar) {
+            progressBar.style.width = percentage + '%';
+        }
+    }
+
+    // --- Apply the function to each progress bar ---
+    setProgressBarWidth(totalNotAccepted, totalOverallItems, '.not-accepted-progress');
+    setProgressBarWidth(totalWaiting, totalOverallItems, '.pending-progress');
+    setProgressBarWidth(totalNotDone, totalOverallItems, '.unprocessed-progress');
+
 // Sidebar Toggle
 function toggleSidebar() {
     document.getElementById("sidebar").classList.toggle("active");
@@ -379,8 +318,6 @@ function refreshChart(chartId) {
     // Simulate data loading
     setTimeout(() => {
         button.classList.remove('loading');
-        // Dalam aplikasi nyata, Anda akan mengambil data baru dan memperbarui grafik
-        // Contoh: if (window.myChartInstance) { window.myChartInstance.update(); }
     }, 1000);
 }
 
@@ -794,13 +731,10 @@ document.addEventListener('DOMContentLoaded', function() {
     width: 100%; /* Pastikan mengambil lebar penuh */
 }
 
-/* KATEGORI KASUS: Pastikan tinggi card ini menyesuaikan dengan chart di sampingnya */
 .category-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    /* Mungkin perlu penyesuaian tinggi di sini jika tidak otomatis pas */
-    /* Misalnya: height: 100%; min-height: 250px; */
 }
 
 
@@ -836,11 +770,11 @@ document.addEventListener('DOMContentLoaded', function() {
     background: #28a745;
 }
 
-.category-color.harassment-verbal {
+.category-color.Pelecehan-Seksual-verbal {
     background: #ffc107;
 }
 
-.category-color.harassment-physical {
+.category-color.Pelecehan-Seksual-fisik {
     background: #dc3545;
 }
 

@@ -10,7 +10,6 @@
             <div class="profile-dropdown">
                 <button class="profile-btn" onclick="toggleProfile()">
                     <i class="fa-solid fa-user-circle"></i>
-                    {{-- Perbaiki di sini: Pastikan Auth::user() ada sebelum mengakses properti --}}
                     <span class="username">{{ Auth::user()->name ?? 'User' }}</span>
                     <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
                 </button>

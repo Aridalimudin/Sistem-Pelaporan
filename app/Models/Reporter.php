@@ -26,9 +26,34 @@ class Reporter extends Model
         'status'
     ];
 
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
     protected $appends = [
-        'formatted_urgency', 'formatted_created_date', 'formatted_status'
+        'formatted_urgency',
+        'formatted_created_date',
+        'formatted_status',
+        'formatted_updated_date', 
+        'url_file',
+        'categories_type'                
     ];
+
+    public function getCategoriesAttribute()
+    {
+        // Mengambil semua nama 'crime' yang berelasi dan menggabungkannya 
+        // menjadi sebuah string yang dipisahkan oleh koma.
+        // Contoh hasil: "Bullying Verbal, Bullying Fisik"
+        return $this->crime->pluck('name')->implode(', ');
+    }
+    public function getCategoriesTypeAttribute()
+    {
+        // Mengambil semua nama 'crime' yang berelasi dan menggabungkannya 
+        // menjadi sebuah string yang dipisahkan oleh koma.
+        // Contoh hasil: "Bullying Verbal, Bullying Fisik"
+        return $this->crime->pluck('type')->unique()->implode(', ');
+    }
 
     public function getFormattedUrgencyAttribute()
     {
@@ -67,6 +92,23 @@ class Reporter extends Model
     {
         return $this->created_at ? $this->created_at->format('d F Y, H:i') : '-';
     }
+
+    // ==========================================================
+    // == FUNGSI BARU DITAMBAHKAN DI SINI ==
+    // ==========================================================
+    public function getFormattedUpdatedDateAttribute()
+    {
+        return $this->updated_at->format('d F Y');
+    }
+
+    public function getUrlFileAttribute()
+    {
+        if ($this->file) {
+            return asset('storage/' . $this->file);
+        }
+        return null;
+    }
+    // ==========================================================
 
     /**
      * Get the studen that owns the Reporter
@@ -122,5 +164,4 @@ class Reporter extends Model
     {
         return $this->hasOne(ReporterDetail::class);
     }
-    
 }

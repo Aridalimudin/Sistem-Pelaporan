@@ -5,7 +5,7 @@
 <main id="content" class="content">
     <header>
         <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-        <h1 class="header-title">Kelola Penolakan Kasus</h1>
+        <h1 class="header-title">Arsip Penolakan Laporan</h1>
         <div class="user-info">
             <div class="profile-dropdown">
                 <button class="profile-btn" onclick="toggleProfile()">
@@ -33,7 +33,7 @@
                     </a>
                     <hr class="profile-divider">
                     <a href="{{ route('logout') }}" class="profile-item logout-item"
-                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i class="fa-solid fa-sign-out-alt"></i>
                         <span>Keluar</span>
                     </a>
@@ -123,7 +123,7 @@
                             <td>{!! $value->formatted_urgency !!}</td>
                             <td>{!! $value->formatted_status !!}</td>
                             <td>
-                                <button class="btn-action btn-detail" data-report='@json($value)' onclick="viewDetail(this)" title="Lihat Detail">
+                                <button class="btn-action btn-detail" data-url="{{route('proses.prosesAccept', $value->id)}}" data-report='@json($value)' onclick="viewDetail(this)" title="Lihat Detail">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
                             </td>
@@ -157,9 +157,24 @@
     </div>
 </main>
 
-@include('dashboard_Admin.Laporan_verifikasi.detail')
+@include('dashboard_Admin.History_laporan.detail')
 
 @push('scripts')
+@if(Session::has('success'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert("{{ Session::get('success') }}", "success");
+        });
+    </script>
+@endif
+
+@if(Session::has('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert("{{ Session::get('error') }}", "error");
+        });
+    </script>
+@endif
 <script>
     let currentPage = 1;
     let entriesPerPage = 10;
@@ -171,35 +186,9 @@
         initializeTable();
 
         $("#btnAccept").on("click", function(){
-            if(confirm('Apakah Anda yakin akan meng-approve data ini?')){
+            if(confirm('Apakah Anda yakin akan menyelesaikan laporan ini?')){
                 let id = $(this).attr('data-id');
-                $.ajax({
-                    url: '{{route("laporan-masuk.approve")}}',
-                    method: 'POST',
-                    data: {
-                        "id" : id,
-                        "_token" : "{{csrf_token()}}"
-                    },
-                    dataType: 'json',
-                    beforeSend: function() {
-                        $("#btnAccept").prop('disabled', true).text('Processing...');
-                    },
-                    success: function(response) {
-                        if (response.status) {
-                            showAlert('Data berhasil di-approve!', 'success');
-                            location.reload();
-                        } else {
-                            showAlert('Gagal meng-approve data: ' + (response.message || 'Terjadi kesalahan.'), 'error');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("AJAX Error:", status, error, xhr.responseText);
-                        showAlert('Terjadi kesalahan saat menghubungi server. Mohon coba lagi.', 'error');
-                    },
-                    complete: function() {
-                        $("#btnAccept").prop('disabled', false).html('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Terima Laporan');
-                    }
-                });
+                $("#form-proses").submit();
             }
         });
 
@@ -233,6 +222,14 @@
                         $("#btnReject").prop('disabled', false).html('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Tolak Laporan');
                     }
                 });
+            }
+        });
+
+        $("#operation_id").on("change", function(){
+            if($(this).val() != ""){
+                $("#btnAccept").attr('disabled', false)
+            }else{
+                $("#btnAccept").attr('disabled', true)
             }
         });
     });
@@ -383,25 +380,42 @@
     }
 
     function showAlert(message, type = 'info') {
-        alert(message);
+        const toastLiveExample = document.getElementById('liveToast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toast = new bootstrap.Toast(toastLiveExample);
+
+        toastMessage.textContent = message;
+        toastLiveExample.classList.remove('bg-success', 'bg-danger');
+        if (type === 'success') {
+            toastLiveExample.classList.add('bg-success');
+        } else if (type === 'error') {
+            toastLiveExample.classList.add('bg-danger');
+        } else {
+            toastLiveExample.classList.add('bg-primary');
+        }
+        toast.show();
     }
 
-    function viewDetail(element) {
-        let reporter = $(element).data('report');
+function viewDetail(element) {
+    let reporter = $(element).data('report');
+    console.log("Data Reporter Lengkap:", reporter);
+    console.log(reporter);
+    let url = $(element).data('url');
+    let reporter_detail = reporter.reporter_detail;
+    $("#detailTanggal").text(reporter.formatted_created_date);
+    $("#detailNIS").text(reporter.student.nis);
+    $("#detailEmail").text(reporter.student.email);
+    $("#detailUraian").text(reporter.description);
+    $("#form-proses").attr('action', url);
 
-        $("#detailTanggal").text(reporter.formatted_created_date);
-        $("#detailNIS").text(reporter.student.nis);
-        $("#detailEmail").text(reporter.student.email);
-        $("#detailUraian").text(reporter.description);
+    const keywordsContainer = $("#detailKataKunci");
+    if (reporter.crime && reporter.crime.length > 0) {
+        let html = "";
+        reporter.crime.forEach(function (item) {
+            let keywordClass = '';
+            let iconSvg = '';
 
-        const keywordsContainer = $("#detailKataKunci");
-        if (reporter.crime && reporter.crime.length > 0) {
-            let html = "";
-            reporter.crime.forEach(function (item) {
-                let keywordClass = '';
-                let iconSvg = '';
-
-                if (item.name.toLowerCase().includes('bullying') || item.name.toLowerCase().includes('intimidasi')) {
+            if (item.name.toLowerCase().includes('bullying') || item.name.toLowerCase().includes('intimidasi')) {
                     keywordClass = 'severity-high';
                     iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                 } else if (item.name.toLowerCase().includes('kekerasan verbal')) {
@@ -421,21 +435,33 @@
                     iconSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                 }
 
-                html += `<span class="keyword-tag ${keywordClass}">${iconSvg} ${item.name}</span>`;
-            });
-            keywordsContainer.html(html);
-        } else {
-            keywordsContainer.html('<span class="text-muted">Tidak ada kata kunci</span>');
-        }
+            html += `<span class="keyword-tag ${keywordClass}">${iconSvg} ${item.name}</span>`;
+        });
+        keywordsContainer.html(html);
+    } else {
+        keywordsContainer.html('<span class="text-muted">Tidak ada kata kunci</span>');
+    }
 
-        const buktiGrid = $("#detailBukti .bukti-grid");
+    const rejectionSection = $('#rejection-section-container');
+    const rejectionReasonText = $('#detailAlasanPenolakan');
+    if (reporter.status == 4) { 
+
+        rejectionReasonText.text(reporter.reason_reject || 'Tidak ada alasan yang diberikan.'); 
+        
+        rejectionSection.show(); 
+    } else {
+        rejectionSection.hide(); 
+    }
+
+
+     const buktiGrid = $("#detailBukti .bukti-grid");
         buktiGrid.empty();
 
         if (reporter.reporter_file && reporter.reporter_file.length > 0) {
             let htmlMedia = "";
             reporter.reporter_file.forEach(function (file) {
                 const fileName = file.file.split('/').pop();
-                const fileSize = 'N/A';
+                const fileSize = 'N/A'; // You might need an actual file size here
 
                 if (isImage(file.file)) {
                     htmlMedia += `
@@ -473,35 +499,75 @@
                 </div>
             `);
         }
+        if (reporter_detail) {
+            $("#detailTanggalKejadian").text(reporter_detail.formatted_report_date);
+            $("#detailLokasiKejadian").text(reporter_detail.location);
+            $("#detailInfoTambahan").text(reporter_detail.description || 'Tidak ada informasi tambahan.');
+            $("#detailTindakan").text(reporter_detail.notes_by_student || 'Tidak ada tindakan yang diharapkan.');
 
-        const statusDot = $("#detailStatusDot");
-        const statusText = $("#detailStatusText");
-        statusDot.removeClass('pending approved rejected');
-        let statusMessage = '';
-
-        if (reporter.status == 0) {
-            statusDot.addClass('pending');
-            statusMessage = 'Menunggu Review';
-            $("#btnReject").show();
-            $("#btnAccept").show();
-        } else if (reporter.status == 1) {
-            statusDot.addClass('approved');
-            statusMessage = 'Laporan Diterima';
-            $("#btnReject").hide();
-            $("#btnAccept").hide();
-        } else if (reporter.status == 2) {
-            statusDot.addClass('rejected');
-            statusMessage = 'Laporan Ditolak';
-            $("#btnReject").hide();
-            $("#btnAccept").hide();
+        // Logika untuk Korban
+        let victims = reporter_detail.victims;
+        let htmlVictims = "";
+        if (victims.length > 0) {
+            victims.forEach(row => {
+                htmlVictims += ` <div class="detail-item">
+                        <div class="detail-label">Nama Korban</div>
+                        <div class="detail-value" id="detailNamaKorban">${row.name+' '+row.classroom}</div>
+                    </div>`;
+            });
+        } else {
+            htmlVictims = `<div class="info-placeholder"><p>Tidak ada korban terdaftar.</p></div>`;
         }
-        statusText.text(`Status: ${statusMessage}`);
 
+        // Logika untuk Pelaku (PINDAHKAN KE DALAM SINI)
+        let perpetrators = reporter_detail.perpetrators;
+        let htmlPerpetrators = "";
+        if (perpetrators.length > 0) {
+            perpetrators.forEach(row => {
+                htmlPerpetrators += ` <div class="detail-item">
+                        <div class="detail-label">Nama Pelaku</div>
+                        <div class="detail-value" id="detailNamaPelaku">${row.name+' '+row.classroom}</div>
+                    </div>`;
+            });
+        } else {
+            htmlPerpetrators = `<div class="info-placeholder"><p>Tidak ada pelaku terdaftar.</p></div>`;
+        }
 
-        $("#btnReject").attr('data-id', reporter.id);
-        $("#btnAccept").attr('data-id', reporter.id);
-        $("#modal-detail").modal('show');
+        // Logika untuk Saksi (PINDAHKAN KE DALAM SINI)
+        let witnesses = reporter_detail.witnesses;
+        let htmlWitnesses = "";
+        if (witnesses.length > 0) {
+            witnesses.forEach(row => {
+                htmlWitnesses += ` <div class="detail-item">
+                        <div class="detail-label">Nama Saksi</div>
+                        <div class="detail-value" id="detailNamaSaksi">${row.name+' '+row.classroom}</div>
+                    </div>`;
+            });
+        } else {
+            htmlWitnesses = `<div class="info-placeholder"><p>Tidak ada saksi terdaftar.</p></div>`;
+        }
+        
+        // Pengisian HTML dilakukan di akhir blok if
+        $("#detail-korban").html(htmlVictims);
+        $("#detail-pelaku").html(htmlPerpetrators);
+        $("#detail-saksi").html(htmlWitnesses);
+
+    } else {
+        // Jika tidak ada reporter_detail (semua detail lanjutan dikosongkan)
+        $("#detailTanggalKejadian").text('Belum dilengkapi');
+        $("#detailLokasiKejadian").text('Belum dilengkapi');
+        $("#detailInfoTambahan").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
+        $("#detailTindakan").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
+        $("#detail-korban").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
+        $("#detail-pelaku").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
+        $("#detail-saksi").html('<div class="info-placeholder"><p>Belum dilengkapi.</p></div>');
     }
+
+    $("#btnReject").attr('data-id', reporter.id);
+    $("#btnAccept").attr('data-id', reporter.id);
+    $("#modal-detail").modal('show');
+    
+}
 
     function toggleSidebar() {
         document.getElementById("sidebar").classList.toggle("active");

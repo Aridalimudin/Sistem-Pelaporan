@@ -69,7 +69,7 @@ class DatabaseSeeder extends Seeder
 
         $userBk->assignRole([$roleBk->id]);
 
-        // $this->call(CrimeSeeder::class);
-        // $this->call(StudentSeeder::class);
+        $this->call(CrimeSeeder::class);
+        $this->call(StudentSeeder::class);
     }
 }
